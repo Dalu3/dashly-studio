@@ -1,0 +1,54 @@
+.footer {
+    background: #f7f7f7;
+    padding: 0.5rem 5rem;
+    display: grid;
+    grid-template-rows: auto auto;
+    row-gap: 1.5rem;
+    font-size: 0.9rem;
+    color: #222;
+    height: 14vh;
+}
+
+.footer-support {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.5rem;
+    font-weight: 600;
+    font-size: 1.2rem;
+}
+
+.ukraine-flag {
+    width: 20px;
+    height: 14px;
+    background: linear-gradient(to bottom, #0057b7 50%, #ffd700 50%);
+    border-radius: 1px;
+}
+
+.footer-bottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.footer-left {
+    font-weight: 500;
+}
+
+.footer-links {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.footer-links a {
+    text-decoration: none;
+    color: #222;
+    font-weight: 500;
+    border-bottom: 1px solid transparent;
+    transition: border-color 0.3s;
+}
+
+.footer-links a:hover {
+    border-color: #222;
+}

@@ -1,0 +1,75 @@
+.contact-section {
+    background: #2e2e2e;
+    color: white;
+    padding: 5rem 2rem;
+    text-align: center;
+}
+
+.contact-section h2 {
+    font-size: 3.7rem;
+    margin-bottom: 5rem;
+    font-weight: 600;
+}
+
+.contact-form {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.input-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+.input-group {
+    flex: 1 1 400px;
+    display: flex;
+    align-items: center; /* vertically center label & input */
+    justify-content: center;
+    padding-bottom: 60px;
+    padding-right: 20px;
+}
+
+.input-group label {
+    width: 120px; /* Ensures all labels align left and are equal width */
+    text-align: left;
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: white;
+    padding-bottom: 5px;
+    flex-shrink: 0;
+    margin-right: 3rem;
+}
+
+.input-group input {
+    width: 300px; /* Shorter underline */
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #aaa;
+    color: white;
+    padding: 0.5rem 0;
+    font-size: 1rem;
+    outline: none;
+}
+
+.input-group input::placeholder {
+    color: #7a7777;
+}
+
+.contact-btn {
+    background: white;
+    color: black;
+    font-weight: 500;
+    padding: 1rem 3rem;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 1.2rem;
+}
+
+.contact-btn:hover {
+    background: #ddd;
+}

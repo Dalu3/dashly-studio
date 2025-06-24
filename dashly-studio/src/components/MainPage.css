@@ -1,21 +1,22 @@
 .hero {
-    max-width: 80%;
-    margin: auto;
-    padding: 4rem 1rem;
+    max-width: 82%;
+}
+.hero-wrapper {
+    display: flex;
+    flex-direction: column;
+    min-height: 84vh;
+    justify-content: center;
+    align-items: center;
 }
 
 .hero-content {
     display: flex;
-    justify-content: space-between;
-    align-items: center; /* ✅ this is the missing piece */
-    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
     gap: 2rem;
-}
-
-.hero-left {
-    flex: 1 1 300px;
-    max-width: 500px;
-    color: #7a7777;
+    max-width: 90%;
+    margin: 0 auto;
+    padding-top: 6rem;
 }
 
 .subtitle {
@@ -24,6 +25,7 @@
     margin-bottom: 1.5rem;
     color: #7a7777;
     font-weight: 500;
+    padding-left: 0px;
 }
 
 .services-link {
@@ -33,21 +35,44 @@
     align-items: center;
     font-size: 1.2rem;
     text-decoration: none;
+    padding-left: 0px;
+}
+
+.hero-left {
+    flex: 2;
+}
+
+.hero-right {
+    flex: 1.8;
+}
+
+.hero-left {
+    margin-top: 12px;
+    padding-left: 0px;
+}
+
+.hero-right {
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    height: 100%;
 }
 
 .hero-divider {
     width: 1px;
+    height: 100%;
     background-color: #000;
-    opacity: 0.4;
-    height: 80%;
+    opacity: 0.3;
     align-self: center;
 }
 
-.hero-right {
-    flex: 1 1 600px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.hero-line {
+    width: 120px;
+    height: 2px;
+    background-color: #000;
+    opacity: 0.5;
+    align-self: center;
+    transform: translateY(-45px);
 }
 
 .headline {
@@ -66,9 +91,9 @@
 .hero-stats {
     display: flex;
     justify-content: space-between;
-    margin-top: 3rem;
+    margin-top: 8rem;
     padding-top: 2rem;
-    border-top: 1px solid #ccc;
+    border-top: 1px solid #000;
     flex-wrap: wrap;
     gap: 2rem;
 }
@@ -77,9 +102,15 @@
     text-align: center;
     flex: 1 1 120px;
 }
+.hero-stats-number {
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* center everything horizontally */
+    text-align: center;
+}
 
 .stat-number {
-    font-size: 2.4rem;
+    font-size: 2.2rem;
     font-weight: 500;
     color: #373734;
     margin: 0px;

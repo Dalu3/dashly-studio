@@ -1,67 +1,70 @@
 .glass-navbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0.2rem 2rem;
-  margin: 2rem auto;
-  border-radius: 100px;
-  background: rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  max-width: 75%;
-  flex-wrap: wrap;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.5rem 2rem;
+    margin: 2rem auto;
+    border-radius: 100px;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    max-width: 75%;
+    flex-wrap: wrap;
+    z-index: 1000;
 }
 
 .logo {
-  font-weight: 600;
-  font-size: 1.2rem;
-  color: #373734;
-  cursor: pointer;
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: #373734;
+    cursor: pointer;
 }
 
 .nav-links {
-  display: flex;
-  align-items: center;
-  gap: 3rem;
+    display: flex;
+    align-items: center;
+    gap: 3rem;
 }
 
 .nav-links a {
-  text-decoration: none;
-  color: #373734;
-  transition: color 0.3s ease;
-  font-weight: 600;
-  font-size: 1rem;
+    text-decoration: none;
+    color: #373734;
+    transition: color 0.3s ease;
+    font-weight: 600;
+    font-size: 1rem;
 }
 
 .nav-links a:hover {
-  color: #4c4c4c;
+    color: #4c4c4c;
 }
 
 .cta {
-  display: flex;
-  align-items: center;
-  gap: 0rem;
-  padding: 0.5rem 0rem;
-  border-radius: 50px;
-  color: #373734;
-  font-weight: bold;
-  transition: background 0.3s ease;
-  padding-left: 50px;
+    display: flex;
+    align-items: center;
+    gap: 0rem;
+    padding: 0.5rem 0rem;
+    border-radius: 50px;
+    color: #373734;
+    font-weight: bold;
+    transition: background 0.3s ease;
+    padding-left: 50px;
 }
 
 .cta:hover {
-  color: #63D5FF;
+    color: #63d5ff;
 }
 
 .arrow-icon {
-  width: 35px;
-  height: 35px;
-  margin-left: 0px;
-  object-fit: contain;
+    width: 35px;
+    height: 35px;
+    margin-left: 0px;
+    object-fit: contain;
 }
 
-.logo, .nav-links a, .cta {
- white-space: nowrap;
+.logo,
+.nav-links a,
+.cta {
+    white-space: nowrap;
 }
