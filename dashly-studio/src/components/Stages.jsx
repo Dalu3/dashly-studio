@@ -117,6 +117,10 @@ export default function Stages() {
                             strokeDashoffset={(1 - (current + 1) / 6) * 282}
                             strokeLinecap="round"
                             transform="rotate(-90 50 50)"
+                            style={{
+                                transition:
+                                    "stroke-dashoffset 0.6s ease-in-out",
+                            }}
                         />
                     </svg>
                 </div>
