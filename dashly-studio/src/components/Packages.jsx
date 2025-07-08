@@ -42,7 +42,7 @@ const packages = [
 
 export default function Packages() {
     return (
-        <div className="packages-section">
+        <div className="packages-section" id="packages">
             <h2 className="packages-title">
                 Choose Your Perfect<br></br> Development Package
             </h2>

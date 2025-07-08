@@ -51,7 +51,7 @@ export default function Stages() {
     }, [current]);
 
     return (
-        <div className="stages-container">
+        <div className="stages-container" id="stages">
             <div className="stages-header">
                 <h2>
                     7 Stages of Website You

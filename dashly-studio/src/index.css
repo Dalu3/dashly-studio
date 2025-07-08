@@ -11,4 +11,14 @@ body {
 html,
 body {
     overflow-x: hidden;
+    scroll-behavior: smooth;
+}
+#packages {
+    scroll-margin-top: -60px;
+}
+#stages {
+    scroll-margin-top: -30px;
+}
+#faq {
+    scroll-margin-top: 60px;
 }

@@ -12,7 +12,7 @@ export function MainPage() {
                                 that align with your business goals and deliver
                                 real results.
                             </p>
-                            <a href="#" className="services-link">
+                            <a href="#packages" className="services-link">
                                 Services{" "}
                                 <img
                                     src={arrowImage}

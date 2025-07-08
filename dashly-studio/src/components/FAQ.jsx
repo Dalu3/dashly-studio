@@ -50,7 +50,7 @@ export default function FAQ() {
     }, []);
 
     return (
-        <div className="faq-container" ref={containerRef}>
+        <div className="faq-container" ref={containerRef} id="faq">
             <h2>FAQ</h2>
             {faqs.map((item, i) => (
                 <div
