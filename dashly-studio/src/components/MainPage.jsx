@@ -3,7 +3,7 @@ import arrowImage from "../assets/arrow.png";
 export function MainPage() {
     return (
         <>
-            <div className="hero-wrapper">
+            <div className="hero-wrapper" id="main">
                 <div className="hero">
                     <div className="hero-content">
                         <div className="hero-left">
@@ -57,9 +57,9 @@ export function MainPage() {
                         </div>
                         <div>
                             <p className="stat-number">
-                                5<span>+</span>
+                                15<span>+</span>
                             </p>
-                            <p className="stat-label">Countries</p>
+                            <p className="stat-label">Clients</p>
                         </div>
                     </div>
                 </div>

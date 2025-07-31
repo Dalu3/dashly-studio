@@ -1,11 +1,22 @@
 import "./Footer.css";
+import { Link } from "react-router-dom";
 
 export default function Footer() {
     return (
         <>
             <footer className="footer">
                 <div className="footer-support">
-                    <span>Stand With Ukraine</span>
+                    <span
+                        className="clickable-ukraine"
+                        onClick={() =>
+                            window.open(
+                                "https://savelife.in.ua/en/donate-en/#donate-army-card-oncehttps://savelife.in.ua/en/donate-en/",
+                                "_blank"
+                            )
+                        }
+                    >
+                        Stand With Ukraine
+                    </span>
                     <span className="ukraine-flag"></span>
                 </div>
 
@@ -19,8 +30,12 @@ export default function Footer() {
                         >
                             Instagram
                         </a>
-                        <a href="#">Privacy</a>
-                        <a href="#">Terms</a>
+                        <Link to="/privacy" className="privacy-link">
+                            Privacy
+                        </Link>
+                        <Link to="/terms" className="privacy-link">
+                            Terms
+                        </Link>
                     </div>
                 </div>
             </footer>

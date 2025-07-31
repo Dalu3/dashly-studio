@@ -54,7 +54,7 @@ export default function Packages() {
                             <span className="package-price">{pkg.price}</span>
                         </div>
                         <p className="package-description">{pkg.description}</p>
-                        <a href="#" className="package-cta">
+                        <a href="#contact" className="package-cta">
                             Ask a question{" "}
                             <img
                                 src={arrowImage}

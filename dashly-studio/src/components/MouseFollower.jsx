@@ -20,8 +20,8 @@ export function MouseFollower() {
         const lerp = (start, end, factor) => start + (end - start) * factor;
 
         const animate = () => {
-            posX = lerp(posX, mouseX, 0.3);
-            posY = lerp(posY, mouseY, 0.3);
+            posX = lerp(posX, mouseX, 0.2);
+            posY = lerp(posY, mouseY, 0.2);
 
             cursor.style.left = `${posX}px`;
             cursor.style.top = `${posY}px`;

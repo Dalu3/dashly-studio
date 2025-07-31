@@ -73,3 +73,60 @@
 .contact-btn:hover {
     background: #ddd;
 }
+
+.status-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+
+    background-color: white;
+    color: black;
+    font-family: "Sora", sans-serif;
+    text-align: center;
+    font-size: 1.2rem;
+    padding: 1.5rem 2.5rem;
+    border-radius: 12px;
+    font-weight: 500;
+    pointer-events: none;
+
+    animation: fadeInOut 3s ease forwards;
+}
+
+.status-message.success {
+    background-color: #d2f8d2;
+    color: #000000;
+    border: 1px solid #2e7d32;
+}
+
+.status-message.error {
+    background-color: #ffe2e2;
+    color: #ffffff;
+    border: 1px solid #d32f2f;
+}
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -55%);
+    }
+    10% {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+    90% {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -45%);
+    }
+}
+input:-webkit-autofill {
+    background-color: transparent !important;
+    -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+    -webkit-text-fill-color: white !important;
+    transition: background-color 9999s ease-in-out 0s; /* prevent flash */
+}

@@ -1,32 +1,58 @@
-import { useRef } from "react";
+import { useRef, useState, useEffect } from "react";
 import emailjs from "@emailjs/browser";
 import "./Contact.css";
 
 export default function Contact() {
     const form = useRef();
+    const [statusMessage, setStatusMessage] = useState("");
+    const [isError, setIsError] = useState(false);
+    const [showMessage, setShowMessage] = useState(false);
 
     const sendEmail = (e) => {
         e.preventDefault();
 
         emailjs
             .sendForm(
-                "your_service_id",
-                "your_template_id",
+                "service_2nd0eb8",
+                "template_78ai7du",
                 form.current,
-                "your_public_key"
+                "OTcxOIk9MP9dFnPQG"
             )
             .then(() => {
-                alert("Message sent successfully!");
+                setStatusMessage("Message sent successfully!");
+                setIsError(false);
+                setShowMessage(true);
                 form.current.reset();
             })
             .catch(() => {
-                alert("Failed to send message, try again later.");
+                setStatusMessage("Failed to send message. Try again later.");
+                setIsError(true);
+                setShowMessage(true);
             });
     };
+
+    // Auto-hide the message after 3 seconds
+    useEffect(() => {
+        if (showMessage) {
+            const timer = setTimeout(() => setShowMessage(false), 3000);
+            return () => clearTimeout(timer);
+        }
+    }, [showMessage]);
 
     return (
         <div className="contact-section" id="contact">
             <h2>Get In Touch</h2>
+
+            {showMessage && (
+                <div
+                    className={`status-message ${
+                        isError ? "error" : "success"
+                    }`}
+                >
+                    {statusMessage}
+                </div>
+            )}
+
             <form ref={form} onSubmit={sendEmail} className="contact-form">
                 <div className="input-row">
                     <div className="input-group">

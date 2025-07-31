@@ -6,7 +6,7 @@
     row-gap: 1.5rem;
     font-size: 0.9rem;
     color: #222;
-    height: 14vh;
+    height: 10vh;
 }
 
 .footer-support {
@@ -51,4 +51,14 @@
 
 .footer-links a:hover {
     border-color: #222;
+}
+.clickable-ukraine {
+    cursor: pointer;
+    color: inherit;
+    transition: transform 0.3s ease;
+}
+
+.clickable-ukraine:hover {
+    background-clip: text;
+    color: #646363;
 }
