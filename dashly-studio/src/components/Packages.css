@@ -1,0 +1,160 @@
+.packages-section {
+    padding: 4rem 2rem;
+    background-color: #1f1f1f;
+    color: white;
+    font-family: "Sora", sans-serif;
+    min-height: 100vh;
+}
+
+.packages-title {
+    text-align: left;
+    font-size: 3.7rem;
+    font-weight: 500;
+    margin-bottom: 3rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding-top: 3rem;
+    padding-bottom: 3rem;
+    padding-left: 3rem;
+}
+
+.packages-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.package-card {
+    background-color: #333;
+    padding: 2rem;
+    border-radius: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.package-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 1rem;
+}
+
+.package-header h3 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: white;
+}
+
+.package-price {
+    color: #63d5ff;
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.package-description {
+    font-size: 0.95rem;
+    color: #ccc;
+    margin-bottom: 1.5rem;
+    line-height: 1.5;
+}
+
+.package-cta {
+    font-weight: 600;
+    font-size: 1rem;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    color: white;
+    gap: 0.5rem;
+}
+.package-cta img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    display: inline-block;
+    flex-shrink: 0;
+    vertical-align: middle;
+}
+
+.arrow-icon {
+    width: 24px;
+    height: 24px;
+}
+@media (min-width: 1060px) and (max-width: 1262px) {
+    .packages-title {
+        font-size: 2.5rem;
+        padding: 3rem 3rem 3rem 3rem;
+    }
+    .package-header h3 {
+        font-size: 1.2rem;
+    }
+}
+@media (min-width: 769px) and (max-width: 1060px) {
+    .packages-title {
+        font-size: 2.3rem;
+        padding: 3rem 3rem 3rem 3rem;
+    }
+    .packages-section {
+        min-height: auto;
+    }
+    .package-header h3 {
+        font-size: 1rem;
+    }
+}
+@media (min-width: 598px) and (max-width: 768px) {
+    .packages-title {
+        font-size: 2.3rem;
+        padding: 3rem 1rem 3rem 1rem;
+        text-align: center;
+    }
+    .packages-section {
+        min-height: auto;
+    }
+    .package-header h3 {
+        font-size: 1rem;
+    }
+}
+@media (min-width: 415px) and (max-width: 598px) {
+    .packages-title {
+        padding: 3rem 0rem;
+        text-align: center;
+        font-size: 2rem;
+        max-width: 100%;
+        white-space: normal;
+        word-break: break-word;
+    }
+    .packages-section {
+        min-height: auto;
+    }
+    .package-description {
+        font-size: 1rem;
+        color: #ccc;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+    }
+    .package-header h3 {
+        font-size: 1rem;
+    }
+}
+@media (min-width: 20px) and (max-width: 415px) {
+    .packages-title {
+        font-size: 2rem;
+        padding: 3rem 1rem 3rem 1rem;
+        text-align: center;
+    }
+    .packages-section {
+        min-height: auto;
+    }
+    .package-description {
+        font-size: 1rem;
+        color: #ccc;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+    }
+    .package-header h3 {
+        font-size: 1rem;
+    }
+}

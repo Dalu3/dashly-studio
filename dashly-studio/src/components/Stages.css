@@ -1,0 +1,562 @@
+.stages-container {
+    max-width: 1100px;
+    padding: 4rem 2rem;
+    min-height: 80vh;
+    margin: auto;
+    font-family: "Sora", sans-serif;
+}
+
+.stages-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    padding-top: 3rem;
+}
+
+.stages-header h2 {
+    font-size: 3.7rem;
+    font-weight: 500;
+}
+
+.stages-navigation {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    font-weight: 500;
+}
+
+.stage-buttons {
+    margin: 2rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.arrow {
+    border: none;
+    background-color: #f6f6f6;
+}
+
+.arrow-button {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+}
+
+.arrow-image {
+    width: 1.8rem; /* or 2rem, adjust as needed */
+    height: auto;
+    object-fit: contain;
+}
+
+.stage-counter {
+    display: flex;
+    align-items: baseline;
+    gap: 0.2rem;
+    font-size: 1.5rem;
+}
+
+.stage-current {
+    font-weight: 500;
+    font-size: 2rem;
+}
+
+.stage-total {
+    font-size: 1.2rem;
+    color: #373734;
+}
+
+.stage-buttons button {
+    padding: 1rem 3rem;
+    background-color: white;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    border-radius: 0px;
+}
+
+.stage-buttons button.active {
+    border: 1px solid black;
+    font-weight: 600;
+}
+
+.stage-description {
+    white-space: pre-line;
+}
+
+.stage-body {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: 2rem;
+    margin-top: 6rem;
+    margin-left: 5rem;
+}
+
+.stage-text {
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.stage-text h3 {
+    font-size: 2.5rem;
+    font-weight: 500;
+    margin-bottom: 2rem;
+}
+
+.stage-text p {
+    font-size: 1.2rem;
+    color: #333;
+    line-height: 1.6;
+    width: 35rem;
+    text-align: justify;
+}
+
+.stage-circle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 50px;
+    margin-top: 0px;
+    animation: fadeIn 0.4s ease-in-out;
+}
+@media (min-width: 1060px) and (max-width: 1262px) {
+    .stages-header h2 {
+        font-size: 2.7rem;
+        padding: 0rem 2rem;
+    }
+    .arrow-image {
+        width: 1.8rem; /* or 2rem, adjust as needed */
+        height: auto;
+        object-fit: contain;
+    }
+
+    .hero-stats {
+        margin-top: 12rem;
+    }
+    .stat-number {
+        font-size: 2rem;
+    }
+
+    .subtitle {
+        font-size: 1.2rem;
+    }
+
+    .services-link {
+        font-size: 1.2rem;
+    }
+    .stage-text h3 {
+        font-size: 2.2rem;
+        font-weight: 500;
+        margin-bottom: 2rem;
+    }
+}
+@media (min-width: 769px) and (max-width: 1060px) {
+    .stages-header h2 {
+        font-size: 2.3rem;
+        padding: 0rem 2rem;
+    }
+    .stages-container {
+        max-width: 1100px;
+        padding: 4rem 2rem;
+        min-height: auto;
+        margin: auto;
+        font-family: "Sora", sans-serif;
+    }
+    .arrow-image {
+        width: 1.8rem; /* or 2rem, adjust as needed */
+        height: auto;
+        object-fit: contain;
+    }
+
+    .hero-stats {
+        margin-top: 12rem;
+    }
+    .stat-number {
+        font-size: 1.5rem;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+    }
+
+    .services-link {
+        font-size: 1rem;
+    }
+    .stage-text h3 {
+        font-size: 2rem;
+        font-weight: 500;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: center;
+    }
+    .stage-buttons button {
+        padding: 0.7rem 1rem;
+        background-color: white;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        font-size: 1.2rem;
+        border-radius: 0px;
+    }
+    .stage-circle {
+        display: none;
+    }
+    .stage-description {
+        display: flex;
+        justify-content: center;
+    }
+
+    .stage-body {
+        display: flex;
+        justify-content: center;
+        margin: auto;
+        padding: 2rem 3rem;
+    }
+}
+@media (min-width: 598px) and (max-width: 769px) {
+    .stages-header h2 {
+        font-size: 2.3rem;
+        padding: 3rem 1rem;
+        margin: 0rem;
+    }
+    .stages-header {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        padding-top: 3rem;
+    }
+    .stages-container {
+        max-width: 1100px;
+        padding: 4rem 3rem;
+        min-height: auto;
+        margin: auto;
+        font-family: "Sora", sans-serif;
+    }
+    .arrow-image {
+        width: 1.8rem; /* or 2rem, adjust as needed */
+        height: auto;
+        object-fit: contain;
+        padding: 1rem;
+    }
+
+    .hero-stats {
+        margin-top: 12rem;
+    }
+    .stat-number {
+        font-size: 1.5rem;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+    }
+
+    .services-link {
+        font-size: 1rem;
+    }
+    .stage-current {
+        font-weight: 500;
+        font-size: 2.4rem;
+        margin: 10px;
+    }
+    .stage-total {
+        font-size: 1.2rem;
+        color: #333;
+        margin-right: 10px;
+    }
+    .arrow-image {
+        width: 1.8rem;
+        height: auto;
+        object-fit: contain;
+        font-weight: lighter;
+        transform: scaleX(2);
+    }
+    .stage-text h3 {
+        font-size: 2rem;
+        font-weight: 500;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: center;
+    }
+    .stage-buttons {
+        /* margin: 2rem 0;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(2, auto);
+        gap: 1rem;
+        justify-items: center;
+        justify-content: space-between; */
+        display: none;
+    }
+    .stage-buttons button {
+        padding: 0.7rem 1rem;
+        background-color: white;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        font-size: 1.2rem;
+        border-radius: 0px;
+    }
+    .stage-circle {
+        display: none;
+    }
+    .stage-description {
+        display: flex;
+        justify-content: center;
+    }
+
+    .stage-body {
+        display: flex;
+        justify-content: center;
+        margin: auto;
+        padding: 2rem 3rem;
+    }
+}
+@media (min-width: 415px) and (max-width: 598px) {
+    .stages-header h2 {
+        font-size: 2rem;
+        padding: 1rem 0rem;
+        text-align: center;
+        max-width: 100%;
+        white-space: normal;
+        word-break: break-word;
+    }
+
+    .stages-header {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        padding-top: 3rem;
+    }
+    .stages-container {
+        max-width: 1100px;
+        padding: 1rem;
+        min-height: auto;
+
+        margin: auto;
+        font-family: "Sora", sans-serif;
+    }
+    .arrow-image {
+        width: 1.8rem;
+        height: auto;
+        object-fit: contain;
+        padding: 1rem;
+    }
+
+    .hero-stats {
+        margin-top: 12rem;
+    }
+    .stat-number {
+        font-size: 1.2rem;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+    }
+
+    .services-link {
+        font-size: 1rem;
+    }
+    .stage-current {
+        font-weight: 400;
+        font-size: 2rem;
+        margin-left: 5px;
+    }
+    .stage-total {
+        font-size: 1.2rem;
+        color: #333;
+        margin-right: 10px;
+    }
+    .arrow-image {
+        width: 1.8rem; /* or 2rem, adjust as needed */
+        height: auto;
+        object-fit: contain;
+        font-weight: lighter;
+        transform: scaleX(2);
+    }
+    .stage-text h3 {
+        font-size: 1.7rem;
+        font-weight: 500;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: center;
+    }
+    .stage-buttons {
+        /* margin: 2rem 0;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(2, auto);
+        gap: 1rem;
+        justify-items: center;
+        justify-content: space-between; */
+        display: none;
+    }
+    .stage-buttons button {
+        padding: 0.7rem 1rem;
+        background-color: white;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        font-size: 1.2rem;
+        border-radius: 0px;
+    }
+    .stage-circle {
+        display: none;
+    }
+
+    .stage-body {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 2rem;
+        margin: auto;
+        padding: 2rem 2rem;
+    }
+    .stage-description {
+        display: block;
+        font-size: 1rem;
+        text-align: justify;
+        line-height: 1.6;
+        max-width: 100%;
+        padding: 0rem;
+        word-break: break-word;
+        white-space: pre-line;
+    }
+
+    .stage-text {
+        width: 100%;
+        max-width: 800px;
+    }
+}
+@media (min-width: 20px) and (max-width: 415px) {
+    .stages-header h2 {
+        font-size: 2.2rem;
+        padding: 1rem;
+        text-align: center;
+    }
+    .stages-header {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        padding-top: 3rem;
+    }
+    .stages-container {
+        max-width: 1100px;
+        padding: 1rem;
+        min-height: auto;
+
+        margin: auto;
+        font-family: "Sora", sans-serif;
+    }
+    .arrow-image {
+        width: 1.8rem; /* or 2rem, adjust as needed */
+        height: auto;
+        object-fit: contain;
+    }
+
+    .hero-stats {
+        margin-top: 12rem;
+    }
+    .stat-number {
+        font-size: 1.2rem;
+    }
+
+    .subtitle {
+        font-size: 1rem;
+    }
+
+    .services-link {
+        font-size: 1rem;
+    }
+    .stage-current {
+        font-weight: 400;
+        font-size: 2rem;
+        margin-left: 5px;
+    }
+    .stage-total {
+        font-size: 1.2rem;
+        color: #333;
+        margin-right: 10px;
+    }
+    .arrow-image {
+        width: 1.8rem; /* or 2rem, adjust as needed */
+        height: auto;
+        object-fit: contain;
+        font-weight: lighter;
+        transform: scaleX(2);
+    }
+    .stage-text h3 {
+        font-size: 1.7rem;
+        font-weight: 500;
+        margin-bottom: 2rem;
+        display: flex;
+        justify-content: center;
+        text-align: center;
+    }
+    .stage-buttons {
+        /* margin: 2rem 0;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(2, auto);
+        gap: 1rem;
+        justify-items: center;
+        justify-content: space-between; */
+        display: none;
+    }
+    .stage-buttons button {
+        padding: 0.7rem 1rem;
+        background-color: white;
+        font-weight: 500;
+        border: none;
+        cursor: pointer;
+        font-size: 1.2rem;
+        border-radius: 0px;
+    }
+    .stage-circle {
+        display: none;
+    }
+
+    .stage-body {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 2rem;
+        margin: auto;
+        padding: 2rem 2rem;
+    }
+    .stage-description {
+        display: block;
+        font-size: 1rem;
+        text-align: justify;
+        line-height: 1.6;
+        max-width: 100%;
+        padding: 0rem;
+        word-break: break-word;
+        white-space: pre-line;
+    }
+
+    .stage-text {
+        width: 100%;
+        max-width: 800px;
+    }
+}

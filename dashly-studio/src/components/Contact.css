@@ -1,0 +1,215 @@
+.contact-section {
+    background: #2e2e2e;
+    color: white;
+    padding: 5rem 2rem;
+    text-align: center;
+}
+
+.contact-section h2 {
+    font-size: 3.7rem;
+    margin-bottom: 5rem;
+    font-weight: 600;
+}
+
+.contact-form {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.input-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+.input-group {
+    flex: 1 1 400px;
+    display: flex;
+    align-items: center; /* vertically center label & input */
+    justify-content: center;
+    padding-bottom: 60px;
+    padding-right: 20px;
+}
+
+.input-group label {
+    width: 120px; /* Ensures all labels align left and are equal width */
+    text-align: left;
+    font-size: 1.2rem;
+    font-weight: 400;
+    color: white;
+    padding-bottom: 5px;
+    flex-shrink: 0;
+    margin-right: 3rem;
+}
+
+.input-group input {
+    width: 300px; /* Shorter underline */
+    background: transparent;
+    border: none;
+    border-bottom: 1px solid #aaa;
+    color: white;
+    padding: 0.5rem 0;
+    font-size: 1rem;
+    outline: none;
+}
+
+.input-group input::placeholder {
+    color: #7a7777;
+}
+
+.contact-btn {
+    background: white;
+    color: black;
+    font-weight: 500;
+    padding: 1rem 3rem;
+    border: none;
+    border-radius: 999px;
+    cursor: pointer;
+    transition: 0.3s;
+    font-size: 1.2rem;
+}
+
+.contact-btn:hover {
+    background: #ddd;
+}
+
+.status-message {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 9999;
+    background-color: white;
+    color: black;
+    font-family: "Sora", sans-serif;
+    text-align: center;
+    font-size: 1.2rem;
+    padding: 2rem 2.3rem;
+    border-radius: 12px;
+    font-weight: 500;
+    pointer-events: none;
+    animation: fadeInOut 3s ease forwards;
+}
+
+.status-message.success {
+    background-color: #d2f8d2;
+    color: #000000;
+    border: 1px solid #2e7d32;
+}
+
+.status-message.error {
+    background-color: #ffe2e2;
+    color: #ffffff;
+    border: 1px solid #d32f2f;
+}
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        transform: translate(-50%, -55%);
+    }
+    10% {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+    90% {
+        opacity: 1;
+        transform: translate(-50%, -50%);
+    }
+    100% {
+        opacity: 0;
+        transform: translate(-50%, -45%);
+    }
+}
+input:-webkit-autofill {
+    background-color: transparent !important;
+    -webkit-box-shadow: 0 0 0px 1000px transparent inset !important;
+    -webkit-text-fill-color: white !important;
+    transition: background-color 9999s ease-in-out 0s; /* prevent flash */
+}
+@media (min-width: 1060px) and (max-width: 1262px) {
+    .contact-section h2 {
+        font-size: 2.7rem;
+    }
+
+    .input-group label {
+        font-size: 1.1rem;
+    }
+    .contact-btn {
+        font-size: 1.1rem;
+    }
+}
+@media (min-width: 769px) and (max-width: 1060px) {
+    .contact-section h2 {
+        font-size: 2.2rem;
+    }
+
+    .input-group label {
+        font-size: 1rem;
+    }
+    .contact-btn {
+        font-size: 1rem;
+    }
+}
+@media (min-width: 598px) and (max-width: 769px) {
+    .contact-section h2 {
+        font-size: 2.2rem;
+    }
+
+    .input-group label {
+        font-size: 1rem;
+    }
+    .contact-btn {
+        font-size: 1rem;
+    }
+    .status-message {
+        font-size: 1rem;
+    }
+}
+@media (min-width: 557px) and (max-width: 598px) {
+    .contact-section h2 {
+        font-size: 2.2rem;
+    }
+
+    .input-group label {
+        font-size: 1rem;
+    }
+    .contact-btn {
+        font-size: 1rem;
+    }
+    .status-message {
+        font-size: 1rem;
+    }
+}
+@media (min-width: 20px) and (max-width: 557px) {
+    .contact-section h2 {
+        font-size: 2.2rem;
+    }
+
+    .input-group label {
+        font-size: 1rem;
+    }
+    .contact-btn {
+        font-size: 1rem;
+    }
+    .input-group {
+        flex-direction: column;
+        align-items: flex-start;
+        padding-right: 0;
+    }
+
+    .input-group label {
+        margin-right: 0;
+        margin-bottom: 0.5rem;
+        width: 100%; /* make it full width */
+        text-align: left;
+    }
+
+    .input-group input {
+        width: 100%;
+    }
+    .status-message {
+        font-size: 1rem;
+    }
+}

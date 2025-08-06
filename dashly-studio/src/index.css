@@ -1,10 +1,61 @@
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&display=swap");
 
-body{
-  background-color: #F6F6F6;
-  font-family: 'Sora', sans-serif;
+body {
+    background-color: #f6f6f6;
+    font-family: "Sora", sans-serif;
 }
 
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
+    display: none;
+}
 
+* {
+    margin: 0;
+}
 
+html,
+body {
+    overflow-x: hidden;
+    scroll-behavior: smooth;
+    background-color: #f6f6f6;
+    overflow-y: scroll;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+#packages {
+    /* scroll-margin-top: -2px; */
+}
+#stages {
+    scroll-margin-top: 53px;
+}
+#faq {
+    scroll-margin-top: 50px;
+}
+#contact {
+    scroll-margin-top: 30px;
+}
+/* iPhone SE (320px) */
+@media (max-width: 320px) {
+    /* very small screens */
+}
 
+/* iPhone 12/13/14 (390px) */
+@media (max-width: 390px) {
+    /* small phones */
+}
+
+/* iPhone 14 Pro Max (430px) */
+@media (max-width: 430px) {
+    /* large phones */
+}
+
+/* iPads (768px - 1024px) */
+@media (min-width: 768px) and (max-width: 1024px) {
+    /* tablets */
+}
+
+/* Laptops (1024px – 1366px) */
+@media (min-width: 1024px) and (max-width: 1366px) {
+    /* laptops */
+}
