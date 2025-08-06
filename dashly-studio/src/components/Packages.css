@@ -70,8 +70,91 @@
     color: white;
     gap: 0.5rem;
 }
+.package-cta img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+    display: inline-block;
+    flex-shrink: 0;
+    vertical-align: middle;
+}
 
 .arrow-icon {
     width: 24px;
     height: 24px;
+}
+@media (min-width: 1060px) and (max-width: 1262px) {
+    .packages-title {
+        font-size: 2.5rem;
+        padding: 3rem 3rem 3rem 3rem;
+    }
+    .package-header h3 {
+        font-size: 1.2rem;
+    }
+}
+@media (min-width: 769px) and (max-width: 1060px) {
+    .packages-title {
+        font-size: 2.3rem;
+        padding: 3rem 3rem 3rem 3rem;
+    }
+    .packages-section {
+        min-height: auto;
+    }
+    .package-header h3 {
+        font-size: 1rem;
+    }
+}
+@media (min-width: 598px) and (max-width: 768px) {
+    .packages-title {
+        font-size: 2.3rem;
+        padding: 3rem 1rem 3rem 1rem;
+        text-align: center;
+    }
+    .packages-section {
+        min-height: auto;
+    }
+    .package-header h3 {
+        font-size: 1rem;
+    }
+}
+@media (min-width: 415px) and (max-width: 598px) {
+    .packages-title {
+        padding: 3rem 0rem;
+        text-align: center;
+        font-size: 2rem;
+        max-width: 100%;
+        white-space: normal;
+        word-break: break-word;
+    }
+    .packages-section {
+        min-height: auto;
+    }
+    .package-description {
+        font-size: 1rem;
+        color: #ccc;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+    }
+    .package-header h3 {
+        font-size: 1rem;
+    }
+}
+@media (min-width: 20px) and (max-width: 415px) {
+    .packages-title {
+        font-size: 2rem;
+        padding: 3rem 1rem 3rem 1rem;
+        text-align: center;
+    }
+    .packages-section {
+        min-height: auto;
+    }
+    .package-description {
+        font-size: 1rem;
+        color: #ccc;
+        margin-bottom: 1.5rem;
+        line-height: 1.5;
+    }
+    .package-header h3 {
+        font-size: 1rem;
+    }
 }

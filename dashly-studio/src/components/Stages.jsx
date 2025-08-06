@@ -1,5 +1,7 @@
 import { useState, useEffect } from "react";
 import "./Stages.css";
+import arrowRight from "../assets/arrow-right.png";
+import arrowLeft from "../assets/arrow-left.png";
 
 const stages = [
     {
@@ -36,7 +38,6 @@ export default function Stages() {
     const prev = () =>
         setCurrent((prev) => (prev - 1 + stages.length) % stages.length);
 
-    // Keyboard navigation
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (e.key === "ArrowLeft") {
@@ -61,7 +62,11 @@ export default function Stages() {
                 <div className="stages-navigation">
                     <button className="arrow-button" onClick={prev}>
                         <span className="arrow-line" />
-                        <span className="arrow-symbol">←</span>
+                        <img
+                            src={arrowRight}
+                            alt="Next"
+                            className="arrow-image"
+                        />
                     </button>
 
                     <div className="stage-counter">
@@ -70,7 +75,12 @@ export default function Stages() {
                     </div>
 
                     <button className="arrow-button" onClick={next}>
-                        <span className="arrow-symbol">→</span>
+                        <img
+                            src={arrowLeft}
+                            alt="Previous"
+                            className="arrow-image"
+                        />
+
                         <span className="arrow-line" />
                     </button>
                 </div>

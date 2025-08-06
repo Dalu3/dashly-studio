@@ -28,3 +28,93 @@
 .privacy-container ul {
     padding-left: 20px;
 }
+@media (min-width: 1060px) and (max-width: 1262px) {
+    .privacy-container {
+        max-width: 90%;
+    }
+    .privacy-container h1 {
+        font-size: 2.5rem;
+    }
+    .privacy-container h2 {
+        margin-top: 30px;
+        font-size: 1.5rem;
+    }
+
+    .privacy-container p,
+    .privacy-container ul {
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+}
+@media (min-width: 769px) and (max-width: 1060px) {
+    .privacy-container {
+        max-width: 90%;
+    }
+    .privacy-container h1 {
+        font-size: 2.2rem;
+    }
+    .privacy-container h2 {
+        margin-top: 30px;
+        font-size: 1.3rem;
+    }
+
+    .privacy-container p,
+    .privacy-container ul {
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+}
+@media (min-width: 598px) and (max-width: 769px) {
+    .privacy-container {
+        max-width: 90%;
+    }
+    .privacy-container h1 {
+        font-size: 2.2rem;
+    }
+    .privacy-container h2 {
+        margin-top: 30px;
+        font-size: 1.3rem;
+    }
+
+    .privacy-container p,
+    .privacy-container ul {
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+}
+@media (min-width: 415px) and (max-width: 598px) {
+    .privacy-container {
+        max-width: 90%;
+    }
+    .privacy-container h1 {
+        font-size: 1.7rem;
+    }
+    .privacy-container h2 {
+        margin-top: 30px;
+        font-size: 1.2rem;
+    }
+
+    .privacy-container p,
+    .privacy-container ul {
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+}
+@media (min-width: 20px) and (max-width: 415px) {
+    .privacy-container {
+        max-width: 90%;
+    }
+    .privacy-container h1 {
+        font-size: 1.7rem;
+    }
+    .privacy-container h2 {
+        margin-top: 30px;
+        font-size: 1.2rem;
+    }
+
+    .privacy-container p,
+    .privacy-container ul {
+        font-size: 1rem;
+        line-height: 1.6;
+    }
+}

@@ -24,13 +24,16 @@ body {
     -ms-overflow-style: none;
 }
 #packages {
-    scroll-margin-top: -20px;
+    /* scroll-margin-top: -2px; */
 }
 #stages {
-    scroll-margin-top: 5px;
+    scroll-margin-top: 53px;
 }
 #faq {
-    scroll-margin-top: 60px;
+    scroll-margin-top: 50px;
+}
+#contact {
+    scroll-margin-top: 30px;
 }
 /* iPhone SE (320px) */
 @media (max-width: 320px) {
@@ -55,9 +58,4 @@ body {
 /* Laptops (1024px – 1366px) */
 @media (min-width: 1024px) and (max-width: 1366px) {
     /* laptops */
-}
-
-/* Desktop (≥1440px) */
-@media (min-width: 1440px) {
-    /* large desktops */
 }
