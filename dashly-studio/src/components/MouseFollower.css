@@ -11,3 +11,16 @@
     animation: pulse 1.5s infinite ease-in-out;
     background-color: transparent;
 }
+
+@media (min-width: 20px) and (max-width: 1023px) {
+    .custom-cursor {
+        display: none !important;
+    }
+}
+
+/* Hide on devices without fine pointer (touch devices) */
+@media (hover: none), (pointer: coarse) {
+    .custom-cursor {
+        display: none !important;
+    }
+}
