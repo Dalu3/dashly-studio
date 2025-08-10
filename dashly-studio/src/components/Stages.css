@@ -68,7 +68,7 @@
 
 .stage-total {
     font-size: 1.2rem;
-    color: #373734;
+    color: #2a2a26;
 }
 
 .stage-buttons button {
@@ -123,7 +123,7 @@
 
 .stage-text p {
     font-size: 1.2rem;
-    color: #333;
+    color: #2a2a26;
     line-height: 1.6;
     width: 35rem;
     text-align: justify;
@@ -279,7 +279,7 @@
     }
     .stage-total {
         font-size: 1.2rem;
-        color: #333;
+        color: #2a2a26;
         margin-right: 10px;
     }
     .arrow-image {
@@ -383,7 +383,7 @@
     }
     .stage-total {
         font-size: 1.2rem;
-        color: #333;
+        color: #2a2a26;
         margin-right: 10px;
     }
     .arrow-image {
@@ -495,7 +495,7 @@
     }
     .stage-total {
         font-size: 1.2rem;
-        color: #333;
+        color: #2a2a26;
         margin-right: 10px;
     }
     .arrow-image {

@@ -5,7 +5,7 @@
     grid-template-rows: auto auto;
     row-gap: 1.5rem;
     font-size: 0.9rem;
-    color: #222;
+    color: #2a2a26;
     height: 10vh;
 }
 
@@ -43,14 +43,14 @@
 
 .footer-links a {
     text-decoration: none;
-    color: #222;
+    color: #2a2a26;
     font-weight: 500;
     border-bottom: 1px solid transparent;
     transition: border-color 0.3s;
 }
 
 .footer-links a:hover {
-    border-color: #222;
+    border-color: #2a2a26;
 }
 .clickable-ukraine {
     cursor: pointer;
@@ -86,7 +86,7 @@
         grid-template-rows: auto auto;
         row-gap: 1.5rem;
         font-size: 0.9rem;
-        color: #222;
+        color: #2a2a26;
         height: 10vh;
     }
 }
@@ -101,7 +101,7 @@
         grid-template-rows: auto auto;
         row-gap: 1.5rem;
         font-size: 0.9rem;
-        color: #222;
+        color: #2a2a26;
         height: 10vh;
     }
     .footer-links {
@@ -123,7 +123,7 @@
         grid-template-rows: auto auto;
         row-gap: 1.5rem;
         font-size: 0.9rem;
-        color: #222;
+        color: #2a2a26;
         height: 10vh;
     }
     .footer-links {

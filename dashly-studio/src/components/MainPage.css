@@ -17,7 +17,7 @@
     gap: 2rem;
     max-width: 90%;
     margin: 0rem auto;
-    padding-top: 6rem;
+    padding-top: 5rem;
 }
 
 .subtitle {
@@ -89,7 +89,7 @@
     font-size: 4rem;
     font-weight: 500;
     line-height: 1.2;
-    color: #222;
+    color: #2a2a26;
 }
 
 .highlight {
@@ -122,7 +122,7 @@
 .stat-number {
     font-size: 2.2rem;
     font-weight: 500;
-    color: #373734;
+    color: #2a2a26;
     margin: 0px;
 }
 
@@ -270,7 +270,7 @@
         font-weight: 500;
         line-height: 1.2;
         margin-bottom: 1.3rem;
-        color: #222;
+        color: #2a2a26;
     }
 
     .highlight {
@@ -302,7 +302,7 @@
     .stat-number {
         font-size: 2.2rem;
         font-weight: 500;
-        color: #373734;
+        color: #2a2a26;
         margin: 0px;
     }
 
@@ -401,7 +401,7 @@
         font-weight: 500;
         line-height: 1.2;
         margin-bottom: 1.3rem;
-        color: #222;
+        color: #2a2a26;
     }
 
     .highlight {
@@ -433,7 +433,7 @@
     .stat-number {
         font-size: 1.5rem;
         font-weight: 500;
-        color: #373734;
+        color: #2a2a26;
         margin: 0px;
     }
 
@@ -532,7 +532,7 @@
         font-weight: 500;
         line-height: 1.2;
         margin-bottom: 1.3rem;
-        color: #222;
+        color: #2a2a26;
     }
 
     .highlight {
@@ -658,7 +658,7 @@
         font-weight: 500;
         line-height: 1.2;
         margin-bottom: 1.3rem;
-        color: #222;
+        color: #2a2a26;
     }
 
     .highlight {
@@ -685,7 +685,7 @@
     .stat-number {
         font-size: 1.5rem;
         font-weight: 500;
-        color: #373734;
+        color: #2a2a26;
         margin: 0px;
     }
 

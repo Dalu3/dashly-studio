@@ -59,3 +59,16 @@ body {
 @media (min-width: 1024px) and (max-width: 1366px) {
     /* laptops */
 }
+
+@media (max-width: 1023px) {
+    .custom-cursor {
+        display: none !important;
+    }
+}
+
+/* Hide on devices without fine pointer (touch devices) */
+@media (hover: none), (pointer: coarse) {
+    .custom-cursor {
+        display: none !important;
+    }
+}

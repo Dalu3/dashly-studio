@@ -38,6 +38,7 @@
     align-items: center;
     text-align: left;
     cursor: pointer;
+    color: #2a2a26;
 }
 
 .faq-icon {
@@ -49,7 +50,7 @@
     max-height: 0;
     overflow: hidden;
     padding: 0rem 1.5rem;
-    color: #333;
+    color: #2a2a26;
     font-size: 1.2rem;
     transition: max-height 0.4s ease, padding-top 0.4s ease,
         padding-bottom 0.4s ease;
