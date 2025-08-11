@@ -19,7 +19,7 @@ body {
     overflow-x: hidden;
     scroll-behavior: smooth;
     background-color: #f6f6f6;
-    overflow-y: scroll;
+    overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
 }
@@ -37,5 +37,9 @@ body {
 }
 
 html {
-    scroll-behavior: smooth;
+    scroll-behavior: auto; /* default for normal scroll */
+}
+
+html.smooth-scroll {
+    scroll-behavior: smooth; /* turn on only when needed */
 }
