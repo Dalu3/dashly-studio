@@ -579,14 +579,10 @@
 @media (max-width: 700px) {
     .stage-text h3 {
         text-align: center;
-        margin: 0 auto 12px; /* space under the heading */
     }
 
     .stage-description p,
     .stage-description {
-        max-width: 90%;
-        margin: 0 auto;
         text-align: center;
-        line-height: 1.6;
     }
 }
