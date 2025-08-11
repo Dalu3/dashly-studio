@@ -560,3 +560,11 @@
         max-width: 800px;
     }
 }
+@media (max-width: 768px) {
+    /* adjust for tablets/phones */
+    .stages-header {
+        flex-direction: column; /* stack elements vertically */
+        align-items: center; /* center items horizontally */
+        text-align: center; /* make sure text is centered */
+    }
+}
