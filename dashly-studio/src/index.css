@@ -35,27 +35,7 @@ body {
 #contact {
     scroll-margin-top: 30px;
 }
-/* iPhone SE (320px) */
-@media (max-width: 320px) {
-    /* very small screens */
-}
 
-/* iPhone 12/13/14 (390px) */
-@media (max-width: 390px) {
-    /* small phones */
-}
-
-/* iPhone 14 Pro Max (430px) */
-@media (max-width: 430px) {
-    /* large phones */
-}
-
-/* iPads (768px - 1024px) */
-@media (min-width: 768px) and (max-width: 1024px) {
-    /* tablets */
-}
-
-/* Laptops (1024px – 1366px) */
-@media (min-width: 1024px) and (max-width: 1366px) {
-    /* laptops */
+html {
+    scroll-behavior: smooth;
 }
