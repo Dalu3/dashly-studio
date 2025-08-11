@@ -34,7 +34,7 @@ const packages = [
     },
     {
         title: "Redesign Web",
-        price: "from £800",
+        price: "from £600",
         description:
             "We’ll redesign your current site to look modern, load faster, and work better, enhancing both the user experience and your results.",
     },
