@@ -31,20 +31,20 @@ function HomePage() {
 function App() {
     const [isLoading, setIsLoading] = useState(true);
 
+    // A) Init: only reset to top when there's NO hash. No smooth here.
     useEffect(() => {
         window.history.scrollRestoration = "manual";
-        window.scrollTo({ top: 0, behavior: "smooth" });
-
-        const timer = setTimeout(() => {
-            setIsLoading(false);
-        }, 1000);
-
+        if (!window.location.hash) {
+            window.scrollTo(0, 0);
+        }
+        const timer = setTimeout(() => setIsLoading(false), 1000);
         return () => clearTimeout(timer);
     }, []);
+
+    // B) After loader: if there's a hash, smooth-scroll to it
     useEffect(() => {
         if (!isLoading && window.location.hash) {
             const id = decodeURIComponent(window.location.hash.slice(1));
-            // wait one frame so the DOM is painted
             requestAnimationFrame(() => {
                 document.getElementById(id)?.scrollIntoView({
                     behavior: "smooth",
