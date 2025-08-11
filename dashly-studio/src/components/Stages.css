@@ -560,11 +560,20 @@
         max-width: 800px;
     }
 }
-@media (max-width: 768px) {
-    /* adjust for tablets/phones */
-    .stages-header {
-        flex-direction: column; /* stack elements vertically */
-        align-items: center; /* center items horizontally */
-        text-align: center; /* make sure text is centered */
+/* Mobile fix: center each stage title */
+@media (max-width: 700px) {
+    .stage-body {
+        margin-left: 0; /* remove the 5rem push */
+        justify-content: center;
+    }
+
+    .stage-text {
+        width: 100%;
+        text-align: center; /* centers text inside */
+    }
+
+    .stage-text h3 {
+        margin: 0 auto 1.5rem; /* center the block */
+        text-align: center; /* center the text lines */
     }
 }

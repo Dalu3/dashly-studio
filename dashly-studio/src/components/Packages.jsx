@@ -15,10 +15,10 @@ const packages = [
             "Showcase your work, style, or brand with a clean, responsive portfolio site — built to impress, convert, and help you stand out in your industry.",
     },
     {
-        title: "One-Page Web",
+        title: "Multi-Page Web",
         price: "from £750",
         description:
-            "All your content — simplified into one powerful, scrollable page. Great for small brands and creators needing a full presence in one place.",
+            "A full-featured website with multiple pages — perfect for businesses needing separate sections for services, about, contact, and more.",
     },
     {
         title: "Catalogue Web",
