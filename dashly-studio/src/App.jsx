@@ -41,6 +41,18 @@ function App() {
 
         return () => clearTimeout(timer);
     }, []);
+    useEffect(() => {
+        if (!isLoading && window.location.hash) {
+            const id = decodeURIComponent(window.location.hash.slice(1));
+            // wait one frame so the DOM is painted
+            requestAnimationFrame(() => {
+                document.getElementById(id)?.scrollIntoView({
+                    behavior: "smooth",
+                    block: "start",
+                });
+            });
+        }
+    }, [isLoading]);
 
     return (
         <Router>

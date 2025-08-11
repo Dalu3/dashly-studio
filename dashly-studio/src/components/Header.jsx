@@ -7,7 +7,6 @@ function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const navRef = useRef();
 
-    // Close menu if clicked outside
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (
@@ -24,7 +23,6 @@ function Header() {
             document.removeEventListener("mousedown", handleClickOutside);
     }, [isMenuOpen]);
 
-    // Close menu when any nav link is clicked
     const handleLinkClick = () => {
         setIsMenuOpen(false);
     };
@@ -64,16 +62,16 @@ function Header() {
                         &times;
                     </span>
                 )}
-                <a href="#packages" onClick={handleLinkClick}>
+                <a href="/#packages" onClick={handleLinkClick}>
                     Services
                 </a>
-                <a href="#stages" onClick={handleLinkClick}>
+                <a href="/#stages" onClick={handleLinkClick}>
                     Stages
                 </a>
-                <a href="#faq" onClick={handleLinkClick}>
+                <a href="/#faq" onClick={handleLinkClick}>
                     FAQ
                 </a>
-                <a href="#contact" className="cta" onClick={handleLinkClick}>
+                <a href="/#contact" className="cta" onClick={handleLinkClick}>
                     Get In Touch
                     <img
                         src={arrowIcon}
