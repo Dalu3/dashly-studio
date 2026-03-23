@@ -8,9 +8,8 @@ export function MainPage() {
                     <div className="hero-content">
                         <div className="hero-left">
                             <p className="subtitle">
-                                Dashly Studio builds modern, reliable websites
-                                that align with your business goals and deliver
-                                real results.
+                                Need a website that actually brings you clients?
+                                Dashly Studio builds websites that convert.
                             </p>
                             <a href="#packages" className="services-link">
                                 Services{" "}

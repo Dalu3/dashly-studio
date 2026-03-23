@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useLayoutEffect, useRef } from "react";
 import "./Stages.css";
 import arrowRight from "../assets/arrow-right.png";
 import arrowLeft from "../assets/arrow-left.png";
+
+const MOBILE_BREAKPOINT = "(max-width: 768px)";
 
 const stages = [
     {
@@ -26,17 +28,45 @@ const stages = [
     },
     {
         title: "LAUNCH & ONGOING SUPPORT",
-        description: `Once the site is complete, we’ll run final tests on all devices to ensure everything works smoothly. If anything comes up during or after launch, we’ll fix it right away. \n\n And even after the project ends, you can always reach out for updates or new features.
+        description: `Once the website is completed, we will test it across all devices to ensure everything works smoothly. \n\n Every project includes 2 weeks of post-launch support for any minor fixes or adjustments. After that, you can always reach out for updates or new features.
         `,
     },
 ];
 
 export default function Stages() {
     const [current, setCurrent] = useState(0);
+    const touchStartRef = useRef({ x: 0, y: 0 });
+    const stageBodyRef = useRef(null);
+    const stageTextRef = useRef(null);
+    const measureRefs = useRef([]);
+    const [stageTextMinHeight, setStageTextMinHeight] = useState(0);
+    const [isMobileViewport, setIsMobileViewport] = useState(() => {
+        if (typeof window === "undefined") return false;
+        return window.matchMedia(MOBILE_BREAKPOINT).matches;
+    });
 
     const next = () => setCurrent((prev) => (prev + 1) % stages.length);
     const prev = () =>
         setCurrent((prev) => (prev - 1 + stages.length) % stages.length);
+
+    useEffect(() => {
+        if (typeof window === "undefined") return undefined;
+
+        const mediaQuery = window.matchMedia(MOBILE_BREAKPOINT);
+        const handleChange = (event) => {
+            setIsMobileViewport(event.matches);
+        };
+
+        setIsMobileViewport(mediaQuery.matches);
+
+        if (mediaQuery.addEventListener) {
+            mediaQuery.addEventListener("change", handleChange);
+            return () => mediaQuery.removeEventListener("change", handleChange);
+        }
+
+        mediaQuery.addListener(handleChange);
+        return () => mediaQuery.removeListener(handleChange);
+    }, []);
 
     useEffect(() => {
         const handleKeyDown = (e) => {
@@ -51,34 +81,143 @@ export default function Stages() {
         return () => window.removeEventListener("keydown", handleKeyDown);
     }, [current]);
 
+    const handleTouchStart = (event) => {
+        if (!isMobileViewport) return;
+
+        const touch = event.changedTouches[0];
+        touchStartRef.current = {
+            x: touch.clientX,
+            y: touch.clientY,
+        };
+    };
+
+    const handleTouchEnd = (event) => {
+        if (!isMobileViewport) return;
+
+        const touch = event.changedTouches[0];
+        const deltaX = touch.clientX - touchStartRef.current.x;
+        const deltaY = touch.clientY - touchStartRef.current.y;
+
+        if (Math.abs(deltaX) < 50 || Math.abs(deltaX) <= Math.abs(deltaY)) {
+            return;
+        }
+
+        if (deltaX < 0) {
+            next();
+            return;
+        }
+
+        prev();
+    };
+
+    useLayoutEffect(() => {
+        if (
+            typeof window === "undefined" ||
+            !stageBodyRef.current ||
+            !stageTextRef.current
+        ) {
+            return undefined;
+        }
+
+        if (isMobileViewport) {
+            setStageTextMinHeight(0);
+            return undefined;
+        }
+
+        const updateStageTextHeight = () => {
+            const width = stageTextRef.current?.getBoundingClientRect().width;
+            if (!width) return;
+
+            measureRefs.current.forEach((node) => {
+                if (node) {
+                    node.style.width = `${width}px`;
+                }
+            });
+
+            const maxHeight = Math.ceil(
+                Math.max(
+                    stageTextRef.current.getBoundingClientRect().height,
+                    ...measureRefs.current.map((node) =>
+                        node ? node.getBoundingClientRect().height : 0,
+                    ),
+                ),
+            );
+
+            setStageTextMinHeight((currentHeight) =>
+                currentHeight === maxHeight ? currentHeight : maxHeight,
+            );
+        };
+
+        updateStageTextHeight();
+
+        const resizeObserver = new ResizeObserver(updateStageTextHeight);
+        resizeObserver.observe(stageBodyRef.current);
+
+        window.addEventListener("resize", updateStageTextHeight);
+        document.fonts?.ready?.then(updateStageTextHeight);
+
+        return () => {
+            resizeObserver.disconnect();
+            window.removeEventListener("resize", updateStageTextHeight);
+        };
+    }, [isMobileViewport]);
+
     return (
-        <div className="stages-container" id="stages">
+        <section
+            className="stages-container"
+            id="stages"
+            aria-labelledby="stages-title"
+            aria-describedby="stages-seo-copy"
+        >
             <div className="stages-header">
-                <h2>
-                    7 Stages of Website You
-                    <br /> Need to Know
+                <h2 className="block-title" id="stages-title">
+                    {isMobileViewport ? (
+                        "Website Process in 7 Steps"
+                    ) : (
+                        "7 Stages of Website You Need to Know"
+                    )}
                 </h2>
+                <p className="visually-hidden" id="stages-seo-copy">
+                    Our process supports web design Scotland and web development
+                    Scotland projects for small businesses in Aberdeen and
+                    across the UK, from discovery and planning to launch, SEO
+                    readiness, and ongoing support.
+                </p>
 
                 <div className="stages-navigation">
-                    <button className="arrow-button" onClick={prev}>
+                    <button
+                        className="arrow-button"
+                        onClick={prev}
+                        type="button"
+                        aria-label="Previous stage"
+                    >
                         <span className="arrow-line" />
                         <img
                             src={arrowRight}
-                            alt="Next"
+                            alt=""
                             className="arrow-image"
+                            aria-hidden="true"
+                            decoding="async"
                         />
                     </button>
 
                     <div className="stage-counter">
                         <span className="stage-current">{current + 1}</span>
-                        <span className="stage-total">/6</span>
+                        <span className="stage-total">/{stages.length}</span>
                     </div>
 
-                    <button className="arrow-button" onClick={next}>
+                    <button
+                        className="arrow-button"
+                        onClick={next}
+                        type="button"
+                        aria-label="Next stage"
+                    >
                         <img
                             src={arrowLeft}
-                            alt="Previous"
+                            alt=""
                             className="arrow-image"
+                            aria-hidden="true"
+                            decoding="async"
                         />
 
                         <span className="arrow-line" />
@@ -92,14 +231,30 @@ export default function Stages() {
                         key={i}
                         className={i === current ? "active" : ""}
                         onClick={() => setCurrent(i)}
+                        type="button"
+                        aria-label={`Show stage ${i + 1}`}
                     >
                         Stage {i + 1}
                     </button>
                 ))}
             </div>
 
-            <div className="stage-body">
-                <div className="stage-text" key={current}>
+            <div
+                className="stage-body"
+                ref={stageBodyRef}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+            >
+                <div
+                    className="stage-text"
+                    key={current}
+                    ref={stageTextRef}
+                    style={
+                        stageTextMinHeight
+                            ? { minHeight: `${stageTextMinHeight}px` }
+                            : undefined
+                    }
+                >
                     <h3>{stages[current].title}</h3>
                     <p className="stage-description">
                         {stages[current].description}
@@ -124,7 +279,9 @@ export default function Stages() {
                             strokeWidth="10"
                             fill="none"
                             strokeDasharray="282"
-                            strokeDashoffset={(1 - (current + 1) / 6) * 282}
+                            strokeDashoffset={
+                                (1 - (current + 1) / stages.length) * 282
+                            }
                             strokeLinecap="round"
                             transform="rotate(-90 50 50)"
                             style={{
@@ -132,9 +289,33 @@ export default function Stages() {
                                     "stroke-dashoffset 0.6s ease-in-out",
                             }}
                         />
+                        {current === stages.length - 1 ? (
+                            <path
+                                d="M39 50L46.5 57.5L60 44"
+                                className="stage-checkmark"
+                                fill="none"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                            />
+                        ) : null}
                     </svg>
                 </div>
             </div>
-        </div>
+
+            <div className="stage-measurements" aria-hidden="true">
+                {stages.map((stage, index) => (
+                    <div
+                        key={index}
+                        ref={(element) => {
+                            measureRefs.current[index] = element;
+                        }}
+                        className="stage-text stage-text--measure"
+                    >
+                        <h3>{stage.title}</h3>
+                        <p className="stage-description">{stage.description}</p>
+                    </div>
+                ))}
+            </div>
+        </section>
     );
 }

@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import Header from "./Header.jsx";
 import Footer from "./Footer.jsx";
 import { MouseFollower } from "./MouseFollower.jsx";
+import Seo from "./Seo.jsx";
 
 export default function Terms() {
     useEffect(() => {
@@ -11,9 +12,15 @@ export default function Terms() {
 
     return (
         <>
+            <Seo
+                title="Terms and Conditions | Dashly Studio"
+                description="Terms and conditions for Dashly Studio, a web design and website development studio serving Aberdeen and businesses across the UK."
+                path="/terms"
+                robots="noindex,follow"
+            />
             <MouseFollower />
             <Header />
-            <div className="privacy-container">
+            <main className="privacy-container">
                 <h1>Terms and Conditions</h1>
                 <p>Last updated: July 31, 2025</p>
 
@@ -75,7 +82,7 @@ export default function Terms() {
                     If you have any questions about these Terms and Conditions,
                     please contact us via the form on our website.
                 </p>
-            </div>
+            </main>
             <Footer />
         </>
     );

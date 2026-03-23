@@ -1,28 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import "./FAQ.css";
-
-const faqs = [
-    {
-        question: "HOW LONG DOES IT TAKE TO BUILD A WEBSITE?",
-        answer: "Most projects take 1–2 month, depending on the scope and response time. We’ll give you a timeline before we start.",
-    },
-    {
-        question: "WILL MY WEBSITE WORK ON PHONES AND TABLETS?",
-        answer: "Absolutely. All our websites are fully responsive and look great on all screen sizes.",
-    },
-    {
-        question: "WHAT IS YOUR WORK AND PAYMENT PROCESS?",
-        answer: "We work in stages. First, we start with a free consultation. Once we agree on the scope, a 50% deposit is required to begin. The remaining 50% is paid after the website is completed and approved.",
-    },
-    {
-        question: "WHAT AFFECTS THE COST OF THE WEBSITE?",
-        answer: "The price depends on the number of pages, design complexity, required features, and whether you need help with content. You’ll get a clear quote after our first call.",
-    },
-    {
-        question: "DO YOU CREATE CUSTOM WEBSITES FROM SCRATCH?",
-        answer: "Yes, we create fully custom websites using real code. This means your site will be faster, more secure, and tailored exactly to your needs.",
-    },
-];
+import { faqItems } from "../seo/siteMetadata.js";
 
 export default function FAQ() {
     const [activeIndex, setActiveIndex] = useState(null);
@@ -35,10 +13,10 @@ export default function FAQ() {
     // Закривання при кліку поза боксом або на відповіді
     useEffect(() => {
         const handleClickOutside = (event) => {
-            if (
-                containerRef.current &&
-                !containerRef.current.contains(event.target)
-            ) {
+            const activeItem =
+                containerRef.current?.querySelector(".faq-item.active");
+
+            if (activeItem && !activeItem.contains(event.target)) {
                 setActiveIndex(null);
             }
         };
@@ -50,9 +28,25 @@ export default function FAQ() {
     }, []);
 
     return (
-        <div className="faq-container" ref={containerRef} id="faq">
-            <h2>FAQ</h2>
-            {faqs.map((item, i) => (
+        <section
+            className="faq-container"
+            ref={containerRef}
+            id="faq"
+            aria-labelledby="faq-title"
+            aria-describedby="faq-seo-copy"
+        >
+            <h2 className="block-title" id="faq-title">
+                <span className="faq-title-desktop">FAQ</span>
+                <span className="faq-title-mobile">
+                    Frequently Asked Questions
+                </span>
+            </h2>
+            <p className="visually-hidden" id="faq-seo-copy">
+                These answers cover timelines, custom builds, responsive
+                website UK requirements, and how Dashly Studio handles UK
+                website design projects for service businesses and startups.
+            </p>
+            {faqItems.map((item, i) => (
                 <div
                     key={i}
                     className={`faq-item ${activeIndex === i ? "active" : ""}`}
@@ -60,13 +54,15 @@ export default function FAQ() {
                     <button
                         className="faq-question"
                         onClick={() => toggleFAQ(i)}
+                        type="button"
+                        aria-expanded={activeIndex === i}
+                        aria-controls={`faq-answer-${i}`}
                     >
-                        <span>{item.question}</span>
-                        <span className="faq-icon">
-                            {activeIndex === i ? "×" : "+"}
-                        </span>
+                        <span className="faq-question-text">{item.question}</span>
+                        <span className="faq-icon" aria-hidden="true" />
                     </button>
                     <div
+                        id={`faq-answer-${i}`}
                         className="faq-answer"
                         onClick={() => setActiveIndex(null)}
                     >
@@ -74,6 +70,6 @@ export default function FAQ() {
                     </div>
                 </div>
             ))}
-        </div>
+        </section>
     );
 }

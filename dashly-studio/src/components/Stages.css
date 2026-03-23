@@ -1,36 +1,47 @@
 .stages-container {
-    max-width: 1100px;
-    padding: 4rem 2rem;
-    min-height: 80vh;
-    margin: auto;
+    position: relative;
+    width: 100%;
+    padding: 6rem 2rem;
+    min-height: auto;
+    box-sizing: border-box;
     font-family: "Sora", sans-serif;
+}
+
+.stages-header,
+.stage-buttons,
+.stage-body {
+    width: 100%;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    box-sizing: border-box;
 }
 
 .stages-header {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    padding-top: 3rem;
+    align-items: flex-start;
+    gap: 2rem;
 }
 
-.stages-header h2 {
-    font-size: 3.7rem;
-    font-weight: 500;
+.stages-header .block-title {
+    flex: 1 1 0;
+    min-width: 0;
+    max-width: none;
+    margin: 0;
+    padding: 0 1.4rem;
+    line-height: 1.1;
 }
 
 .stages-navigation {
     display: flex;
     align-items: center;
     gap: 1rem;
+    min-width: 11rem;
+    margin-top: 0.75rem;
     font-weight: 500;
-}
-
-.stage-buttons {
-    margin: 2rem 0;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: space-between;
+    flex-shrink: 0;
+    justify-content: flex-end;
 }
 
 .arrow {
@@ -57,28 +68,44 @@
 .stage-counter {
     display: flex;
     align-items: baseline;
+    justify-content: center;
     gap: 0.2rem;
+    min-width: 3.25rem;
     font-size: 1.5rem;
+    font-variant-numeric: tabular-nums;
 }
 
 .stage-current {
     font-weight: 500;
     font-size: 2rem;
+    font-variant-numeric: tabular-nums;
 }
 
 .stage-total {
     font-size: 1.2rem;
     color: #2a2a26;
+    font-variant-numeric: tabular-nums;
+}
+
+.stage-buttons {
+    margin: 2rem auto 0;
+    padding: 0 1.4rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
 }
 
 .stage-buttons button {
-    padding: 1rem 3rem;
+    flex: 1 1 10rem;
+    max-width: 11rem;
+    padding: 1rem 2rem;
     background-color: white;
     font-weight: 500;
     border: none;
     cursor: pointer;
     font-size: 1.2rem;
-    border-radius: 0px;
+    border-radius: 0;
 }
 
 .stage-buttons button.active {
@@ -86,22 +113,87 @@
     font-weight: 600;
 }
 
+.stage-body {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 3rem;
+    margin: 5rem auto 0;
+}
+
+.stage-text {
+    flex: 1 1 42rem;
+    max-width: 44rem;
+    padding-left: 1.4rem;
+    animation: fadeIn 0.4s ease-in-out;
+}
+
+.stage-text h3 {
+    font-size: 2.5rem;
+    line-height: 1.1;
+    font-weight: 500;
+    margin-bottom: 2rem;
+    white-space: nowrap;
+}
+
 .stage-description {
     white-space: pre-line;
 }
 
-.stage-body {
-    display: flex;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    gap: 2rem;
-    margin-top: 6rem;
-    margin-left: 5rem;
+.stage-text p {
+    width: 100%;
+    max-width: 35rem;
+    font-size: 1.2rem;
+    color: #2a2a26;
+    line-height: 1.6;
+    text-align: justify;
 }
 
-.stage-text {
+.stage-circle {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 2rem;
     animation: fadeIn 0.4s ease-in-out;
+}
+
+.stage-circle svg {
+    width: 270px;
+    height: 270px;
+}
+
+.stage-measurements {
+    position: absolute;
+    inset: 0;
+    visibility: hidden;
+    pointer-events: none;
+    overflow: hidden;
+    z-index: -1;
+}
+
+.stage-text--measure {
+    position: absolute;
+    top: 0;
+    left: 0;
+    max-width: none;
+    min-height: 0;
+    animation: none;
+}
+
+.stage-checkmark {
+    stroke: #29c9ff;
+    stroke-width: 4;
+    opacity: 0.72;
+    animation: fadeIn 0.25s ease-in-out;
+}
+
+.stage-circle-number {
+    fill: #29c9ff;
+    font-size: 1.35rem;
+    font-weight: 500;
+    opacity: 0.78;
+    dominant-baseline: middle;
 }
 
 @keyframes fadeIn {
@@ -109,480 +201,266 @@
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-.stage-text h3 {
-    font-size: 2.5rem;
-    font-weight: 500;
-    margin-bottom: 2rem;
-}
-
-.stage-text p {
-    font-size: 1.2rem;
-    color: #2a2a26;
-    line-height: 1.6;
-    width: 35rem;
-    text-align: justify;
-}
-
-.stage-circle {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 50px;
-    margin-top: 0px;
-    animation: fadeIn 0.4s ease-in-out;
-}
-@media (min-width: 1060px) and (max-width: 1262px) {
-    .stages-header h2 {
-        font-size: 2.7rem;
-        padding: 0rem 2rem;
-    }
-    .arrow-image {
-        width: 1.8rem; /* or 2rem, adjust as needed */
-        height: auto;
-        object-fit: contain;
+@media (max-width: 1107px) {
+    .stages-header .block-title {
+        max-width: 42rem;
+        font-size: 3rem;
     }
 
-    .hero-stats {
-        margin-top: 12rem;
-    }
-    .stat-number {
-        font-size: 2rem;
-    }
-
-    .subtitle {
-        font-size: 1.2rem;
+    .stage-buttons button {
+        flex-basis: 9rem;
+        padding: 0.9rem 1.2rem;
+        font-size: 1.05rem;
     }
 
-    .services-link {
-        font-size: 1.2rem;
+    .stage-body {
+        gap: 2.5rem;
     }
+
+    .stage-text {
+        max-width: 40rem;
+        margin-left: 1rem;
+    }
+
     .stage-text h3 {
         font-size: 2.2rem;
-        font-weight: 500;
-        margin-bottom: 2rem;
+    }
+
+    .stage-text p {
+        max-width: 31rem;
+        font-size: 1.1rem;
+    }
+
+    .stage-circle {
+        margin-right: 0;
+    }
+
+    .stage-circle svg {
+        width: 240px;
+        height: 240px;
     }
 }
-@media (min-width: 769px) and (max-width: 1060px) {
-    .stages-header h2 {
-        font-size: 2.3rem;
-        padding: 0rem 2rem;
+
+@media (max-width: 1060px) {
+    .stages-header .block-title {
     }
+
+    .stages-navigation {
+        width: auto;
+        justify-content: flex-end;
+        margin-top: 0;
+        margin-left: auto;
+    }
+
+    .stage-buttons {
+        flex-wrap: nowrap;
+        gap: 0.5rem;
+        justify-content: space-between;
+        padding: 0 1rem;
+    }
+
+    .stage-buttons button {
+        flex: 1 1 0;
+        max-width: none;
+        min-width: 0;
+        font-size: 0.9rem;
+        padding: 0.8rem 0.25rem;
+    }
+
+    .stage-body {
+        gap: 2rem;
+        margin-top: 4rem;
+    }
+
+    .stage-text {
+        flex-basis: 34rem;
+        max-width: 36rem;
+        margin-left: 0;
+    }
+
+    .stage-text h3 {
+        font-size: 2rem;
+    }
+
+    .stage-text p {
+        max-width: 100%;
+        font-size: 1rem;
+    }
+
+    .stage-circle svg {
+        width: 220px;
+        height: 220px;
+    }
+}
+
+@media (max-width: 768px) {
     .stages-container {
-        max-width: 1100px;
         padding: 4rem 2rem;
-        min-height: auto;
-        margin: auto;
-        font-family: "Sora", sans-serif;
-    }
-    .arrow-image {
-        width: 1.8rem; /* or 2rem, adjust as needed */
-        height: auto;
-        object-fit: contain;
     }
 
-    .hero-stats {
-        margin-top: 12rem;
-    }
-    .stat-number {
-        font-size: 1.5rem;
-    }
-
-    .subtitle {
-        font-size: 1rem;
-    }
-
-    .services-link {
-        font-size: 1rem;
-    }
-    .stage-text h3 {
-        font-size: 2rem;
-        font-weight: 500;
-        margin-bottom: 2rem;
-        display: flex;
-        justify-content: center;
-    }
-    .stage-buttons button {
-        padding: 0.7rem 1rem;
-        background-color: white;
-        font-weight: 500;
-        border: none;
-        cursor: pointer;
-        font-size: 1.2rem;
-        border-radius: 0px;
-    }
-    .stage-circle {
-        display: none;
-    }
-    .stage-description {
-        display: flex;
-        justify-content: center;
-    }
-
-    .stage-body {
-        display: flex;
-        justify-content: center;
-        margin: auto;
-        padding: 2rem 3rem;
-    }
-}
-@media (min-width: 598px) and (max-width: 769px) {
-    .stages-header h2 {
-        font-size: 2rem;
-        padding: 3rem 1rem;
-        margin: 0rem;
-    }
     .stages-header {
-        display: flex;
-        justify-content: center;
-        align-items: center;
         flex-wrap: wrap;
-        padding-top: 3rem;
+        align-items: center;
+        justify-content: center;
+        gap: 1.5rem;
     }
-    .stages-container {
-        max-width: 1100px;
-        padding: 4rem 3rem;
-        min-height: auto;
-        margin: auto;
-        font-family: "Sora", sans-serif;
+
+    .stages-header .block-title {
+        flex: 1 1 100%;
+        max-width: 100%;
+        padding: 0 2rem;
+        font-size: 2.3rem;
+        text-align: center;
     }
+
+    .stages-navigation {
+        order: 2;
+        width: 100%;
+        justify-content: center;
+        gap: 0.75rem;
+        margin-top: 0.25rem;
+        margin-left: 0;
+    }
+
     .arrow-image {
-        width: 1.8rem; /* or 2rem, adjust as needed */
-        height: auto;
-        object-fit: contain;
-        padding: 1rem;
+        width: 1.5rem;
     }
 
-    .hero-stats {
-        margin-top: 12rem;
-    }
-    .stat-number {
-        font-size: 1.5rem;
+    .stage-counter {
+        font-size: 1.2rem;
     }
 
-    .subtitle {
-        font-size: 1rem;
-    }
-
-    .services-link {
-        font-size: 1rem;
-    }
     .stage-current {
-        font-weight: 500;
-        font-size: 2.4rem;
-        margin: 10px;
+        font-size: 1.75rem;
     }
+
     .stage-total {
-        font-size: 1.2rem;
-        color: #2a2a26;
-        margin-right: 10px;
+        font-size: 1rem;
     }
-    .arrow-image {
-        width: 1.8rem;
-        height: auto;
-        object-fit: contain;
-        font-weight: lighter;
-        transform: scaleX(2);
-    }
-    .stage-text h3 {
-        font-size: 2rem;
-        font-weight: 500;
-        margin-bottom: 2rem;
-        display: flex;
-        justify-content: center;
-    }
+
     .stage-buttons {
-        /* margin: 2rem 0;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        grid-template-rows: repeat(2, auto);
-        gap: 1rem;
-        justify-items: center;
-        justify-content: space-between; */
         display: none;
-    }
-    .stage-buttons button {
-        padding: 0.7rem 1rem;
-        background-color: white;
-        font-weight: 500;
-        border: none;
-        cursor: pointer;
-        font-size: 1.2rem;
-        border-radius: 0px;
-    }
-    .stage-circle {
-        display: none;
-    }
-    .stage-description {
-        display: flex;
-        justify-content: center;
     }
 
     .stage-body {
-        display: flex;
         justify-content: center;
-        margin: auto;
-        padding: 2rem 3rem;
+        margin-top: 1rem;
+        position: relative;
+        overflow: hidden;
+        padding: 1rem 0;
+        touch-action: pan-y;
     }
-}
-@media (min-width: 415px) and (max-width: 598px) {
-    .stages-header h2 {
-        font-size: 2rem;
-        padding: 1rem 0rem;
+
+    .stage-text {
+        max-width: 26rem;
+        padding-left: 0;
+        position: relative;
+        z-index: 1;
+    }
+
+    .stage-text h3 {
+        font-size: 1.8rem;
         text-align: center;
-        max-width: 100%;
         white-space: normal;
-        word-break: break-word;
-    }
-
-    .stages-header {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-wrap: wrap;
-        padding-top: 3rem;
-    }
-    .stages-container {
-        max-width: 1100px;
-        padding: 1rem;
-        min-height: auto;
-
-        margin: auto;
-        font-family: "Sora", sans-serif;
-    }
-    .arrow-image {
-        width: 1.8rem;
-        height: auto;
-        object-fit: contain;
-        padding: 1rem;
-    }
-
-    .hero-stats {
-        margin-top: 12rem;
-    }
-    .stat-number {
-        font-size: 1.2rem;
-    }
-
-    .subtitle {
-        font-size: 1rem;
-    }
-
-    .services-link {
-        font-size: 1rem;
-    }
-    .stage-current {
-        font-weight: 400;
-        font-size: 2rem;
-        margin-left: 5px;
-    }
-
-    .stage-total {
-        font-size: 1.2rem;
-        color: #2a2a26;
-        margin-right: 10px;
-    }
-    .arrow-image {
-        width: 1.8rem; /* or 2rem, adjust as needed */
-        height: auto;
-        object-fit: contain;
-        font-weight: lighter;
-        transform: scaleX(2);
-    }
-    .stage-text h3 {
-        font-size: 1.5rem;
-        font-weight: 500;
-        margin-bottom: 2rem;
-        display: flex;
-        justify-content: center;
     }
 
     .stage-text p {
         font-size: 1rem;
-        color: #2a2a26;
-        line-height: 1.6;
-        width: 35rem;
         text-align: justify;
     }
-    .stage-buttons {
-        /* margin: 2rem 0;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        grid-template-rows: repeat(2, auto);
-        gap: 1rem;
-        justify-items: center;
-        justify-content: space-between; */
-        display: none;
-    }
-    .stage-buttons button {
-        padding: 0.7rem 1rem;
-        background-color: white;
-        font-weight: 500;
-        border: none;
-        cursor: pointer;
-        font-size: 1.2rem;
-        border-radius: 0px;
-    }
+
     .stage-circle {
         display: none;
     }
 
-    .stage-body {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 2rem;
-        margin: auto;
-        padding: 2rem 2rem;
+    .stage-circle svg {
+        width: 240px;
+        height: 240px;
     }
-    .stage-description {
-        display: block;
-        font-size: 1rem;
-        text-align: justify;
-        line-height: 1.6;
-        max-width: 100%;
-        padding: 0rem;
-        word-break: break-word;
-        white-space: pre-line;
+}
+
+@media (max-width: 598px) {
+    .stages-header .block-title {
+        font-size: 2.1rem;
+    }
+
+    .stage-body {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        overflow: visible;
     }
 
     .stage-text {
+        flex: none;
         width: 100%;
-        max-width: 800px;
+        max-width: 100%;
+    }
+
+    .stage-text h3 {
+        font-size: 1.6rem;
+    }
+
+    .stage-description {
+        max-width: 100%;
+        word-break: break-word;
+    }
+    .stages-header .block-title {
+        padding: 0 1rem;
+    }
+
+    .stage-circle {
+        display: none;
+    }
+
+    .stage-circle svg {
+        width: 190px;
+        height: 190px;
     }
 }
-@media (min-width: 20px) and (max-width: 415px) {
-    .stages-header h2 {
+
+@media (max-width: 415px) {
+    .stages-header .block-title {
         font-size: 2rem;
-        padding: 1rem;
-        text-align: center;
     }
-    .stages-header {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-wrap: wrap;
-        padding-top: 3rem;
-    }
-    .stages-container {
-        max-width: 1100px;
-        padding: 1rem;
-        min-height: auto;
 
-        margin: auto;
-        font-family: "Sora", sans-serif;
+    .stages-navigation {
+        gap: 0.5rem;
     }
+
     .arrow-image {
-        width: 1.8rem; /* or 2rem, adjust as needed */
-        height: auto;
-        object-fit: contain;
+        width: 1.35rem;
     }
 
-    .hero-stats {
-        margin-top: 12rem;
-    }
-    .stat-number {
-        font-size: 1.2rem;
-    }
-
-    .subtitle {
-        font-size: 1rem;
-    }
-
-    .services-link {
-        font-size: 1rem;
-    }
     .stage-current {
-        font-weight: 400;
-        font-size: 2rem;
-        margin-left: 5px;
+        font-size: 1.6rem;
     }
+
     .stage-total {
-        font-size: 1.2rem;
-        color: #2a2a26;
-        margin-right: 10px;
+        font-size: 0.95rem;
     }
-    .arrow-image {
-        width: 1.8rem; /* or 2rem, adjust as needed */
-        height: auto;
-        object-fit: contain;
-        font-weight: lighter;
-        transform: scaleX(2);
-    }
+
     .stage-text h3 {
         font-size: 1.5rem;
-        font-weight: 500;
-        margin-bottom: 2rem;
-        display: flex;
-        justify-content: center;
     }
 
     .stage-text p {
-        font-size: 1rem;
-        color: #2a2a26;
-        line-height: 1.6;
-        width: 35rem;
-        text-align: justify;
-    }
-    .stage-buttons {
-        /* margin: 2rem 0;
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        grid-template-rows: repeat(2, auto);
-        gap: 1rem;
-        justify-items: center;
-        justify-content: space-between; */
-        display: none;
-    }
-    .stage-buttons button {
-        padding: 0.7rem 1rem;
-        background-color: white;
-        font-weight: 500;
-        border: none;
-        cursor: pointer;
-        font-size: 1.2rem;
-        border-radius: 0px;
-    }
-    .stage-circle {
-        display: none;
+        font-size: 0.95rem;
     }
 
-    .stage-body {
-        display: flex;
-        flex-wrap: wrap;
-        justify-content: center;
-        gap: 2rem;
-        margin: auto;
-        padding: 2rem 2rem;
-    }
-    .stage-description {
-        display: block;
-        font-size: 1rem;
-        text-align: justify;
-        line-height: 1.6;
-        max-width: 100%;
+    .stages-header .block-title {
         padding: 0rem;
-        word-break: break-word;
-        white-space: pre-line;
     }
 
-    .stage-text {
-        width: 100%;
-        max-width: 800px;
-    }
-}
-@media (max-width: 700px) {
-    .stage-text h3 {
-        text-align: center;
-    }
-
-    .stage-description p,
-    .stage-description {
-        text-align: center;
+    .stage-circle svg {
+        width: 170px;
+        height: 170px;
     }
 }

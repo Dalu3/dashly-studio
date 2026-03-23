@@ -2,17 +2,19 @@ import "./Header.css";
 import arrowIcon from "../assets/arrow.png";
 import { Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
+import ScrollLink from "./ScrollLink";
 
 function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const headerRef = useRef();
     const navRef = useRef();
 
     useEffect(() => {
         const handleClickOutside = (event) => {
             if (
                 isMenuOpen &&
-                navRef.current &&
-                !navRef.current.contains(event.target)
+                headerRef.current &&
+                !headerRef.current.contains(event.target)
             ) {
                 setIsMenuOpen(false);
             }
@@ -28,59 +30,77 @@ function Header() {
     };
 
     return (
-        <header className="glass-navbar">
-            <Link
-                to="/"
-                className="logo"
-                onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-            >
-                Dashly
-            </Link>
+        <>
+            <button
+                type="button"
+                className={`menu-overlay ${isMenuOpen ? "open" : ""}`}
+                aria-hidden={!isMenuOpen}
+                tabIndex={isMenuOpen ? 0 : -1}
+                onClick={() => setIsMenuOpen(false)}
+            />
 
-            <div
-                className="hamburger"
-                onClick={() => setIsMenuOpen((prev) => !prev)}
-            >
-                {!isMenuOpen ? (
-                    <>
-                        <span></span>
-                        <span></span>
-                        <span></span>
-                    </>
-                ) : null}
-            </div>
+            <header className="glass-navbar" ref={headerRef}>
+                <Link
+                    to="/"
+                    className="logo"
+                    aria-label="Dashly Studio home"
+                    onClick={() =>
+                        window.scrollTo({ top: 0, behavior: "smooth" })
+                    }
+                >
+                    Dashly
+                </Link>
 
-            <nav
-                ref={navRef}
-                className={`nav-links ${isMenuOpen ? "open" : ""}`}
-            >
-                {isMenuOpen && (
-                    <span
-                        className="close-icon"
-                        onClick={() => setIsMenuOpen(false)}
+                <button
+                    type="button"
+                    className={`hamburger ${isMenuOpen ? "open" : ""}`}
+                    aria-label={
+                        isMenuOpen
+                            ? "Close navigation menu"
+                            : "Open navigation menu"
+                    }
+                    aria-expanded={isMenuOpen}
+                    aria-controls="primary-navigation"
+                    onClick={() => setIsMenuOpen((prev) => !prev)}
+                >
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+
+                <nav
+                    id="primary-navigation"
+                    aria-label="Primary"
+                    ref={navRef}
+                    className={`nav-links ${isMenuOpen ? "open" : ""}`}
+                >
+                    <ScrollLink to="/#packages" onClick={handleLinkClick}>
+                        Services
+                    </ScrollLink>
+                    <ScrollLink to="/#stages" onClick={handleLinkClick}>
+                        Stages
+                    </ScrollLink>
+                    <ScrollLink to="/#faq" onClick={handleLinkClick}>
+                        FAQ
+                    </ScrollLink>
+                    <ScrollLink
+                        to="/#contact"
+                        className="cta"
+                        onClick={handleLinkClick}
                     >
-                        &times;
-                    </span>
-                )}
-                <a href="/#packages" onClick={handleLinkClick}>
-                    Services
-                </a>
-                <a href="/#stages" onClick={handleLinkClick}>
-                    Stages
-                </a>
-                <a href="/#faq" onClick={handleLinkClick}>
-                    FAQ
-                </a>
-                <a href="/#contact" className="cta" onClick={handleLinkClick}>
-                    Get In Touch
-                    <img
-                        src={arrowIcon}
-                        alt="Arrow icon"
-                        className="arrow-icon"
-                    />
-                </a>
-            </nav>
-        </header>
+                        Get In Touch
+                        <img
+                            src={arrowIcon}
+                            alt="Contact Dashly Studio about a business website"
+                            className="arrow-icon"
+                            width="35"
+                            height="35"
+                            decoding="async"
+                        />
+                    </ScrollLink>
+                </nav>
+            </header>
+        </>
     );
 }
 
