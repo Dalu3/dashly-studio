@@ -179,7 +179,7 @@ function App() {
                 return;
             }
 
-            window.scrollTo({ top: 0, behavior: "auto" });
+            window.scrollTo(0, 0);
         };
 
         window.addEventListener("popstate", handleNavigationScroll);

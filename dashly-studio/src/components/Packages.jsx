@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./Packages.css";
 import arrowImage from "../assets/arrow.png";
-import { navigateToHash } from "../utils/scrollToHash";
+import { VIEWPORT_CHECK_EVENT, navigateToHash } from "../utils/scrollToHash";
 
 const MOBILE_BREAKPOINT = "(max-width: 768px)";
 
@@ -121,6 +121,8 @@ export default function Packages() {
 
         const cards = cardRefs.current.filter(Boolean);
         if (!cards.length) return undefined;
+        let revealFrameId = 0;
+        let revealTimeoutId = 0;
 
         const revealCard = (card) => {
             const index = Number(card.dataset.packageIndex);
@@ -174,14 +176,29 @@ export default function Packages() {
             cards.forEach((card) => card.getBoundingClientRect());
         };
 
+        const scheduleRevealVisibleCards = () => {
+            if (revealFrameId) {
+                window.cancelAnimationFrame(revealFrameId);
+            }
+
+            revealFrameId = window.requestAnimationFrame(() => {
+                forceLayout();
+                revealVisibleCards();
+            });
+        };
+
         let observer;
 
         if ("IntersectionObserver" in window) {
             observer = new IntersectionObserver(
                 (entries) => {
                     entries.forEach((entry) => {
+                        const isVisible =
+                            entry.isIntersecting ||
+                            entry.intersectionRatio > 0;
+
                         if (
-                            !entry.isIntersecting ||
+                            !isVisible ||
                             entry.target.classList.contains("animated")
                         ) {
                             return;
@@ -203,29 +220,51 @@ export default function Packages() {
                         observer?.observe(card);
                     }
                 });
-                revealVisibleCards();
+                scheduleRevealVisibleCards();
+                revealTimeoutId = window.setTimeout(
+                    scheduleRevealVisibleCards,
+                    120,
+                );
             });
         } else {
             window.requestAnimationFrame(() => {
-                forceLayout();
-                revealVisibleCards();
+                scheduleRevealVisibleCards();
+                revealTimeoutId = window.setTimeout(
+                    scheduleRevealVisibleCards,
+                    120,
+                );
             });
         }
 
-        window.addEventListener("scroll", revealVisibleCards, {
+        window.addEventListener("scroll", scheduleRevealVisibleCards, {
             passive: true,
         });
-        window.addEventListener("resize", revealVisibleCards);
-        window.addEventListener("orientationchange", revealVisibleCards);
-        window.addEventListener("load", revealVisibleCards);
-        document.fonts?.ready?.then(revealVisibleCards);
+        window.addEventListener("resize", scheduleRevealVisibleCards);
+        window.addEventListener("orientationchange", scheduleRevealVisibleCards);
+        window.addEventListener("load", scheduleRevealVisibleCards);
+        window.addEventListener("pageshow", scheduleRevealVisibleCards);
+        window.addEventListener(
+            VIEWPORT_CHECK_EVENT,
+            scheduleRevealVisibleCards,
+        );
+        document.fonts?.ready?.then(scheduleRevealVisibleCards);
 
         return () => {
             observer?.disconnect();
-            window.removeEventListener("scroll", revealVisibleCards);
-            window.removeEventListener("resize", revealVisibleCards);
-            window.removeEventListener("orientationchange", revealVisibleCards);
-            window.removeEventListener("load", revealVisibleCards);
+            window.clearTimeout(revealTimeoutId);
+            window.cancelAnimationFrame(revealFrameId);
+            window.removeEventListener("scroll", scheduleRevealVisibleCards);
+            window.removeEventListener("resize", scheduleRevealVisibleCards);
+            window.removeEventListener(
+                "orientationchange",
+                scheduleRevealVisibleCards,
+            );
+            window.removeEventListener("load", scheduleRevealVisibleCards);
+            window.removeEventListener("pageshow", scheduleRevealVisibleCards);
+            window.removeEventListener(
+                VIEWPORT_CHECK_EVENT,
+                scheduleRevealVisibleCards,
+            );
         };
     }, [shouldAnimateCards]);
 
