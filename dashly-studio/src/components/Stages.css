@@ -96,10 +96,12 @@
 }
 
 .stage-buttons button {
+    appearance: none;
     flex: 1 1 10rem;
     max-width: 11rem;
     padding: 1rem 2rem;
     background-color: white;
+    color: #2a2a26;
     font-weight: 500;
     border: none;
     cursor: pointer;
@@ -109,6 +111,7 @@
 
 .stage-buttons button.active {
     border: 1px solid black;
+    color: #2a2a26;
     font-weight: 600;
 }
 
