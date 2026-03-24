@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./Packages.css";
 import arrowImage from "../assets/arrow.png";
+import { navigateToHash } from "../utils/scrollToHash";
 
 const MOBILE_BREAKPOINT = "(max-width: 768px)";
 
@@ -46,6 +47,7 @@ const packages = [
 export default function Packages() {
     const cardRefs = useRef([]);
     const gridRef = useRef(null);
+    const animatedCardsRef = useRef(packages.map(() => false));
     const [isMobileViewport, setIsMobileViewport] = useState(() => {
         if (typeof window === "undefined") return false;
         return window.matchMedia(MOBILE_BREAKPOINT).matches;
@@ -107,6 +109,7 @@ export default function Packages() {
         }
 
         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            animatedCardsRef.current = packages.map(() => true);
             setVisibleCards(packages.map(() => true));
             return undefined;
         }
@@ -114,31 +117,111 @@ export default function Packages() {
         const cards = cardRefs.current.filter(Boolean);
         if (!cards.length) return undefined;
 
-        const observer = new IntersectionObserver(
-            (entries) => {
-                entries.forEach((entry) => {
-                    if (!entry.isIntersecting) return;
+        const revealCard = (card) => {
+            const index = Number(card.dataset.packageIndex);
 
-                    const index = Number(entry.target.dataset.packageIndex);
-                    setVisibleCards((current) => {
-                        if (current[index]) return current;
+            if (
+                Number.isNaN(index) ||
+                animatedCardsRef.current[index] ||
+                card.classList.contains("animated")
+            ) {
+                return;
+            }
 
-                        const next = [...current];
-                        next[index] = true;
-                        return next;
+            animatedCardsRef.current[index] = true;
+
+            setVisibleCards((current) => {
+                if (current[index]) return current;
+
+                const next = [...current];
+                next[index] = true;
+                return next;
+            });
+        };
+
+        const revealVisibleCards = () => {
+            const viewportHeight =
+                window.innerHeight || document.documentElement.clientHeight;
+
+            cards.forEach((card) => {
+                if (
+                    card.classList.contains("animated") ||
+                    animatedCardsRef.current[
+                        Number(card.dataset.packageIndex)
+                    ]
+                ) {
+                    return;
+                }
+
+                const rect = card.getBoundingClientRect();
+                const isVisible =
+                    rect.top <= viewportHeight * 0.92 &&
+                    rect.bottom >= viewportHeight * 0.08;
+
+                if (isVisible) {
+                    revealCard(card);
+                }
+            });
+        };
+
+        const forceLayout = () => {
+            gridRef.current?.getBoundingClientRect();
+            cards.forEach((card) => card.getBoundingClientRect());
+        };
+
+        let observer;
+
+        if ("IntersectionObserver" in window) {
+            observer = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        if (
+                            !entry.isIntersecting ||
+                            entry.target.classList.contains("animated")
+                        ) {
+                            return;
+                        }
+
+                        revealCard(entry.target);
+                        observer?.unobserve(entry.target);
                     });
-                    observer.unobserve(entry.target);
+                },
+                {
+                    threshold: 0.1,
+                },
+            );
+
+            window.requestAnimationFrame(() => {
+                forceLayout();
+                cards.forEach((card) => {
+                    if (!card.classList.contains("animated")) {
+                        observer?.observe(card);
+                    }
                 });
-            },
-            {
-                threshold: 0.25,
-                rootMargin: "0px 0px -18% 0px",
-            },
-        );
+                revealVisibleCards();
+            });
+        } else {
+            window.requestAnimationFrame(() => {
+                forceLayout();
+                revealVisibleCards();
+            });
+        }
 
-        cards.forEach((card) => observer.observe(card));
+        window.addEventListener("scroll", revealVisibleCards, {
+            passive: true,
+        });
+        window.addEventListener("resize", revealVisibleCards);
+        window.addEventListener("orientationchange", revealVisibleCards);
+        window.addEventListener("load", revealVisibleCards);
+        document.fonts?.ready?.then(revealVisibleCards);
 
-        return () => observer.disconnect();
+        return () => {
+            observer?.disconnect();
+            window.removeEventListener("scroll", revealVisibleCards);
+            window.removeEventListener("resize", revealVisibleCards);
+            window.removeEventListener("orientationchange", revealVisibleCards);
+            window.removeEventListener("load", revealVisibleCards);
+        };
     }, [shouldAnimateCards]);
 
     return (
@@ -162,7 +245,7 @@ export default function Packages() {
                             cardRefs.current[index] = element;
                         }}
                         data-package-index={index}
-                        className={`package-card${shouldAnimateCards ? " package-card--mobile" : ""}${visibleCards[index] ? " is-visible" : ""}`}
+                        className={`package-card${shouldAnimateCards ? " package-card--mobile" : ""}${visibleCards[index] ? " is-visible animated" : ""}`}
                         style={
                             shouldAnimateCards
                                 ? {
@@ -176,7 +259,13 @@ export default function Packages() {
                             <span className="package-price">{pkg.price}</span>
                         </div>
                         <p className="package-description">{pkg.description}</p>
-                        <a href="#contact" className="package-cta">
+                        <a
+                            href="#contact"
+                            className="package-cta"
+                            onClick={(event) =>
+                                navigateToHash(event, "#contact")
+                            }
+                        >
                             Ask a question{" "}
                             <img
                                 src={arrowImage}

@@ -21,9 +21,37 @@ export default function CookieConsent() {
     const [draftPreferences, setDraftPreferences] = useState(() =>
         consent?.preferences ?? getDefaultConsentPreferences(),
     );
+    const [isMobileViewport, setIsMobileViewport] = useState(() => {
+        if (typeof window === "undefined") {
+            return false;
+        }
+
+        return window.matchMedia("(max-width: 768px)").matches;
+    });
     const dialogRef = useRef(null);
     const titleId = useId();
     const descriptionId = useId();
+
+    useEffect(() => {
+        if (typeof window === "undefined") {
+            return undefined;
+        }
+
+        const mediaQuery = window.matchMedia("(max-width: 768px)");
+        const handleChange = (event) => {
+            setIsMobileViewport(event.matches);
+        };
+
+        setIsMobileViewport(mediaQuery.matches);
+
+        if (mediaQuery.addEventListener) {
+            mediaQuery.addEventListener("change", handleChange);
+            return () => mediaQuery.removeEventListener("change", handleChange);
+        }
+
+        mediaQuery.addListener(handleChange);
+        return () => mediaQuery.removeListener(handleChange);
+    }, []);
 
     useEffect(() => {
         if (!isPreferencesOpen) {
@@ -258,9 +286,19 @@ export default function CookieConsent() {
                 >
                     <div className="cookie-consent-banner__content">
                         <p>
-                            We use cookies to improve your experience, analyze
-                            traffic, and support our marketing. You can accept
-                            all cookies or manage your preferences. See our{" "}
+                            {isMobileViewport ? (
+                                <>
+                                    We use cookies to improve your experience.
+                                    Accept all or manage preferences. See our{" "}
+                                </>
+                            ) : (
+                                <>
+                                    We use cookies to improve your experience,
+                                    analyze traffic, and support our marketing.
+                                    You can accept all cookies or manage your
+                                    preferences. See our{" "}
+                                </>
+                            )}
                             <a
                                 href="/privacy/"
                                 className="cookie-consent-banner__link"

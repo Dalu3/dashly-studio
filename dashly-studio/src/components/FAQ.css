@@ -1,5 +1,6 @@
 .faq-container {
     --faq-copy-size: 1.25rem;
+    --faq-inline-padding: 1.5rem;
     width: 100%;
     padding: 0 2rem 6rem;
     background: #f5f5f5;
@@ -48,7 +49,7 @@
 
 .faq-question {
     width: 100%;
-    padding: 1.2rem 1.5rem;
+    padding: 1.2rem var(--faq-inline-padding);
     font-family: "Sora", sans-serif;
     font-weight: 600;
     font-size: var(--faq-copy-size);
@@ -105,9 +106,9 @@
 .faq-answer {
     max-height: 0;
     overflow: hidden;
-    padding: 0rem 1.5rem;
+    padding: 0 var(--faq-inline-padding);
     color: #2a2a26;
-    font-size: var(--faq-copy-size);
+    font-size: 18px;
     line-height: 1.4;
     transition: max-height 0.4s ease, padding-top 0.4s ease,
         padding-bottom 0.4s ease;
@@ -121,27 +122,31 @@
 
 .faq-item.active .faq-answer {
     max-height: 300px;
-    padding: 0.3rem 1.5rem 1.25rem;
+    padding: 0.3rem var(--faq-inline-padding) 1.25rem;
 }
 @media (min-width: 1060px) and (max-width: 1262px) {
     .faq-container {
         --faq-copy-size: 1.15rem;
+        --faq-inline-padding: 1rem;
     }
 
     .faq-question {
-        padding: 1rem 1rem;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
     }
 }
 @media (min-width: 769px) and (max-width: 1060px) {
     .faq-container {
         --faq-copy-size: 1.05rem;
+        --faq-inline-padding: 1rem;
         width: 100%;
         padding: 0 2rem 6rem;
         background: #f5f5f5;
         min-height: auto;
     }
     .faq-question {
-        padding: 1rem 1rem;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
     }
 }
 @media (min-width: 598px) and (max-width: 769px) {
@@ -151,13 +156,15 @@
     }
     .faq-container {
         --faq-copy-size: 1.05rem;
+        --faq-inline-padding: 1rem;
         width: 100%;
         padding: 0 2rem 4rem;
         background: #f5f5f5;
         min-height: auto;
     }
     .faq-question {
-        padding: 1rem 1rem;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
     }
 }
 @media (min-width: 415px) and (max-width: 598px) {
@@ -167,17 +174,24 @@
     }
     .faq-container {
         --faq-copy-size: 1.05rem;
+        --faq-inline-padding: 1rem;
         width: 100%;
         padding: 0 2rem 4rem;
         background: #f5f5f5;
         min-height: auto;
     }
     .faq-question {
-        padding: 1rem 1rem;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        font-size: 18px;
+    }
+
+    .faq-answer {
+        font-size: 16px;
     }
 
     .faq-item.active .faq-answer {
-        padding: 0.2rem 1.5rem 1.25rem;
+        padding: 0.2rem var(--faq-inline-padding) 1.25rem;
     }
 
 }
@@ -188,17 +202,24 @@
     }
     .faq-container {
         --faq-copy-size: 1.05rem;
+        --faq-inline-padding: 1rem;
         width: 100%;
         padding: 0 2rem 4rem;
         background: #f5f5f5;
         min-height: auto;
     }
     .faq-question {
-        padding: 1rem 1rem;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        font-size: 18px;
+    }
+
+    .faq-answer {
+        font-size: 16px;
     }
 
     .faq-item.active .faq-answer {
-        padding: 0.2rem 1.5rem 1.25rem;
+        padding: 0.2rem var(--faq-inline-padding) 1.25rem;
     }
 
 }

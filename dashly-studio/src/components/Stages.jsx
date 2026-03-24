@@ -119,11 +119,6 @@ export default function Stages() {
             return undefined;
         }
 
-        if (isMobileViewport) {
-            setStageTextMinHeight(0);
-            return undefined;
-        }
-
         const updateStageTextHeight = () => {
             const width = stageTextRef.current?.getBoundingClientRect().width;
             if (!width) return;
@@ -134,13 +129,13 @@ export default function Stages() {
                 }
             });
 
+            const measuredHeights = measureRefs.current
+                .map((node) => (node ? node.getBoundingClientRect().height : 0))
+                .filter((height) => height > 0);
             const maxHeight = Math.ceil(
-                Math.max(
-                    stageTextRef.current.getBoundingClientRect().height,
-                    ...measureRefs.current.map((node) =>
-                        node ? node.getBoundingClientRect().height : 0,
-                    ),
-                ),
+                measuredHeights.length
+                    ? Math.max(...measuredHeights)
+                    : stageTextRef.current.getBoundingClientRect().height,
             );
 
             setStageTextMinHeight((currentHeight) =>

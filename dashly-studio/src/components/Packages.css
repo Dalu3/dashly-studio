@@ -99,17 +99,24 @@
 @media (max-width: 768px) {
     .package-card--mobile {
         opacity: 0;
-        transform: translateY(22px);
+        -webkit-transform: translate3d(0, 22px, 0);
+        transform: translate3d(0, 22px, 0);
+        -webkit-transition:
+            opacity 0.55s ease,
+            -webkit-transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
         transition:
             opacity 0.55s ease,
             transform 0.55s cubic-bezier(0.22, 1, 0.36, 1);
         transition-delay: var(--package-delay, 0s);
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
         will-change: opacity, transform;
     }
 
     .package-card--mobile.is-visible {
         opacity: 1;
-        transform: translateY(0);
+        -webkit-transform: translate3d(0, 0, 0);
+        transform: translate3d(0, 0, 0);
     }
     .packages-section {
         padding: 4rem 2rem;

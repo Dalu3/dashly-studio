@@ -141,7 +141,8 @@
     position: fixed;
     top: 50%;
     left: 50%;
-    transform: translate(-50%, -50%);
+    -webkit-transform: translate3d(-50%, -50%, 0);
+    transform: translate3d(-50%, -50%, 0);
     z-index: 9999;
     background-color: white;
     color: black;
@@ -152,7 +153,11 @@
     border-radius: 12px;
     font-weight: 500;
     pointer-events: none;
+    -webkit-animation: fadeInOut 3s ease forwards;
     animation: fadeInOut 3s ease forwards;
+    will-change: transform, opacity;
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
 }
 
 .status-message.success {
@@ -167,22 +172,49 @@
     border: 1px solid #d32f2f;
 }
 
-@keyframes fadeInOut {
+@-webkit-keyframes fadeInOut {
     0% {
         opacity: 0;
-        transform: translate(-50%, -55%);
+        -webkit-transform: translate3d(-50%, -55%, 0);
+        transform: translate3d(-50%, -55%, 0);
     }
     10% {
         opacity: 1;
-        transform: translate(-50%, -50%);
+        -webkit-transform: translate3d(-50%, -50%, 0);
+        transform: translate3d(-50%, -50%, 0);
     }
     90% {
         opacity: 1;
-        transform: translate(-50%, -50%);
+        -webkit-transform: translate3d(-50%, -50%, 0);
+        transform: translate3d(-50%, -50%, 0);
     }
     100% {
         opacity: 0;
-        transform: translate(-50%, -45%);
+        -webkit-transform: translate3d(-50%, -45%, 0);
+        transform: translate3d(-50%, -45%, 0);
+    }
+}
+
+@keyframes fadeInOut {
+    0% {
+        opacity: 0;
+        -webkit-transform: translate3d(-50%, -55%, 0);
+        transform: translate3d(-50%, -55%, 0);
+    }
+    10% {
+        opacity: 1;
+        -webkit-transform: translate3d(-50%, -50%, 0);
+        transform: translate3d(-50%, -50%, 0);
+    }
+    90% {
+        opacity: 1;
+        -webkit-transform: translate3d(-50%, -50%, 0);
+        transform: translate3d(-50%, -50%, 0);
+    }
+    100% {
+        opacity: 0;
+        -webkit-transform: translate3d(-50%, -45%, 0);
+        transform: translate3d(-50%, -45%, 0);
     }
 }
 input:-webkit-autofill {

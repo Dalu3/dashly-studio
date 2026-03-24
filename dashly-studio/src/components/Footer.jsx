@@ -61,6 +61,30 @@ function LinkedInIcon() {
     );
 }
 
+function InstagramMobileIcon() {
+    return (
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M7.75 2h8.5A5.75 5.75 0 0 1 22 7.75v8.5A5.75 5.75 0 0 1 16.25 22h-8.5A5.75 5.75 0 0 1 2 16.25v-8.5A5.75 5.75 0 0 1 7.75 2Zm0 1.8A3.95 3.95 0 0 0 3.8 7.75v8.5a3.95 3.95 0 0 0 3.95 3.95h8.5a3.95 3.95 0 0 0 3.95-3.95v-8.5a3.95 3.95 0 0 0-3.95-3.95h-8.5Zm8.95 1.55a1.2 1.2 0 1 1 0 2.4 1.2 1.2 0 0 1 0-2.4ZM12 7.1A4.9 4.9 0 1 1 7.1 12 4.9 4.9 0 0 1 12 7.1Zm0 1.8A3.1 3.1 0 1 0 15.1 12 3.1 3.1 0 0 0 12 8.9Z" />
+        </svg>
+    );
+}
+
+function FacebookMobileIcon() {
+    return (
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M13.64 21v-7.73h2.6l.39-3.02h-2.99V8.32c0-.87.24-1.47 1.5-1.47H16.8V4.14c-.29-.04-1.28-.12-2.43-.12-2.4 0-4.05 1.47-4.05 4.17v2.06H7.6v3.02h2.72V21h3.32Z" />
+        </svg>
+    );
+}
+
+function LinkedInMobileIcon() {
+    return (
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+            <path d="M6.94 8.5A1.94 1.94 0 1 1 6.95 4.62 1.94 1.94 0 0 1 6.94 8.5ZM5.2 9.97h3.48V21H5.2V9.97Zm5.47 0H14v1.5h.05c.46-.88 1.6-1.8 3.3-1.8 3.53 0 4.18 2.32 4.18 5.34V21h-3.48v-5.32c0-1.27-.02-2.9-1.76-2.9-1.77 0-2.04 1.38-2.04 2.8V21h-3.48V9.97Z" />
+        </svg>
+    );
+}
+
 export default function Footer() {
     return (
         <>
@@ -100,6 +124,9 @@ export default function Footer() {
                                 <span className="footer-social-icon footer-social-icon--instagram">
                                     <InstagramIcon />
                                 </span>
+                                <span className="footer-social-icon footer-social-icon--mobile footer-social-icon--instagram-mobile">
+                                    <InstagramMobileIcon />
+                                </span>
                                 <span className="footer-social-label">
                                     Instagram
                                 </span>
@@ -114,6 +141,9 @@ export default function Footer() {
                                 <span className="footer-social-icon footer-social-icon--facebook">
                                     <FacebookIcon />
                                 </span>
+                                <span className="footer-social-icon footer-social-icon--mobile footer-social-icon--facebook-mobile">
+                                    <FacebookMobileIcon />
+                                </span>
                                 <span className="footer-social-label">
                                     Facebook
                                 </span>
@@ -127,6 +157,9 @@ export default function Footer() {
                             >
                                 <span className="footer-social-icon footer-social-icon--linkedin">
                                     <LinkedInIcon />
+                                </span>
+                                <span className="footer-social-icon footer-social-icon--mobile footer-social-icon--linkedin-mobile">
+                                    <LinkedInMobileIcon />
                                 </span>
                                 <span className="footer-social-label">
                                     LinkedIn

@@ -1,5 +1,6 @@
 import "./MainPage.css";
 import arrowImage from "../assets/arrow.png";
+import { navigateToHash } from "../utils/scrollToHash";
 
 export function MainPage() {
     return (
@@ -12,7 +13,13 @@ export function MainPage() {
                                 Need a website that actually brings you clients?
                                 Dashly Studio builds websites that convert.
                             </p>
-                            <a href="#packages" className="services-link">
+                            <a
+                                href="#packages"
+                                className="services-link"
+                                onClick={(event) =>
+                                    navigateToHash(event, "#packages")
+                                }
+                            >
                                 Services{" "}
                                 <img
                                     src={arrowImage}

@@ -16,16 +16,24 @@ export const SOCIAL_LINKS = [
 
 export const faqItems = [
     {
-        question: "How much does a small business website cost?",
-        answer: "Most Dashly Studio projects start from GBP 600. Final pricing depends on page count, design complexity, features, and whether you need landing pages or a larger multi-page site.",
-    },
-    {
         question: "How long does it take to build a website?",
-        answer: "Most website projects take around 2 to 6 weeks depending on scope, feedback speed, and how ready your content is at the start.",
+        answer: "Most projects take 1–2 month, depending on the scope and response time. We’ll give you a timeline before we start.",
     },
     {
         question: "Will my website work on phones and tablets?",
-        answer: "Yes. Every website is built to work properly across mobile, tablet, and desktop screen sizes.",
+        answer: "Absolutely. All our websites are fully responsive and look great on all screen sizes.",
+    },
+    {
+        question: "What is your work and payment process?",
+        answer: "We work in stages. First, we start with a free consultation. Once we agree on the scope, a 50% deposit is required to begin. The remaining 50% is paid after the website is completed and approved.",
+    },
+    {
+        question: "What affects the cost of the website?",
+        answer: "The price depends on the number of pages, design complexity, required features, and whether you need help with content. You’ll get a clear quote after our first call.",
+    },
+    {
+        question: "Do you create custom websites from scratch?",
+        answer: "Yes, we create fully custom websites using real code. This means your site will be faster, more secure, and tailored exactly to your needs.",
     },
     {
         question: "Will the website be SEO-friendly from launch?",
@@ -33,7 +41,7 @@ export const faqItems = [
     },
     {
         question: "Do you build landing pages for ads or niche services?",
-        answer: "Yes. Landing pages are ideal for campaigns, focused service offers, and search terms where one audience and one conversion goal matter most.",
+        answer: "Yes. Landing pages are perfect when you have one offer, one audience, and one goal — to turn visitors into clients.",
     },
 ];
 

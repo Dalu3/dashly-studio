@@ -22,6 +22,18 @@ import {
     normalizePathname,
 } from "./seo/siteMetadata.js";
 
+function isReloadNavigation() {
+    const navigationEntry = performance
+        .getEntriesByType("navigation")
+        .at(0);
+
+    if (navigationEntry?.type) {
+        return navigationEntry.type === "reload";
+    }
+
+    return window.performance?.navigation?.type === 1;
+}
+
 function HomePage() {
     return (
         <main id="main-content">
@@ -100,6 +112,12 @@ function App() {
     useEffect(() => {
         window.history.scrollRestoration = "manual";
 
+        if (isReloadNavigation() && window.location.hash) {
+            const cleanUrl = `${window.location.pathname}${window.location.search}`;
+            window.history.replaceState(null, "", cleanUrl);
+            window.scrollTo(0, 0);
+        }
+
         const timer = setTimeout(() => setIsLoading(false), 1000);
 
         return () => clearTimeout(timer);
@@ -131,6 +149,29 @@ function App() {
 
         return () => cancelAnimationFrame(frameId);
     }, [isLoading, pathname]);
+
+    useEffect(() => {
+        if (isLoading) {
+            return undefined;
+        }
+
+        const handleNavigationScroll = () => {
+            if (window.location.hash) {
+                scrollToHash(window.location.hash);
+                return;
+            }
+
+            window.scrollTo({ top: 0, behavior: "auto" });
+        };
+
+        window.addEventListener("popstate", handleNavigationScroll);
+        window.addEventListener("hashchange", handleNavigationScroll);
+
+        return () => {
+            window.removeEventListener("popstate", handleNavigationScroll);
+            window.removeEventListener("hashchange", handleNavigationScroll);
+        };
+    }, [isLoading]);
 
     return (
         <CookieConsentProvider>

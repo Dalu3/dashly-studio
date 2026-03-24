@@ -265,7 +265,14 @@ function createOgImageBuffer() {
 
 async function ensureOgImagePng() {
     const outputPath = path.join(distDir, "og-image.png");
-    await fs.writeFile(outputPath, createOgImageBuffer());
+
+    try {
+        // Prefer a static file copied from /public during the Vite build.
+        await fs.access(outputPath);
+        return;
+    } catch {
+        await fs.writeFile(outputPath, createOgImageBuffer());
+    }
 }
 
 async function writeStaticPages(baseHtml) {

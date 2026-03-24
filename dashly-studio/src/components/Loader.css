@@ -17,11 +17,23 @@
     border: 5px solid #ccc;
     border-top: 5px solid #fff;
     border-radius: 50%;
+    -webkit-animation: spin 0.5s linear infinite;
     animation: spin 0.5s linear infinite;
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: transform;
+}
+
+@-webkit-keyframes spin {
+    to {
+        -webkit-transform: rotate(360deg);
+        transform: rotate(360deg);
+    }
 }
 
 @keyframes spin {
     to {
+        -webkit-transform: rotate(360deg);
         transform: rotate(360deg);
     }
 }

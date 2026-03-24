@@ -1,6 +1,7 @@
 import "./Header.css";
 import { useEffect, useRef, useState } from "react";
 import arrowIcon from "../assets/arrow.png";
+import { navigateToHash } from "../utils/scrollToHash";
 
 function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -25,6 +26,11 @@ function Header() {
 
     const handleLinkClick = () => {
         setIsMenuOpen(false);
+    };
+
+    const handleHashLinkClick = (event, hash) => {
+        handleLinkClick();
+        navigateToHash(event, hash, "/");
     };
 
     return (
@@ -70,19 +76,28 @@ function Header() {
                     ref={navRef}
                     className={`nav-links ${isMenuOpen ? "open" : ""}`}
                 >
-                    <a href="/#packages" onClick={handleLinkClick}>
+                    <a
+                        href="/#packages"
+                        onClick={(event) => handleHashLinkClick(event, "#packages")}
+                    >
                         Services
                     </a>
-                    <a href="/#stages" onClick={handleLinkClick}>
+                    <a
+                        href="/#stages"
+                        onClick={(event) => handleHashLinkClick(event, "#stages")}
+                    >
                         Stages
                     </a>
-                    <a href="/#faq" onClick={handleLinkClick}>
+                    <a
+                        href="/#faq"
+                        onClick={(event) => handleHashLinkClick(event, "#faq")}
+                    >
                         FAQ
                     </a>
                     <a
                         href="/#contact"
                         className="cta"
-                        onClick={handleLinkClick}
+                        onClick={(event) => handleHashLinkClick(event, "#contact")}
                     >
                         Get In Touch
                         <img
