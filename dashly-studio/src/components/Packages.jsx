@@ -93,12 +93,17 @@ export default function Packages() {
 
         updateAnimationMode();
 
-        const resizeObserver = new ResizeObserver(updateAnimationMode);
-        resizeObserver.observe(grid);
+        const ResizeObserverConstructor = window.ResizeObserver;
+        const resizeObserver =
+            typeof ResizeObserverConstructor === "function"
+                ? new ResizeObserverConstructor(updateAnimationMode)
+                : null;
+
+        resizeObserver?.observe(grid);
         window.addEventListener("resize", updateAnimationMode);
 
         return () => {
-            resizeObserver.disconnect();
+            resizeObserver?.disconnect();
             window.removeEventListener("resize", updateAnimationMode);
         };
     }, [isMobileViewport]);

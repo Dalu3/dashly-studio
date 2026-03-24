@@ -70,8 +70,10 @@ export default function CookieConsent() {
 
         const dialog = dialogRef.current;
         const previouslyFocusedElement = document.activeElement;
-        const previousOverflow = document.body.style.overflow;
+        const previousHtmlOverflow = document.documentElement.style.overflow;
+        const previousBodyOverflow = document.body.style.overflow;
 
+        document.documentElement.style.overflow = "hidden";
         document.body.style.overflow = "hidden";
 
         const getFocusableElements = () =>
@@ -120,7 +122,8 @@ export default function CookieConsent() {
         document.addEventListener("keydown", handleKeyDown);
 
         return () => {
-            document.body.style.overflow = previousOverflow;
+            document.documentElement.style.overflow = previousHtmlOverflow;
+            document.body.style.overflow = previousBodyOverflow;
             document.removeEventListener("keydown", handleKeyDown);
 
             if (previouslyFocusedElement instanceof HTMLElement) {

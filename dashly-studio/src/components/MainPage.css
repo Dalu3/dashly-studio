@@ -6,6 +6,7 @@
     flex-direction: column;
     padding-top: 120px;
     min-height: 84vh;
+    min-height: 84dvh;
     align-items: center;
     justify-content: center;
 }
@@ -208,6 +209,7 @@
     }
     .hero-wrapper {
         min-height: 84vh;
+        min-height: 84dvh;
     }
 
     .stat-number {

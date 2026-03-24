@@ -145,14 +145,19 @@ export default function Stages() {
 
         updateStageTextHeight();
 
-        const resizeObserver = new ResizeObserver(updateStageTextHeight);
-        resizeObserver.observe(stageBodyRef.current);
+        const ResizeObserverConstructor = window.ResizeObserver;
+        const resizeObserver =
+            typeof ResizeObserverConstructor === "function"
+                ? new ResizeObserverConstructor(updateStageTextHeight)
+                : null;
+
+        resizeObserver?.observe(stageBodyRef.current);
 
         window.addEventListener("resize", updateStageTextHeight);
         document.fonts?.ready?.then(updateStageTextHeight);
 
         return () => {
-            resizeObserver.disconnect();
+            resizeObserver?.disconnect();
             window.removeEventListener("resize", updateStageTextHeight);
         };
     }, [isMobileViewport]);

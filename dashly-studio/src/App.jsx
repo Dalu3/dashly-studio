@@ -23,15 +23,31 @@ import {
 } from "./seo/siteMetadata.js";
 
 function isReloadNavigation() {
-    const navigationEntry = performance
-        .getEntriesByType("navigation")
-        .at(0);
+    if (typeof window === "undefined") {
+        return false;
+    }
+
+    const performanceApi = window.performance;
+
+    if (!performanceApi) {
+        return false;
+    }
+
+    const getEntriesByType = performanceApi.getEntriesByType;
+    const navigationEntries =
+        typeof getEntriesByType === "function"
+            ? getEntriesByType.call(performanceApi, "navigation")
+            : [];
+    const navigationEntry =
+        navigationEntries && navigationEntries.length
+            ? navigationEntries[0]
+            : null;
 
     if (navigationEntry?.type) {
         return navigationEntry.type === "reload";
     }
 
-    return window.performance?.navigation?.type === 1;
+    return performanceApi.navigation?.type === 1;
 }
 
 function HomePage() {
@@ -110,6 +126,12 @@ function App() {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
+        const timer = setTimeout(() => setIsLoading(false), 1000);
+
+        return () => clearTimeout(timer);
+    }, []);
+
+    useEffect(() => {
         window.history.scrollRestoration = "manual";
 
         if (isReloadNavigation() && window.location.hash) {
@@ -117,10 +139,6 @@ function App() {
             window.history.replaceState(null, "", cleanUrl);
             window.scrollTo(0, 0);
         }
-
-        const timer = setTimeout(() => setIsLoading(false), 1000);
-
-        return () => clearTimeout(timer);
     }, []);
 
     useEffect(() => {

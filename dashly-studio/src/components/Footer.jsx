@@ -71,16 +71,40 @@ function InstagramMobileIcon() {
 
 function FacebookMobileIcon() {
     return (
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M13.64 21v-7.73h2.6l.39-3.02h-2.99V8.32c0-.87.24-1.47 1.5-1.47H16.8V4.14c-.29-.04-1.28-.12-2.43-.12-2.4 0-4.05 1.47-4.05 4.17v2.06H7.6v3.02h2.72V21h3.32Z" />
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect
+                x="2.9"
+                y="2.9"
+                width="18.2"
+                height="18.2"
+                rx="5.2"
+                stroke="currentColor"
+                strokeWidth="1.8"
+            />
+            <path
+                d="M13.18 18v-5.08h1.72l.26-1.99h-1.98V9.65c0-.57.16-.96.98-.96h1.06V6.91c-.19-.03-.85-.07-1.6-.07-1.58 0-2.65.96-2.65 2.73v1.36h-1.79v1.99h1.79V18h2.21Z"
+                fill="currentColor"
+            />
         </svg>
     );
 }
 
 function LinkedInMobileIcon() {
     return (
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
-            <path d="M6.94 8.5A1.94 1.94 0 1 1 6.95 4.62 1.94 1.94 0 0 1 6.94 8.5ZM5.2 9.97h3.48V21H5.2V9.97Zm5.47 0H14v1.5h.05c.46-.88 1.6-1.8 3.3-1.8 3.53 0 4.18 2.32 4.18 5.34V21h-3.48v-5.32c0-1.27-.02-2.9-1.76-2.9-1.77 0-2.04 1.38-2.04 2.8V21h-3.48V9.97Z" />
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <rect
+                x="2.9"
+                y="2.9"
+                width="18.2"
+                height="18.2"
+                rx="5.2"
+                stroke="currentColor"
+                strokeWidth="1.8"
+            />
+            <path
+                d="M8.04 10.18A1.36 1.36 0 1 1 8.05 7.46a1.36 1.36 0 0 1-.01 2.72ZM6.81 11.2h2.45v6.99H6.81V11.2Zm3.84 0H13v.95h.04c.32-.56 1.12-1.13 2.31-1.13 2.47 0 2.92 1.62 2.92 3.38v3.79h-2.45v-3.36c0-.8-.01-1.84-1.24-1.84s-1.43.87-1.43 1.77v3.43H10.65V11.2Z"
+                fill="currentColor"
+            />
         </svg>
     );
 }
@@ -105,7 +129,7 @@ export default function Footer() {
                 </div>
 
                 <div className="footer-bottom">
-                    <div className="footer-left">© 2026 DASHLY STUDIO</div>
+                    <div className="footer-left">© 2026 Dashly Studio</div>
                     <a
                         href="mailto:dashly.studio.webdev@gmail.com"
                         className="footer-email"

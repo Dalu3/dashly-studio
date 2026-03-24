@@ -35,13 +35,15 @@ function Header() {
 
     return (
         <>
-            <button
-                type="button"
-                className={`menu-overlay ${isMenuOpen ? "open" : ""}`}
-                aria-hidden={!isMenuOpen}
-                tabIndex={isMenuOpen ? 0 : -1}
-                onClick={() => setIsMenuOpen(false)}
-            />
+            {isMenuOpen ? (
+                <button
+                    type="button"
+                    className="menu-overlay open"
+                    aria-hidden="false"
+                    tabIndex={0}
+                    onClick={() => setIsMenuOpen(false)}
+                />
+            ) : null}
 
             <header className="glass-navbar" ref={headerRef}>
                 <a

@@ -6,6 +6,9 @@
 body {
     background-color: #f6f6f6;
     font-family: "Sora", sans-serif;
+    min-height: 100vh;
+    min-height: 100dvh;
+    -webkit-overflow-scrolling: touch;
 }
 
 html {
@@ -22,12 +25,24 @@ body::-webkit-scrollbar {
 }
 
 html,
+body,
+#root {
+    width: 100%;
+    min-height: 100%;
+    height: auto;
+}
+
+html,
 body {
     overflow-x: hidden;
     background-color: #f6f6f6;
     overflow-y: auto;
     scrollbar-width: none;
     -ms-overflow-style: none;
+}
+
+#root {
+    overflow: visible;
 }
 
 .visually-hidden {
