@@ -77,45 +77,16 @@ export default function Packages() {
     }, []);
 
     useEffect(() => {
-        if (typeof window === "undefined" || !gridRef.current) {
+        if (typeof window === "undefined") {
             return undefined;
         }
 
-        const grid = gridRef.current;
-        const updateAnimationMode = () => {
-            const columns = window
-                .getComputedStyle(grid)
-                .gridTemplateColumns.split(" ")
-                .filter(Boolean).length;
-
-            setShouldAnimateCards(isMobileViewport && columns === 1);
-        };
-
-        updateAnimationMode();
-
-        const ResizeObserverConstructor = window.ResizeObserver;
-        const resizeObserver =
-            typeof ResizeObserverConstructor === "function"
-                ? new ResizeObserverConstructor(updateAnimationMode)
-                : null;
-
-        resizeObserver?.observe(grid);
-        window.addEventListener("resize", updateAnimationMode);
-
-        return () => {
-            resizeObserver?.disconnect();
-            window.removeEventListener("resize", updateAnimationMode);
-        };
+        setShouldAnimateCards(isMobileViewport);
+        return undefined;
     }, [isMobileViewport]);
 
     useEffect(() => {
         if (typeof window === "undefined" || !shouldAnimateCards) {
-            return undefined;
-        }
-
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            animatedCardsRef.current = packages.map(() => true);
-            setVisibleCards(packages.map(() => true));
             return undefined;
         }
 
@@ -243,6 +214,9 @@ export default function Packages() {
         window.addEventListener("orientationchange", scheduleRevealVisibleCards);
         window.addEventListener("load", scheduleRevealVisibleCards);
         window.addEventListener("pageshow", scheduleRevealVisibleCards);
+        window.addEventListener("touchend", scheduleRevealVisibleCards, {
+            passive: true,
+        });
         window.addEventListener(
             VIEWPORT_CHECK_EVENT,
             scheduleRevealVisibleCards,
@@ -261,6 +235,7 @@ export default function Packages() {
             );
             window.removeEventListener("load", scheduleRevealVisibleCards);
             window.removeEventListener("pageshow", scheduleRevealVisibleCards);
+            window.removeEventListener("touchend", scheduleRevealVisibleCards);
             window.removeEventListener(
                 VIEWPORT_CHECK_EVENT,
                 scheduleRevealVisibleCards,

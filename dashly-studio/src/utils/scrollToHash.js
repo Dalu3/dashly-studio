@@ -128,16 +128,12 @@ export function scrollToElement(element, options = {}) {
         return false;
     }
 
-    const prefersReducedMotion = window.matchMedia(
-        "(prefers-reduced-motion: reduce)"
-    ).matches;
     const elementTop = window.pageYOffset + element.getBoundingClientRect().top;
     const offset = getHeaderOffset(element);
     const nextScrollTop = Math.max(0, elementTop - offset);
-    const behavior =
-        options.behavior ?? (prefersReducedMotion ? "auto" : "smooth");
+    const behavior = options.behavior ?? "smooth";
 
-    if (behavior === "smooth" && !prefersReducedMotion) {
+    if (behavior === "smooth") {
         smoothScrollWindowTo(nextScrollTop, options.duration);
         return true;
     }

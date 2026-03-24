@@ -29,8 +29,11 @@ function Header() {
     };
 
     const handleHashLinkClick = (event, hash) => {
+        event.preventDefault();
         handleLinkClick();
-        navigateToHash(event, hash, "/");
+        window.requestAnimationFrame(() => {
+            navigateToHash(null, hash, "/");
+        });
     };
 
     return (

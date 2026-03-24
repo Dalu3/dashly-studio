@@ -1,8 +1,19 @@
 import { useEffect } from "react";
 import "./MouseFollower.css";
 
+const DISABLE_CURSOR_MEDIA_QUERY =
+    "(hover: none), (pointer: coarse), (max-width: 1023px)";
+
 export function MouseFollower() {
     useEffect(() => {
+        if (typeof window === "undefined") {
+            return undefined;
+        }
+
+        if (window.matchMedia(DISABLE_CURSOR_MEDIA_QUERY).matches) {
+            return undefined;
+        }
+
         const cursor = document.createElement("div");
         cursor.className = "custom-cursor";
         document.body.appendChild(cursor);
@@ -18,6 +29,7 @@ export function MouseFollower() {
         };
 
         const lerp = (start, end, factor) => start + (end - start) * factor;
+        let frameId = 0;
 
         const animate = () => {
             posX = lerp(posX, mouseX, 0.9);
@@ -26,14 +38,15 @@ export function MouseFollower() {
             cursor.style.left = `${posX}px`;
             cursor.style.top = `${posY}px`;
 
-            requestAnimationFrame(animate);
+            frameId = requestAnimationFrame(animate);
         };
 
         window.addEventListener("mousemove", updateMouse);
-        requestAnimationFrame(animate);
+        frameId = requestAnimationFrame(animate);
 
         return () => {
             window.removeEventListener("mousemove", updateMouse);
+            window.cancelAnimationFrame(frameId);
             cursor.remove();
         };
     }, []);
