@@ -1,5 +1,4 @@
 import "./Footer.css";
-import { Link } from "react-router-dom";
 
 function InstagramIcon() {
     return (
@@ -37,9 +36,7 @@ function FacebookIcon() {
             aria-hidden="true"
         >
             <rect x="3.5" y="3.5" width="17" height="17" rx="5" />
-            <path
-                d="M11 10.1H13.1V18H15.2V10.1H16.95L17.3 8.05H15.2V6.95C15.2 6.12 15.54 5.65 16.42 5.65H17.35V4H15.58C13.45 4 13.1 5.44 13.1 6.42V8.05H11V10.1Z"
-            />
+            <path d="M11 10.1H13.1V18H15.2V10.1H16.95L17.3 8.05H15.2V6.95C15.2 6.12 15.54 5.65 16.42 5.65H17.35V4H15.58C13.45 4 13.1 5.44 13.1 6.42V8.05H11V10.1Z" />
         </svg>
     );
 }
@@ -68,10 +65,6 @@ export default function Footer() {
     return (
         <>
             <footer className="footer">
-                <p className="visually-hidden">
-                    Dashly Studio is an Aberdeen web design and web development
-                    studio serving small businesses across Scotland and the UK.
-                </p>
                 <div className="footer-support">
                     <span
                         className="clickable-ukraine"
@@ -141,12 +134,12 @@ export default function Footer() {
                             </a>
                         </div>
                         <div className="footer-group footer-legal">
-                            <Link to="/privacy" className="footer-link">
+                            <a href="/privacy/" className="footer-link">
                                 Privacy
-                            </Link>
-                            <Link to="/terms" className="footer-link">
+                            </a>
+                            <a href="/terms/" className="footer-link">
                                 Terms
-                            </Link>
+                            </a>
                         </div>
                     </div>
                 </div>

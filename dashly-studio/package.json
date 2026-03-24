@@ -6,10 +6,10 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "postbuild": "node scripts/postbuild.mjs",
     "lint": "eslint .",
     "preview": "vite preview",
-    "refresh-docs": "rm -rf docs && mkdir docs && cp -r dist/* docs/ && cp docs/index.html docs/404.html && echo dashly.studio > docs/CNAME && touch docs/.nojekyll",
-    "deploy": "npm run build && npm run refresh-docs"
+    "deploy": "npm run build"
   },
   "dependencies": {
     "react": "^18.3.1",

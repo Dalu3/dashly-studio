@@ -167,22 +167,13 @@ export default function Stages() {
             className="stages-container"
             id="stages"
             aria-labelledby="stages-title"
-            aria-describedby="stages-seo-copy"
         >
             <div className="stages-header">
                 <h2 className="block-title" id="stages-title">
-                    {isMobileViewport ? (
-                        "Website Process in 7 Steps"
-                    ) : (
-                        "7 Stages of Website You Need to Know"
-                    )}
+                    {isMobileViewport
+                        ? "Website Process in 7 Steps"
+                        : "7 Stages of Website You Need to Know"}
                 </h2>
-                <p className="visually-hidden" id="stages-seo-copy">
-                    Our process supports web design Scotland and web development
-                    Scotland projects for small businesses in Aberdeen and
-                    across the UK, from discovery and planning to launch, SEO
-                    readiness, and ongoing support.
-                </p>
 
                 <div className="stages-navigation">
                     <button
@@ -197,7 +188,6 @@ export default function Stages() {
                             alt=""
                             className="arrow-image"
                             aria-hidden="true"
-                            decoding="async"
                         />
                     </button>
 
@@ -217,7 +207,6 @@ export default function Stages() {
                             alt=""
                             className="arrow-image"
                             aria-hidden="true"
-                            decoding="async"
                         />
 
                         <span className="arrow-line" />

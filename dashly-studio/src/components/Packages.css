@@ -65,10 +65,9 @@
     color: white;
     gap: 0.5rem;
 }
-.package-cta img {
+.package-cta .arrow-icon {
     width: 24px;
     height: 24px;
-    object-fit: contain;
     display: inline-block;
     flex-shrink: 0;
     vertical-align: middle;

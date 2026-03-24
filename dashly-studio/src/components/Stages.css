@@ -62,7 +62,6 @@
 .arrow-image {
     width: 1.8rem;
     height: auto;
-    object-fit: contain;
 }
 
 .stage-counter {
@@ -89,7 +88,7 @@
 
 .stage-buttons {
     margin: 2rem auto 0;
-    padding: 0 1.4rem;
+    padding: 0;
     display: flex;
     flex-wrap: wrap;
     gap: 1rem;
@@ -124,7 +123,6 @@
 .stage-text {
     flex: 1 1 42rem;
     max-width: 44rem;
-    padding-left: 1.4rem;
     animation: fadeIn 0.4s ease-in-out;
 }
 
@@ -263,7 +261,7 @@
         flex-wrap: nowrap;
         gap: 0.5rem;
         justify-content: space-between;
-        padding: 0 1rem;
+        padding: 0;
     }
 
     .stage-buttons button {

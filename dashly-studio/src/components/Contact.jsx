@@ -144,15 +144,8 @@ export default function Contact() {
             className="contact-section"
             id="contact"
             aria-labelledby="contact-title"
-            aria-describedby="contact-seo-copy"
         >
             <h2 id="contact-title">Get In Touch</h2>
-            <p className="visually-hidden" id="contact-seo-copy">
-                If you need a website for your business or want someone to
-                build your website in Aberdeen or anywhere in the UK, tell us
-                about your goals and we will recommend the right next step for
-                your project.
-            </p>
 
             {showMessage && (
                 <div

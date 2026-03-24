@@ -10,7 +10,6 @@ export default function FAQ() {
         setActiveIndex(index === activeIndex ? null : index);
     };
 
-    // Закривання при кліку поза боксом або на відповіді
     useEffect(() => {
         const handleClickOutside = (event) => {
             const activeItem =
@@ -33,7 +32,6 @@ export default function FAQ() {
             ref={containerRef}
             id="faq"
             aria-labelledby="faq-title"
-            aria-describedby="faq-seo-copy"
         >
             <h2 className="block-title" id="faq-title">
                 <span className="faq-title-desktop">FAQ</span>
@@ -41,11 +39,6 @@ export default function FAQ() {
                     Frequently Asked Questions
                 </span>
             </h2>
-            <p className="visually-hidden" id="faq-seo-copy">
-                These answers cover timelines, custom builds, responsive
-                website UK requirements, and how Dashly Studio handles UK
-                website design projects for service businesses and startups.
-            </p>
             {faqItems.map((item, i) => (
                 <div
                     key={i}

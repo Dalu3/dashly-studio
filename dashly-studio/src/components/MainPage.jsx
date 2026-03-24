@@ -1,5 +1,6 @@
 import "./MainPage.css";
 import arrowImage from "../assets/arrow.png";
+
 export function MainPage() {
     return (
         <>

@@ -1,6 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { Link } from "react-router-dom";
 import "./CookieConsent.css";
 import { useCookieConsent } from "../context/useCookieConsent.js";
 import {
@@ -211,13 +210,13 @@ export default function CookieConsent() {
                           </div>
 
                           <div className="cookie-consent-modal__footer">
-                              <Link
-                                  to="/privacy"
+                              <a
+                                  href="/privacy/"
                                   className="cookie-consent-modal__policy-link"
                                   onClick={closePreferences}
                               >
                                   View Privacy Policy
-                              </Link>
+                              </a>
 
                               <div className="cookie-consent-modal__actions">
                                   <button
@@ -262,12 +261,12 @@ export default function CookieConsent() {
                             We use cookies to improve your experience, analyze
                             traffic, and support our marketing. You can accept
                             all cookies or manage your preferences. See our{" "}
-                            <Link
-                                to="/privacy"
+                            <a
+                                href="/privacy/"
                                 className="cookie-consent-banner__link"
                             >
                                 Privacy Policy
-                            </Link>
+                            </a>
                             .
                         </p>
                     </div>

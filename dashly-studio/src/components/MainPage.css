@@ -39,10 +39,9 @@
     white-space: nowrap;
 }
 
-.services-link img {
+.services-link .arrow-icon {
     width: 24px;
     height: 24px;
-    object-fit: contain;
     display: inline-block;
     flex-shrink: 0;
     vertical-align: middle;
@@ -172,7 +171,6 @@
     width: 35px;
     height: 35px;
     margin-left: 0px;
-    object-fit: contain;
 }
 @media (min-width: 1262px) and (max-width: 1440px) {
     .headline {
@@ -352,7 +350,6 @@
         width: 35px;
         height: 35px;
         margin-left: 0px;
-        object-fit: contain;
     }
 }
 @media (min-width: 675px) and (max-width: 768px) {
@@ -483,7 +480,6 @@
         width: 35px;
         height: 35px;
         margin-left: 0px;
-        object-fit: contain;
     }
 }
 @media (min-width: 400px) and (max-width: 675px) {
@@ -609,7 +605,6 @@
         width: 35px;
         height: 35px;
         margin-left: 0px;
-        object-fit: contain;
     }
 }
 @media (min-width: 20px) and (max-width: 400px) {
@@ -735,6 +730,5 @@
         width: 35px;
         height: 35px;
         margin-left: 0px;
-        object-fit: contain;
     }
 }

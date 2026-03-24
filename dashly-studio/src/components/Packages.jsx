@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./Packages.css";
 import arrowImage from "../assets/arrow.png";
-import ScrollLink from "./ScrollLink";
 
 const MOBILE_BREAKPOINT = "(max-width: 768px)";
 
@@ -143,12 +142,7 @@ export default function Packages() {
     }, [shouldAnimateCards]);
 
     return (
-        <section
-            className="packages-section"
-            id="packages"
-            aria-labelledby="packages-title"
-            aria-describedby="packages-seo-copy"
-        >
+        <section className="packages-section" id="packages">
             <h2 className="block-title" id="packages-title">
                 {isMobileViewport ? (
                     "Choose Your Website Package"
@@ -160,12 +154,6 @@ export default function Packages() {
                     </>
                 )}
             </h2>
-            <p className="visually-hidden" id="packages-seo-copy">
-                Dashly Studio offers website creation UK packages, business
-                website UK launches, and responsive website UK builds for
-                companies that need a modern online presence in Aberdeen,
-                Scotland, and across the United Kingdom.
-            </p>
             <div className="packages-grid" ref={gridRef}>
                 {packages.map((pkg, index) => (
                     <article
@@ -188,17 +176,14 @@ export default function Packages() {
                             <span className="package-price">{pkg.price}</span>
                         </div>
                         <p className="package-description">{pkg.description}</p>
-                        <ScrollLink to="#contact" className="package-cta">
+                        <a href="#contact" className="package-cta">
                             Ask a question{" "}
                             <img
                                 src={arrowImage}
-                                alt="Ask about a small business website package"
+                                alt="Ask a question"
                                 className="arrow-icon"
-                                width="24"
-                                height="24"
-                                decoding="async"
                             />
-                        </ScrollLink>
+                        </a>
                     </article>
                 ))}
             </div>

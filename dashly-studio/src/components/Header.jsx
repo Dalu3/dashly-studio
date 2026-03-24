@@ -1,8 +1,6 @@
 import "./Header.css";
-import arrowIcon from "../assets/arrow.png";
-import { Link } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
-import ScrollLink from "./ScrollLink";
+import arrowIcon from "../assets/arrow.png";
 
 function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -40,16 +38,14 @@ function Header() {
             />
 
             <header className="glass-navbar" ref={headerRef}>
-                <Link
-                    to="/"
+                <a
+                    href="/"
                     className="logo"
                     aria-label="Dashly Studio home"
-                    onClick={() =>
-                        window.scrollTo({ top: 0, behavior: "smooth" })
-                    }
+                    onClick={handleLinkClick}
                 >
                     Dashly
-                </Link>
+                </a>
 
                 <button
                     type="button"
@@ -74,30 +70,27 @@ function Header() {
                     ref={navRef}
                     className={`nav-links ${isMenuOpen ? "open" : ""}`}
                 >
-                    <ScrollLink to="/#packages" onClick={handleLinkClick}>
+                    <a href="/#packages" onClick={handleLinkClick}>
                         Services
-                    </ScrollLink>
-                    <ScrollLink to="/#stages" onClick={handleLinkClick}>
+                    </a>
+                    <a href="/#stages" onClick={handleLinkClick}>
                         Stages
-                    </ScrollLink>
-                    <ScrollLink to="/#faq" onClick={handleLinkClick}>
+                    </a>
+                    <a href="/#faq" onClick={handleLinkClick}>
                         FAQ
-                    </ScrollLink>
-                    <ScrollLink
-                        to="/#contact"
+                    </a>
+                    <a
+                        href="/#contact"
                         className="cta"
                         onClick={handleLinkClick}
                     >
                         Get In Touch
                         <img
                             src={arrowIcon}
-                            alt="Contact Dashly Studio about a business website"
+                            alt="Contact Dashly Studio"
                             className="arrow-icon"
-                            width="35"
-                            height="35"
-                            decoding="async"
                         />
-                    </ScrollLink>
+                    </a>
                 </nav>
             </header>
         </>
