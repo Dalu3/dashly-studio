@@ -4,6 +4,7 @@ const DEFAULT_SCROLL_DURATION = 520;
 
 let activeScrollFrame = 0;
 let activeScrollToken = 0;
+let removeActiveScrollInterrupts = null;
 
 function normalizePathname(pathname = "/") {
     if (!pathname) {
@@ -51,15 +52,48 @@ function dispatchViewportCheck() {
     window.dispatchEvent(new Event(VIEWPORT_CHECK_EVENT));
 }
 
+function detachActiveScrollInterrupts() {
+    if (!removeActiveScrollInterrupts) {
+        return;
+    }
+
+    removeActiveScrollInterrupts();
+    removeActiveScrollInterrupts = null;
+}
+
+function attachActiveScrollInterrupts() {
+    if (typeof window === "undefined" || removeActiveScrollInterrupts) {
+        return;
+    }
+
+    const handleInterrupt = () => {
+        cancelActiveScroll();
+    };
+
+    window.addEventListener("touchstart", handleInterrupt, { passive: true });
+    window.addEventListener("touchmove", handleInterrupt, { passive: true });
+    window.addEventListener("pointerdown", handleInterrupt, { passive: true });
+    window.addEventListener("wheel", handleInterrupt, { passive: true });
+
+    removeActiveScrollInterrupts = () => {
+        window.removeEventListener("touchstart", handleInterrupt);
+        window.removeEventListener("touchmove", handleInterrupt);
+        window.removeEventListener("pointerdown", handleInterrupt);
+        window.removeEventListener("wheel", handleInterrupt);
+    };
+}
+
 function cancelActiveScroll() {
     activeScrollToken += 1;
 
     if (!activeScrollFrame) {
+        detachActiveScrollInterrupts();
         return;
     }
 
     window.cancelAnimationFrame(activeScrollFrame);
     activeScrollFrame = 0;
+    detachActiveScrollInterrupts();
 }
 
 function easeInOutCubic(progress) {
@@ -72,6 +106,7 @@ function easeInOutCubic(progress) {
 
 function smoothScrollWindowTo(top, duration = DEFAULT_SCROLL_DURATION) {
     cancelActiveScroll();
+    attachActiveScrollInterrupts();
 
     const startY =
         window.pageYOffset ||
@@ -117,6 +152,7 @@ function smoothScrollWindowTo(top, duration = DEFAULT_SCROLL_DURATION) {
         }
 
         activeScrollFrame = 0;
+        detachActiveScrollInterrupts();
         dispatchViewportCheck();
     };
 
