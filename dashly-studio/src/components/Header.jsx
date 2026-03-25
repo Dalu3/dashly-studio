@@ -24,16 +24,18 @@ function Header() {
             document.removeEventListener("mousedown", handleClickOutside);
     }, [isMenuOpen]);
 
-    const handleLinkClick = () => {
-        setIsMenuOpen(false);
-    };
-
     const handleHashLinkClick = (event, hash) => {
         event.preventDefault();
-        handleLinkClick();
-        window.requestAnimationFrame(() => {
-            navigateToHash(null, hash, "/");
-        });
+
+        if (isMenuOpen) {
+            setIsMenuOpen(false);
+            window.requestAnimationFrame(() => {
+                navigateToHash(null, hash, "/");
+            });
+            return;
+        }
+
+        navigateToHash(null, hash, "/");
     };
 
     return (
@@ -53,7 +55,7 @@ function Header() {
                     href="/"
                     className="logo"
                     aria-label="Dashly Studio home"
-                    onClick={handleLinkClick}
+                    onClick={() => setIsMenuOpen(false)}
                 >
                     Dashly
                 </a>

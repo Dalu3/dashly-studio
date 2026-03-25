@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import Header from "./components/Header.jsx";
 import { MainPage } from "./components/MainPage.jsx";
@@ -119,9 +119,8 @@ function AppFrame({ pathname }) {
 }
 
 function App() {
-    const pathname = useMemo(
-        () => normalizePathname(window.location.pathname),
-        [],
+    const [pathname, setPathname] = useState(() =>
+        normalizePathname(window.location.pathname),
     );
     const [isLoading, setIsLoading] = useState(true);
 
@@ -139,6 +138,20 @@ function App() {
             window.history.replaceState(null, "", cleanUrl);
             window.scrollTo(0, 0);
         }
+    }, []);
+
+    useEffect(() => {
+        const syncPathname = () => {
+            setPathname(normalizePathname(window.location.pathname));
+        };
+
+        window.addEventListener("popstate", syncPathname);
+        window.addEventListener("hashchange", syncPathname);
+
+        return () => {
+            window.removeEventListener("popstate", syncPathname);
+            window.removeEventListener("hashchange", syncPathname);
+        };
     }, []);
 
     useEffect(() => {

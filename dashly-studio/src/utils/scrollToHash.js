@@ -1,6 +1,8 @@
 export const VIEWPORT_CHECK_EVENT = "dashly:viewport-check";
 
-const DEFAULT_SCROLL_DURATION = 520;
+const DEFAULT_SCROLL_DURATION = 420;
+const DESKTOP_NATIVE_SCROLL_MEDIA_QUERY =
+    "(min-width: 1061px) and (hover: hover) and (pointer: fine)";
 
 let activeScrollFrame = 0;
 let activeScrollToken = 0;
@@ -52,6 +54,14 @@ function dispatchViewportCheck() {
     window.dispatchEvent(new Event(VIEWPORT_CHECK_EVENT));
 }
 
+function shouldUseDesktopNativeSmoothScroll() {
+    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+        return false;
+    }
+
+    return window.matchMedia(DESKTOP_NATIVE_SCROLL_MEDIA_QUERY).matches;
+}
+
 function detachActiveScrollInterrupts() {
     if (!removeActiveScrollInterrupts) {
         return;
@@ -96,12 +106,8 @@ function cancelActiveScroll() {
     detachActiveScrollInterrupts();
 }
 
-function easeInOutCubic(progress) {
-    if (progress < 0.5) {
-        return 4 * progress * progress * progress;
-    }
-
-    return 1 - Math.pow(-2 * progress + 2, 3) / 2;
+function easeOutCubic(progress) {
+    return 1 - Math.pow(1 - progress, 3);
 }
 
 function smoothScrollWindowTo(top, duration = DEFAULT_SCROLL_DURATION) {
@@ -138,7 +144,7 @@ function smoothScrollWindowTo(top, duration = DEFAULT_SCROLL_DURATION) {
 
         const elapsed = timestamp - startTime;
         const progress = Math.min(1, elapsed / duration);
-        const easedProgress = easeInOutCubic(progress);
+        const easedProgress = easeOutCubic(progress);
         const currentY = Math.round(
             startY + (nextScrollTop - startY) * easedProgress,
         );
@@ -159,6 +165,23 @@ function smoothScrollWindowTo(top, duration = DEFAULT_SCROLL_DURATION) {
     activeScrollFrame = window.requestAnimationFrame(step);
 }
 
+function nativeSmoothScrollWindowTo(top) {
+    cancelActiveScroll();
+
+    const maxScrollTop = Math.max(
+        0,
+        document.documentElement.scrollHeight - window.innerHeight,
+    );
+    const nextScrollTop = Math.min(Math.max(0, top), maxScrollTop);
+
+    window.scrollTo({
+        top: nextScrollTop,
+        left: 0,
+        behavior: "smooth",
+    });
+    dispatchViewportCheck();
+}
+
 export function scrollToElement(element, options = {}) {
     if (!element) {
         return false;
@@ -170,6 +193,11 @@ export function scrollToElement(element, options = {}) {
     const behavior = options.behavior ?? "smooth";
 
     if (behavior === "smooth") {
+        if (shouldUseDesktopNativeSmoothScroll()) {
+            nativeSmoothScrollWindowTo(nextScrollTop);
+            return true;
+        }
+
         smoothScrollWindowTo(nextScrollTop, options.duration);
         return true;
     }
@@ -206,7 +234,13 @@ export function navigateToHash(event, hash, pathname = "/") {
     const targetUrl = `${normalizedTargetPath}${hash}`;
 
     if (normalizedCurrentPath !== normalizedTargetPath) {
-        window.location.assign(targetUrl);
+        window.history.pushState({}, "", targetUrl);
+        window.dispatchEvent(new PopStateEvent("popstate"));
+
+        requestAnimationFrame(() => {
+            scrollToHash(hash);
+        });
+
         return;
     }
 

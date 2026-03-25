@@ -11,10 +11,6 @@ body {
     -webkit-overflow-scrolling: touch;
 }
 
-html {
-    scroll-behavior: smooth;
-}
-
 html::-webkit-scrollbar,
 body::-webkit-scrollbar {
     display: none;
@@ -77,12 +73,6 @@ body {
 }
 #contact {
     scroll-margin-top: 30px;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    html {
-        scroll-behavior: auto;
-    }
 }
 
 @media (min-width: 598px) and (max-width: 769px) {
