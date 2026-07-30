@@ -1,0 +1,41 @@
+/**
+ * Minimal Hero shell — a positioning context for the background, and nothing
+ * more. No typography, no layout for Hero content: that arrives in a later
+ * step. This file exists only so the background can be previewed in place at
+ * the correct size.
+ */
+
+.root {
+    position: relative;
+
+    /* Establishes the containing block for the absolutely positioned
+       background and contains its oversized drifting layers, so they can never
+       create horizontal scroll. Nothing is allowed out of this box: the
+       background's fade reaches zero at the bottom edge, exactly where the
+       next section begins. */
+    overflow: clip;
+
+    /* Full first screen. 100svh uses the SMALL viewport height, i.e. the
+       height with mobile browser chrome visible, so the Hero never gets
+       cut off behind Safari's address bar. min-height (not height) lets
+       future Hero content grow the section if it ever needs more room. */
+    min-height: 100vh; /* fallback for browsers without svh */
+    min-height: 100svh;
+
+    /* Belt and braces: the section itself must never widen the page. */
+    max-width: 100%;
+}
+
+/**
+ * Content sits above the background in the same stacking context.
+ * Empty for now — the placeholder simply reserves the layer.
+ */
+.content {
+    position: relative;
+    z-index: var(--z-raised);
+    display: flex;
+    min-height: inherit;
+    flex-direction: column;
+    justify-content: center;
+    padding-inline: var(--container-gutter);
+}

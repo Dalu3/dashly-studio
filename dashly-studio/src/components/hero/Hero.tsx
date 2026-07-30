@@ -1,0 +1,50 @@
+import { useCallback, useRef, useState, type ReactNode } from "react";
+
+import type { ParallaxDebug } from "@/hooks/useHeroParallax";
+
+import { HeroBackground } from "./HeroBackground";
+import { HeroDebugPanel } from "./HeroDebugPanel";
+import styles from "./Hero.module.css";
+
+/**
+ * Diagnostic overlay, off by default — append `?heroDebug` to the URL to show
+ * it. Kept behind a flag rather than deleted so the runtime path (reduced
+ * motion, scroll source, eased progress, live transforms) can be inspected on
+ * any machine without a code change. Say the word and I will delete it and
+ * HeroDebugPanel.tsx entirely.
+ */
+const showDebugPanel = () =>
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).has("heroDebug");
+
+export interface HeroProps {
+    /** Hero content. Intentionally empty for now — text, buttons and the
+     *  "hello" wordmark are a later step. */
+    children?: ReactNode;
+}
+
+/**
+ * Minimum Hero shell needed to preview the animated background at full size.
+ *
+ * Deliberately contains no Hero content, no navigation, no logo and no
+ * typography. Its only jobs are to be a full-viewport positioning context for
+ * <HeroBackground /> and to keep future content structurally separate from the
+ * decorative layers.
+ */
+export function Hero({ children }: HeroProps) {
+    const sampleRef = useRef<ParallaxDebug | null>(null);
+    const [debug] = useState(showDebugPanel);
+    const handleSample = useCallback((sample: ParallaxDebug) => {
+        sampleRef.current = sample;
+    }, []);
+
+    return (
+        <section className={styles.root} aria-label="Introduction">
+            <HeroBackground
+                onScrollSample={debug ? handleSample : undefined}
+            />
+            <div className={styles.content}>{children}</div>
+            {debug && <HeroDebugPanel sampleRef={sampleRef} />}
+        </section>
+    );
+}

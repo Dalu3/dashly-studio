@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import "./App.css";
 import Header from "./components/Header.jsx";
+import { Hero } from "./components/hero/Hero";
 import { MainPage } from "./components/MainPage.jsx";
 import Packages from "./components/Packages.jsx";
 import Stages from "./components/Stages.jsx";
@@ -53,6 +54,9 @@ function isReloadNavigation() {
 function HomePage() {
     return (
         <main id="main-content">
+            {/* Redesign preview: animated Hero background only. The existing
+                MainPage hero below is untouched and still the live one. */}
+            <Hero />
             <MainPage />
             <Packages />
             <Stages />
