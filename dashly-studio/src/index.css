@@ -1,3 +1,9 @@
+/* Design tokens for the redesign. Custom property DEFINITIONS only — this
+   import declares variables and produces no visual change on its own. The
+   legacy rules below still drive the current site until each section is
+   redesigned. See src/styles/index.css for the eventual global entry point. */
+@import "./styles/tokens/index.css";
+
 :root {
     --content-max-width: 1100px;
     --content-gutter: 2rem;

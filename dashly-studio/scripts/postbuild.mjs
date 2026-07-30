@@ -318,6 +318,20 @@ async function ensureCnameAndNoJekyll() {
 }
 
 async function syncDocsFolder() {
+    // The repo-root /docs folder IS the production site: GitHub Pages serves
+    // main -> /docs. Building on a redesign branch would otherwise wipe and
+    // regenerate it, making it far too easy to commit a half-finished redesign
+    // onto main by accident.
+    //
+    // Default behaviour is unchanged. Set DASHLY_SKIP_DOCS_SYNC=1 (or use
+    // `npm run build:preview`) to build into dist/ only and leave /docs alone.
+    if (process.env.DASHLY_SKIP_DOCS_SYNC === "1") {
+        console.log(
+            "[postbuild] DASHLY_SKIP_DOCS_SYNC=1 — leaving /docs untouched; output is in dist/ only.",
+        );
+        return;
+    }
+
     await fs.rm(docsDir, { recursive: true, force: true });
     await fs.cp(distDir, docsDir, { recursive: true });
 }

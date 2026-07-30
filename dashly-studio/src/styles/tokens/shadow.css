@@ -1,0 +1,24 @@
+/**
+ * Elevation tokens.
+ *
+ * An ordered scale — a component picks a LEVEL, not a blur radius. Shadows are
+ * tinted with the brand ink rather than pure black so they sit correctly on the
+ * warm off-white page surface.
+ */
+
+:root {
+    --shadow-none: none;
+
+    --shadow-xs: 0 1px 2px rgb(var(--c-ink-800-rgb) / 0.06);
+    --shadow-sm: 0 2px 8px rgb(var(--c-ink-800-rgb) / 0.08);
+    --shadow-md: 0 6px 14px rgb(var(--c-ink-800-rgb) / 0.1);
+    --shadow-lg: 0 14px 32px rgb(var(--c-ink-800-rgb) / 0.12);
+    --shadow-xl: 0 20px 50px rgb(var(--c-ink-800-rgb) / 0.16);
+
+    /* Accent glow, used sparingly for hover on accent surfaces. */
+    --shadow-accent: 0 10px 30px rgb(var(--c-accent-400-rgb) / 0.28);
+
+    /* Focus ring — see color.css for the hue. Defined here so every focusable
+       element in the site shares one visual treatment. */
+    --shadow-focus-ring: 0 0 0 3px rgb(var(--c-accent-400-rgb) / 0.55);
+}

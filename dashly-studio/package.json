@@ -7,6 +7,8 @@
     "dev": "vite",
     "build": "vite build",
     "postbuild": "node scripts/postbuild.mjs",
+    "build:preview": "DASHLY_SKIP_DOCS_SYNC=1 npm run build",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "preview": "vite preview",
     "deploy": "npm run build"
@@ -27,6 +29,7 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
     "globals": "^15.12.0",
+    "typescript": "^5.9.3",
     "vite": "^6.0.1"
   }
 }

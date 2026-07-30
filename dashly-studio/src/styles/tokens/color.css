@@ -1,0 +1,74 @@
+/**
+ * Colour tokens.
+ *
+ * Two layers on purpose:
+ *   1. Primitives (--c-*)  — the raw palette. Never used directly in components.
+ *   2. Semantic  (--color-*) — what a colour MEANS. Components use only these.
+ *
+ * This indirection is what makes a re-skin (or a future dark theme) a change to
+ * one file instead of a change to 156 scattered hex literals.
+ *
+ * Primitives are extracted from the existing production site so the redesign
+ * starts from the established brand, not an invented palette.
+ */
+
+:root {
+    /* ---- Primitives: neutrals ------------------------------------------ */
+    --c-ink-900: #171715;
+    --c-ink-800: #2a2a26;
+    --c-ink-600: #55524f;
+    --c-ink-500: #646363;
+    --c-ink-400: #7a7777;
+    --c-ink-300: #cccccc;
+
+    --c-paper-000: #ffffff;
+    --c-paper-050: #f6f6f6;
+    --c-paper-100: #f5f5f5;
+    --c-paper-200: #f5f5f1;
+
+    /* ---- Primitives: brand accent -------------------------------------- */
+    --c-accent-300: #8edcff;
+    --c-accent-400: #63d5ff;
+    --c-accent-500: #29c9ff;
+
+    /* ---- Primitives: channels (for alpha composition) ------------------- */
+    --c-ink-800-rgb: 42 42 38;
+    --c-accent-400-rgb: 99 213 255;
+    --c-black-rgb: 0 0 0;
+    --c-white-rgb: 255 255 255;
+
+    /* ---- Semantic: surfaces -------------------------------------------- */
+    --color-surface-page: var(--c-paper-050);
+    --color-surface-raised: var(--c-paper-000);
+    --color-surface-sunken: var(--c-paper-100);
+    --color-surface-inverse: var(--c-ink-800);
+
+    /* ---- Semantic: text ------------------------------------------------- */
+    --color-text-primary: var(--c-ink-800);
+    --color-text-secondary: var(--c-ink-600);
+    --color-text-muted: var(--c-ink-400);
+    --color-text-inverse: var(--c-paper-050);
+    --color-text-accent: var(--c-accent-500);
+
+    /* ---- Semantic: borders ---------------------------------------------- */
+    --color-border-subtle: rgb(var(--c-ink-800-rgb) / 0.12);
+    --color-border-default: rgb(var(--c-ink-800-rgb) / 0.22);
+    --color-border-strong: var(--c-ink-800);
+
+    /* ---- Semantic: interactive ------------------------------------------ */
+    --color-action-primary-bg: var(--c-ink-800);
+    --color-action-primary-text: var(--c-paper-050);
+    --color-action-primary-bg-hover: var(--c-ink-900);
+
+    --color-action-accent-bg: var(--c-accent-400);
+    --color-action-accent-text: var(--c-ink-900);
+    --color-action-accent-bg-hover: var(--c-accent-500);
+
+    /* Focus ring is a token, not a per-component decision — accessibility
+       depends on it being consistent and never removed. */
+    --color-focus-ring: var(--c-accent-500);
+
+    /* ---- Semantic: overlays --------------------------------------------- */
+    --color-overlay-scrim: rgb(var(--c-black-rgb) / 0.5);
+    --color-overlay-veil: rgb(var(--c-white-rgb) / 0.9);
+}

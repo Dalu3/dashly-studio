@@ -1,0 +1,25 @@
+/**
+ * Z-index tokens.
+ *
+ * The current site has an escalating-arms-race problem: 1, 999, 1000, 1001,
+ * 9999, 10001, 10002. Every new overlay had to out-bid the last one.
+ *
+ * This is a deliberate, ordered ladder with gaps of 10 so a layer can be
+ * inserted between two others without renumbering anything. Nothing in the
+ * redesign should use a raw z-index value.
+ */
+
+:root {
+    --z-below: -1;
+    --z-base: 0;
+    --z-raised: 10;
+    --z-sticky: 20;
+    --z-header: 30;
+    --z-backdrop: 40;
+    --z-drawer: 50;
+    --z-modal: 60;
+    --z-popover: 70;
+    --z-toast: 80;
+    --z-cursor: 90; /* custom mouse follower must sit above content */
+    --z-max: 100; /* cookie consent / skip-link only */
+}

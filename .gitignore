@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build output
+# NOTE: the repo-root /docs folder is INTENTIONALLY tracked.
+# GitHub Pages serves the production site from main -> /docs, so it must
+# stay in version control. Only the app-local build artefacts are ignored.
+dashly-studio/dist/
+dashly-studio/docs/
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/*
+!.vscode/extensions.json
+
+# Env
+.env
+.env.local
+.env.*.local
+
+# Tooling caches
+*.tsbuildinfo
+.eslintcache

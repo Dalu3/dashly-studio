@@ -1,0 +1,39 @@
+{
+    "compilerOptions": {
+        "target": "ES2020",
+        "useDefineForClassFields": true,
+        "lib": ["ES2020", "DOM", "DOM.Iterable"],
+        "module": "ESNext",
+        "skipLibCheck": true,
+
+        /* Bundler mode — Vite handles emit, tsc is type-check only. */
+        "moduleResolution": "bundler",
+        "allowImportingTsExtensions": true,
+        "resolveJsonModule": true,
+        "isolatedModules": true,
+        "moduleDetection": "force",
+        "noEmit": true,
+        "jsx": "react-jsx",
+
+        /* Incremental migration: existing .jsx keeps working untouched.
+           checkJs stays false so legacy JS is not type-checked yet. Each
+           file gets converted as its section is redesigned. */
+        "allowJs": true,
+        "checkJs": false,
+
+        /* Strictness for new TypeScript only. */
+        "strict": true,
+        "noUnusedLocals": true,
+        "noUnusedParameters": true,
+        "noFallthroughCasesInSwitch": true,
+        "noUncheckedIndexedAccess": true,
+        "verbatimModuleSyntax": true,
+
+        /* Absolute imports — no ../../../ chains. */
+        "baseUrl": ".",
+        "paths": {
+            "@/*": ["./src/*"]
+        }
+    },
+    "include": ["src"]
+}

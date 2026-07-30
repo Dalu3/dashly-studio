@@ -1,0 +1,15 @@
+/**
+ * Design token entry point.
+ *
+ * Import order matters: color.css defines the primitives that shadow.css
+ * composes with, and spacing.css defines the scale layout.css consumes.
+ */
+
+@import "./color.css";
+@import "./typography.css";
+@import "./spacing.css";
+@import "./layout.css";
+@import "./radius.css";
+@import "./shadow.css";
+@import "./motion.css";
+@import "./z-index.css";
