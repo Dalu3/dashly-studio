@@ -1,8 +1,22 @@
-import { useCallback, useRef, useState, type ReactNode } from "react";
+import {
+    Suspense,
+    lazy,
+    useCallback,
+    useRef,
+    useState,
+    type ReactNode,
+} from "react";
 
 import type { ParallaxDebug } from "@/hooks/useHeroParallax";
 
 import { HeroBackground } from "./HeroBackground";
+
+/**
+ * Loaded as its own chunk. three.js is ~170KB gzipped, so keeping it out of the
+ * main bundle means the Hero's markup and text paint immediately and the 3D
+ * word arrives afterwards, rather than blocking first render.
+ */
+const HelloModel = lazy(() => import("./HelloModel"));
 import { HeroDebugPanel } from "./HeroDebugPanel";
 import styles from "./Hero.module.css";
 
@@ -43,6 +57,9 @@ export function Hero({ children }: HeroProps) {
             <HeroBackground
                 onScrollSample={debug ? handleSample : undefined}
             />
+            <Suspense fallback={null}>
+                <HelloModel />
+            </Suspense>
             <div className={styles.content}>{children}</div>
             {debug && <HeroDebugPanel sampleRef={sampleRef} />}
         </section>

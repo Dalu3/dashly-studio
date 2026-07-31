@@ -1,0 +1,23 @@
+/**
+ * Canvas host for the 3D "hello".
+ *
+ * Fills the Hero and sits between the animated background and the (future)
+ * Hero content. Placement of the word itself is done in 3D, inside
+ * HelloModel.tsx, rather than with CSS — that way the Hero's layout is not
+ * touched at all and the model stays correctly proportioned at any viewport.
+ */
+
+.root {
+    position: absolute;
+    inset: 0;
+    z-index: var(--z-raised);
+
+    /* No interaction yet — that is a later stage. */
+    pointer-events: none;
+}
+
+.root canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
