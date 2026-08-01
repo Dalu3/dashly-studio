@@ -48,39 +48,46 @@ export function createShellMaterial(
 ): ShellMaterial {
     const uniforms: ShellUniforms = {
         uShellCount: { value: 1 },
-        // ~37% of the tube's own radius (0.04 raw units) — long enough to
-        // read as genuine plush thickness rather than a fuzzy outline, per
-        // the piellardj/fur-threejs reference's own default (its "Length"
-        // slider defaults to a shell height of 0.05 * 2.75 = 0.1375 against
-        // demo objects of roughly unit local scale — a proportionally much
-        // thicker coat than this project's earlier, more conservative
-        // value).
-        uFurLength: { value: 0.015 },
+        // ~28% of the tube's own radius (0.04 raw units). Deliberately
+        // SHORTER than an earlier 0.017 pass: long fur turned the word into
+        // a spiky halo around a pale core rather than the reference's short,
+        // dense, velvet-like pile, and long strands stacked up at grazing
+        // angles into a heavy saturated rim that fought the interior.
+        // Shortening also frees screen margin — fur grows past the base
+        // mesh's bounding box, which is what LAYOUT in HelloModel.tsx
+        // measures — and that reclaimed margin is what pays for the larger
+        // on-screen scale there. The two are coupled: raising this again
+        // means lowering LAYOUT to match.
+        uFurLength: { value: 0.011 },
         uNoiseTexture: { value: options.noiseTexture },
-        // Cells-per-object-unit, multiplying the tangent-plane coordinate
-        // before it samples the noise texture. Re-derived from the
-        // reference's own default ("Density" slider = 12, its noiseScale
-        // uniform applied directly to raw mesh UV): the previous value here
-        // (72) packed roughly 6x more strand-cells across the same surface
-        // area than that ratio implies, which is what read as fine
-        // high-frequency static rather than individually legible fibres.
-        uNoiseScale: { value: 10 },
+        // Cells-per-object-unit, scaling the triplanar sample coordinate
+        // (see sampleFurPattern in common.glsl). The noise texture itself
+        // holds 16 Worley cells per uv unit, so strand cells per object unit
+        // is this x 16 — at 20 that is ~26 strand cells across a stroke's
+        // width, which reads as many fine fibres. Raised alongside the
+        // shorter fur above: stubbier strands need to be finer and denser to
+        // still read as fur rather than as a bumpy surface.
+        uNoiseScale: { value: 20 },
         uCompress: { value: 0.5 },
-        // Reduced from 0.12: at a noise-texture cell size of 1/16 in
-        // sampling-space, 0.12 could wobble a sample across nearly two full
-        // cells at a shell's tip, blurring the pattern it was meant to
-        // vary.
+        // Kept small on purpose. This is a fraction of a strand cell, so at
+        // higher uNoiseScale a large value would drag the sample across
+        // neighbouring cells and blur the very pattern it exists to vary.
         uCurl: { value: 0.05 },
-        uRootColor: { value: new Color(options.rootColor ?? "#1c9be6") },
-        uTipColor: { value: new Color(options.tipColor ?? "#8fd8f7") },
+        uRootColor: { value: new Color(options.rootColor ?? "#1eb6f7") },
+        uTipColor: { value: new Color(options.tipColor ?? "#6fd4fb") },
         uLightDir: { value: new Vector3(-0.4, 0.8, 0.6).normalize() },
         uGravity: { value: new Vector3(0, -0.1, 0) },
         uCursor: { value: new Vector3(1e6, 1e6, 1e6) },
         uCursorDir: { value: new Vector3(0, 0, 0) },
         uCursorRadius: { value: 0.036 },
         uCursorStrength: { value: 0 },
-        // Matches the reference's own default `maxAo` exactly.
-        uMaxAo: { value: 0.7 },
+        // The reference's own default is 0.7, which suits its dark studio
+        // backdrop. Against this hero's pale sky it crushed the inside of
+        // each stroke to ~70% brightness while the fur tips stayed near
+        // full — read as a dark cavity down the middle of every letter,
+        // i.e. concave. 0.84 keeps a real root-to-tip depth cue while
+        // staying well clear of that.
+        uMaxAo: { value: 0.84 },
         // pow(smoothness + 0.5, 2) at the reference's own default
         // smoothness (0.5) works out to exactly 1.0 — a plain linear alpha
         // falloff, alpha = 1 - relativeHeight.
@@ -111,13 +118,16 @@ export function createShellMaterial(
 }
 
 /**
- * The reference's own default is 60 (its "Quality" slider). 48/30 keeps
- * comfortably within that quality range while trimming for mobile — cheap
- * to raise here because this project draws every shell as ONE InstancedMesh
- * (a single draw call), unlike the reference's N-separate-Mesh-per-shell
- * approach, so shell count no longer multiplies draw-call count the way it
- * would there.
+ * Trimmed back down from an earlier pass at 48/30. That version chased the
+ * reference's own default (60) for maximum shell-to-shell smoothness, but
+ * every shell here is a full alpha-blended overdraw pass (see `transparent:
+ * true` above) — unlike the reference's opaque-with-discard shells, blended
+ * fragments can't be early-Z-rejected, so shell count multiplies GPU
+ * fragment cost directly, not just vertex cost. 36/22 is the balance point:
+ * still comfortably above the pre-alpha-blend baseline (28/22) for smooth
+ * coverage, without paying for shells whose contribution below full opacity
+ * is barely visible.
  */
 export function shellCountFor(mobile: boolean): number {
-    return mobile ? 30 : 48;
+    return mobile ? 22 : 36;
 }

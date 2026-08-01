@@ -36,23 +36,30 @@ varying float vShellT;
 void main() {
     vec3 n = normalize(vWorldNormal);
     vec3 objN = normalize(vObjNormal);
+
+    // Subtle per-strand direction drift: the SAMPLE POINT wobbles slightly
+    // in a random per-cell direction, growing with shell height — this is
+    // what varies strand direction rather than just position. Done in 3D
+    // object space (and flattened into the local tangent plane so a strand
+    // leans along its surface rather than into it) because the pattern
+    // coordinate itself is now a fixed-axis triplanar projection rather
+    // than a 2D tangent-space uv.
+    vec3 cell = floor(vRoot * uNoiseScale * 16.0);
+    float h1 = hash1(dot(cell, vec3(12.9898, 78.233, 37.719)));
+    float h2 = hash1(dot(cell, vec3(93.989, 47.271, 21.113)));
+    float h3 = hash1(dot(cell, vec3(61.317, 15.733, 88.191)));
+
     vec3 tangent, bitangent;
     basisFromNormal(objN, tangent, bitangent);
+    vec3 drift = tangent * (h1 - 0.5) + bitangent * (h2 - 0.5)
+        + objN * (h3 - 0.5) * 0.15;
+    // Cell size in object units is 1 / (uNoiseScale * cellsPerAxis); scaling
+    // the drift by 1/uNoiseScale keeps the wobble a constant fraction of a
+    // strand cell no matter what density is set to.
+    vec3 samplePos = vRoot
+        + normalize(drift) * (uCurl / uNoiseScale) * (vShellT * vShellT);
 
-    // Flat local 2D coordinate on the surface — the tangent plane keeps this
-    // isotropic no matter which way the tube curves, unlike the mesh's own
-    // (badly stretched) UVs.
-    vec2 uv = vec2(dot(vRoot, tangent), dot(vRoot, bitangent)) * uNoiseScale;
-
-    // Subtle per-cell direction drift: the texture SAMPLE point wobbles a
-    // little in a random per-cell direction, growing with shell height —
-    // this is what varies strand DIRECTION rather than just position. Cheap
-    // on purpose: one hash of the cell, not a neighbour search.
-    vec2 cell = floor(uv);
-    float curlAngle = hash1(dot(cell, vec2(12.9898, 78.233))) * 6.28318;
-    vec2 curl = vec2(cos(curlAngle), sin(curlAngle)) * uCurl * (vShellT * vShellT);
-
-    vec4 noiseSample = texture2D(uNoiseTexture, uv + curl);
+    vec4 noiseSample = sampleFurPattern(uNoiseTexture, samplePos, objN, uNoiseScale);
     float hairLength = max(0.01, noiseSample.r);
     float shade = noiseSample.g;
 
@@ -66,8 +73,12 @@ void main() {
         discard;
     }
 
-    vec3 color = mix(uRootColor, uTipColor, clamp(vShellT * 1.2, 0.0, 1.0));
-    color *= mix(0.75, 1.0, shade);
+    // Biased toward the ROOT colour (squared, not the previous 1.2x
+    // over-drive that hit full tip colour by 83% height). Only the outermost
+    // fibre tips should pick up the pale highlight; letting it reach most of
+    // the shell stack is what desaturates the whole word toward white.
+    vec3 color = mix(uRootColor, uTipColor, vShellT * vShellT);
+    color *= mix(0.82, 1.0, shade);
 
     vec3 viewDir = normalize(cameraPosition - vWorldPos);
     vec3 shaded = shadeFibre(color, n, normalize(uLightDir), viewDir, vShellT);
@@ -81,5 +92,5 @@ void main() {
     // snapping from "nothing" to "fully opaque" the instant they clear the
     // strand-length test.
     float alpha = pow(1.0 - relativeHeight, uAlphaSharpness);
-    fragColor = vec4(shaded, alpha);
+    fragColor = vec4(linearToSRGB(shaded), alpha);
 }

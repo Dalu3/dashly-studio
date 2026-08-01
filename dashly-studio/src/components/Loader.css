@@ -6,6 +6,17 @@
     justify-content: center;
     background-color: var(--color-surface-page);
     z-index: var(--z-max);
+    opacity: 1;
+    /* transform + opacity only — both are compositor-only properties, so
+       this transition (and the dots' own animations below) can keep
+       running smoothly even while the main thread is busy building the
+       hero scene behind it; neither ever triggers layout or paint. */
+    transition: opacity var(--duration-slow) var(--ease-standard);
+}
+
+.loader-overlay--fading {
+    opacity: 0;
+    pointer-events: none;
 }
 
 .loader-dots {

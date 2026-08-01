@@ -19,5 +19,6 @@ varying vec3 vWorldPos;
 void main() {
     vec3 n = normalize(vWorldNormal);
     vec3 viewDir = normalize(cameraPosition - vWorldPos);
-    fragColor = vec4(shadeFibre(uRootColor, n, normalize(uLightDir), viewDir, 0.0), 1.0);
+    vec3 shaded = shadeFibre(uRootColor, n, normalize(uLightDir), viewDir, 0.0);
+    fragColor = vec4(linearToSRGB(shaded), 1.0);
 }

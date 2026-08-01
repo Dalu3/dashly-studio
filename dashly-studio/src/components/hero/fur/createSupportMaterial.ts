@@ -38,14 +38,15 @@ export function createSupportMaterial(
     options: SupportMaterialOptions = {},
 ): SupportMaterial {
     const uniforms: SupportUniforms = {
-        uRootColor: { value: new Color(options.rootColor ?? "#1c9be6") },
+        uRootColor: { value: new Color(options.rootColor ?? "#1eb6f7") },
         uLightDir: { value: new Vector3(-0.4, 0.8, 0.6).normalize() },
         // Same flat multiplier the reference applies to its own base mesh
         // (`color * maxAo * light`, no depth easing since there is no
         // "depth into the fur" at the surface itself) — and the same value
         // shadeFibre's ao curve reduces to at depthT = 0, so the base mesh
-        // and the root of every strand growing from it match exactly.
-        uMaxAo: { value: 0.7 },
+        // and the root of every strand growing from it match exactly. Must
+        // stay in step with the shell/fin materials for that to hold.
+        uMaxAo: { value: 0.84 },
     };
 
     const material = new ShaderMaterial({

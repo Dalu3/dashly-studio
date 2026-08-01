@@ -8,16 +8,27 @@
 //
 // Fins and shells share one fragment shader in the reference (both its `cc`
 // and `hc` materials point at the same compiled source, confirmed by
-// extracting both from its minified bundle) — including the SAME real alpha
-// blend toward each strand's own tip. An earlier version of this file
-// assumed fins there were unconditionally opaque and added a dithered,
-// view-dependent discard gate to compensate for our much finer base mesh
-// (hello.glb has ~13.7k vertices vs. the reference's simple demo shapes)
-// showing fins as flat opaque strips on front-facing surfaces. That
-// assumption was wrong, and the fix it was compensating for is no longer
-// needed once real alpha blending (below) is in place: a fin fragment now
-// fades out smoothly toward its own tip instead of snapping straight to
-// fully opaque, which is what made a flat strip visible in the first place.
+// extracting both from its minified bundle), with no view-dependent gate of
+// any kind — its fins are always drawn.
+//
+// That works there and NOT here purely because of mesh density. Fin
+// geometry emits one quad per unique mesh edge; hello.glb has 13,770
+// vertices / 26,208 triangles / ~39,300 unique edges, where the
+// reference's demo props (torus, sphere, chair) are an order of magnitude
+// coarser. On a front-facing surface every one of those ~39,300 quads
+// extends straight at the viewer and is therefore seen edge-on, as a hairline
+// — and because the tube's edges form a regular ring/longitudinal grid,
+// ~39,300 hairlines land as a regular rope-like ribbing straight down every
+// stroke, plus a dark seam where they pile up densest.
+//
+// So the silhouette term below is deliberately NOT from the reference. It
+// is what makes fins do their actual job — filling the silhouette gap at
+// grazing angles, where shells alone go transparent — while staying out of
+// the way of front-facing surfaces the shells already cover properly on
+// their own. This was briefly removed in an earlier pass on the mistaken
+// theory that alpha blending superseded it; the ribbing it exists to
+// prevent came straight back, so it is restored here, now as a smooth
+// alpha fade rather than the previous dithered discard.
 
 precision highp float;
 layout(location = 0) out vec4 fragColor;
@@ -38,11 +49,11 @@ varying float vFinT;
 void main() {
     vec3 n = normalize(vWorldNormal);
     vec3 objN = normalize(vObjNormal);
-    vec3 tangent, bitangent;
-    basisFromNormal(objN, tangent, bitangent);
-    vec2 uv = vec2(dot(vRoot, tangent), dot(vRoot, bitangent)) * uNoiseScale;
 
-    vec4 noiseSample = texture2D(uNoiseTexture, uv);
+    // Same fixed-axis triplanar projection, at the same scale, from the same
+    // un-extruded root position as shell.frag — shells and fins must read
+    // the identical underlying pattern or the silhouette shows a seam.
+    vec4 noiseSample = sampleFurPattern(uNoiseTexture, vRoot, objN, uNoiseScale);
     float hairLength = max(0.01, noiseSample.r);
     float relativeHeight = vFinT / hairLength;
     if (relativeHeight >= 1.0) {
@@ -50,10 +61,23 @@ void main() {
     }
 
     vec3 viewDir = normalize(cameraPosition - vWorldPos);
-    vec3 color = mix(uRootColor, uTipColor, clamp(vFinT * 1.2, 0.0, 1.0));
-    color *= mix(0.75, 1.0, noiseSample.g);
+
+    // 1 only where this surface is close to edge-on to the camera (the
+    // silhouette, where shells thin out and fins are genuinely needed);
+    // 0 across everything facing the viewer, where an edge-on fin quad
+    // would otherwise draw a hairline over fur the shells already render.
+    float facing = abs(dot(n, viewDir));
+    float silhouette = smoothstep(0.62, 0.12, facing);
+
+    if (silhouette <= 0.001) {
+        discard;
+    }
+
+    // Same root-biased ramp as shell.frag — see its comment.
+    vec3 color = mix(uRootColor, uTipColor, vFinT * vFinT);
+    color *= mix(0.82, 1.0, noiseSample.g);
 
     vec3 shaded = shadeFibre(color, n, normalize(uLightDir), viewDir, vFinT);
-    float alpha = pow(1.0 - relativeHeight, uAlphaSharpness);
-    fragColor = vec4(shaded, alpha);
+    float alpha = pow(1.0 - relativeHeight, uAlphaSharpness) * silhouette;
+    fragColor = vec4(linearToSRGB(shaded), alpha);
 }

@@ -84,7 +84,13 @@ export function generateNoiseTexture(
 ): DataTexture {
     const size = options.size ?? 128;
     const cellsPerAxis = options.cellsPerAxis ?? 16;
-    const minLength = options.minLength ?? 0.06;
+    // Raised from 0.06: minLength is the strand height at a seed point, so
+    // it sets how bald the baldest spot in each cell gets. At 0.06 those
+    // near-zero-length wells were visible as pinholes of bare support mesh
+    // across front-facing surfaces, which reads as "fur only around the
+    // edges". 0.10 keeps every texel carrying real fur while leaving plenty
+    // of range for the length variation that makes fibres distinguishable.
+    const minLength = options.minLength ?? 0.1;
     const maxLength = options.maxLength ?? 1.0;
     const normDistance = options.normDistance ?? 0.65;
 

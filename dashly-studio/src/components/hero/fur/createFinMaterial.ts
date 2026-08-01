@@ -40,20 +40,21 @@ export interface FinMaterialOptions {
 
 export function createFinMaterial(options: FinMaterialOptions): FinMaterial {
     const uniforms: FinUniforms = {
-        // Matches the shell material's uFurLength — see its own comment for
-        // why (the reference's own default, translated to this tube's
-        // radius).
-        uFurLength: { value: 0.015 },
+        // Every value here that also exists on the shell material MUST
+        // match it exactly — shells and fins are two halves of one surface,
+        // and any divergence in length, density, colour or AO shows up as a
+        // visible seam where fins take over at the silhouette.
+        uFurLength: { value: 0.011 },
         uNoiseTexture: { value: options.noiseTexture },
-        uNoiseScale: { value: 10 },
-        uRootColor: { value: new Color(options.rootColor ?? "#1c9be6") },
-        uTipColor: { value: new Color(options.tipColor ?? "#8fd8f7") },
+        uNoiseScale: { value: 20 },
+        uRootColor: { value: new Color(options.rootColor ?? "#1eb6f7") },
+        uTipColor: { value: new Color(options.tipColor ?? "#6fd4fb") },
         uLightDir: { value: new Vector3(-0.4, 0.8, 0.6).normalize() },
         uCursor: { value: new Vector3(1e6, 1e6, 1e6) },
         uCursorDir: { value: new Vector3(0, 0, 0) },
         uCursorRadius: { value: 0.036 },
         uCursorStrength: { value: 0 },
-        uMaxAo: { value: 0.7 },
+        uMaxAo: { value: 0.84 },
         uAlphaSharpness: { value: 1.0 },
     };
 

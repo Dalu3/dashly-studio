@@ -136,11 +136,68 @@ export function createCursorInteraction(
     let looping = false;
     let disposed = false;
 
+    // The raw pointer position from the most recent `pointermove`, applied
+    // to a real Raycaster at most ONCE PER FRAME inside tick() below —
+    // never inside the event handler itself. `pointermove` can fire far
+    // more often than the display refresh rate (uncoalesced high-poll-rate
+    // mice easily exceed it); raycasting hello.glb's ~13.7k-vertex geometry
+    // on every single one of those events was real, measurable, and
+    // entirely wasted work between two events that land in the same frame.
+    let pendingClientX = 0;
+    let pendingClientY = 0;
+    let hasPendingMove = false;
+
     const applyUniforms = () => {
         for (const material of materials) {
             material.uniforms.uCursorStrength.value = strength;
             material.uniforms.uCursor.value.copy(followPoint);
             material.uniforms.uCursorDir.value.copy(followDir);
+        }
+    };
+
+    /** The actual raycast — moved out of the event handler (see
+     *  `hasPendingMove` above) so it runs at most once per animation
+     *  frame regardless of how many raw pointer events arrived since the
+     *  last one. */
+    const resolvePendingMove = () => {
+        if (!hasPendingMove || raycastTargets.length === 0) {
+            return;
+        }
+
+        hasPendingMove = false;
+
+        const rect = viewportElement.getBoundingClientRect();
+        pointerNdc.set(
+            ((pendingClientX - rect.left) / rect.width) * 2 - 1,
+            -((pendingClientY - rect.top) / rect.height) * 2 + 1,
+        );
+
+        raycaster.setFromCamera(pointerNdc, camera);
+        const hit = raycaster.intersectObjects(raycastTargets, false)[0];
+
+        if (hit && hit.object instanceof Mesh) {
+            // Object space, matching `position` in the vertex shaders — this
+            // only sets the TARGET; the shader-facing value is the damped
+            // follow point updated below.
+            const local = hit.object.worldToLocal(hit.point.clone());
+
+            if (hasLastHit) {
+                const delta = local.clone().sub(lastHit);
+
+                if (delta.lengthSq() > 1e-12) {
+                    targetDir.copy(delta.normalize());
+                }
+            }
+
+            lastHit.copy(local);
+            hasLastHit = true;
+            targetPoint.copy(local);
+            targetStrength = 1;
+            hovering = true;
+        } else if (hovering) {
+            targetStrength = 0;
+            hasLastHit = false;
+            hovering = false;
         }
     };
 
@@ -155,6 +212,8 @@ export function createCursorInteraction(
 
             return;
         }
+
+        resolvePendingMove();
 
         const dt = lastTickTime
             ? Math.min((now - lastTickTime) / 1000, 0.05)
@@ -226,52 +285,39 @@ export function createCursorInteraction(
     };
 
     const handlePointerMove = (event: Event) => {
-        if (!(event instanceof PointerEvent) || raycastTargets.length === 0) {
+        if (!(event instanceof PointerEvent)) {
             return;
         }
 
-        const rect = viewportElement.getBoundingClientRect();
-        pointerNdc.set(
-            ((event.clientX - rect.left) / rect.width) * 2 - 1,
-            -((event.clientY - rect.top) / rect.height) * 2 + 1,
-        );
-
-        raycaster.setFromCamera(pointerNdc, camera);
-        const hit = raycaster.intersectObjects(raycastTargets, false)[0];
-
-        if (hit && hit.object instanceof Mesh) {
-            // Object space, matching `position` in the vertex shaders — this
-            // only sets the TARGET; the shader-facing value is the damped
-            // follow point updated in tick().
-            const local = hit.object.worldToLocal(hit.point.clone());
-
-            if (hasLastHit) {
-                const delta = local.clone().sub(lastHit);
-
-                if (delta.lengthSq() > 1e-12) {
-                    targetDir.copy(delta.normalize());
-                }
-            }
-
-            lastHit.copy(local);
-            hasLastHit = true;
-            targetPoint.copy(local);
-            targetStrength = 1;
-            hovering = true;
-        } else if (hovering) {
-            targetStrength = 0;
-            hasLastHit = false;
-            hovering = false;
-        }
-
+        pendingClientX = event.clientX;
+        pendingClientY = event.clientY;
+        hasPendingMove = true;
         startLoop();
     };
 
     const handlePointerLeave = () => {
+        hasPendingMove = false;
         targetStrength = 0;
         hasLastHit = false;
         hovering = false;
         startLoop();
+    };
+
+    // A settling spring left running in a backgrounded tab is wasted work —
+    // rAF is throttled there but not guaranteed to stop, and the tab can
+    // stay backgrounded indefinitely. Explicitly stopping (and cleanly
+    // resuming on return) is cheap insurance rather than relying on browser
+    // throttling alone.
+    const handleVisibilityChange = () => {
+        if (document.hidden) {
+            looping = false;
+            cancelAnimationFrame(frameId);
+        } else {
+            // If a spring hadn't finished settling before the tab was
+            // hidden, this picks it back up; if everything was already at
+            // rest, tick() notices on its very next frame and stops again.
+            startLoop();
+        }
     };
 
     domElement.addEventListener("pointermove", handlePointerMove, {
@@ -280,12 +326,17 @@ export function createCursorInteraction(
     domElement.addEventListener("pointerleave", handlePointerLeave, {
         passive: true,
     });
+    document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return {
         dispose: () => {
             disposed = true;
             domElement.removeEventListener("pointermove", handlePointerMove);
             domElement.removeEventListener("pointerleave", handlePointerLeave);
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange,
+            );
             cancelAnimationFrame(frameId);
         },
     };

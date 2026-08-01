@@ -35,6 +35,12 @@ export interface HeroProps {
     /** Hero content. Intentionally empty for now — text, buttons and the
      *  "hello" wordmark are a later step. */
     children?: ReactNode;
+    /** Fires once the 3D "hello" scene has been built, its shaders
+     *  compiled, and a first frame actually rendered (forwarded straight
+     *  from HelloModel's own onReady — see its comments for exactly what
+     *  "ready" means here). App.jsx's loader waits on this rather than on
+     *  the asset fetch alone. */
+    onReady?: () => void;
 }
 
 /**
@@ -45,7 +51,7 @@ export interface HeroProps {
  * <HeroBackground /> and to keep future content structurally separate from the
  * decorative layers.
  */
-export function Hero({ children }: HeroProps) {
+export function Hero({ children, onReady }: HeroProps) {
     const sampleRef = useRef<ParallaxDebug | null>(null);
     const [debug] = useState(showDebugPanel);
     const handleSample = useCallback((sample: ParallaxDebug) => {
@@ -58,7 +64,7 @@ export function Hero({ children }: HeroProps) {
                 onScrollSample={debug ? handleSample : undefined}
             />
             <Suspense fallback={null}>
-                <HelloModel />
+                <HelloModel onReady={onReady} />
             </Suspense>
             <div className={styles.content}>{children}</div>
             {debug && <HeroDebugPanel sampleRef={sampleRef} />}
