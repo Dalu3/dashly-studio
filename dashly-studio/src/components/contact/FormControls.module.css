@@ -21,7 +21,7 @@
 }
 
 .label {
-    font-size: 1rem;
+    font-size: var(--font-size-contact-form);
     font-weight: var(--font-weight-medium);
     color: #1e1e1e;
     margin-bottom: 0.5rem;
@@ -37,7 +37,7 @@
     box-sizing: border-box;
     width: 100%;
     font-family: var(--font-family-sans);
-    font-size: 1rem;
+    font-size: var(--font-size-contact-form);
     line-height: 1;
     color: #1e1e1e;
     background: #ffffff;
@@ -47,7 +47,7 @@
        text inputs get a ~20px intrinsic content box regardless of
        line-height (a UA quirk, confirmed by measuring in-browser), so 9px
        is what actually lands on the Figma's ~40px control height. */
-    padding: 0.5625rem 1rem;
+    padding: 0.48125rem 0.825rem;
     transition:
         border-color 0.2s ease,
         box-shadow 0.2s ease;
@@ -64,18 +64,38 @@
 }
 
 .control.isInvalid {
-    border-color: var(--c-ink-600);
+    border-color: var(--color-feedback-error);
+}
+
+.control.isInvalid:focus-visible {
+    border-color: var(--color-feedback-error);
+    box-shadow: var(--shadow-error-ring);
 }
 
 .textarea {
     resize: vertical;
-    min-height: 5rem;
+    min-height: 4.4rem;
 }
 
 /* Positions the chevron glyph inside the select's own box without a second
    wrapper element — the field markup stays identical to a text input. */
 .selectShell {
     position: relative;
+}
+
+.selectTrigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    text-align: left;
+    cursor: pointer;
+    padding-right: 1rem;
+}
+
+.selectTriggerOpen {
+    border-color: var(--color-focus-ring);
+    box-shadow: var(--shadow-focus-ring);
 }
 
 .select {
@@ -93,10 +113,72 @@
     height: 1rem;
     color: #1e1e1e;
     pointer-events: none;
+    transition: transform 0.2s ease;
+}
+
+.chevronOpen {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.optionList {
+    box-sizing: border-box;
+    position: absolute;
+    z-index: var(--z-popover);
+    top: calc(100% + var(--form-select-menu-offset));
+    left: 0;
+    width: min(100%, var(--form-select-menu-width));
+    max-height: var(--form-select-menu-max-height);
+    margin: 0;
+    padding: var(--form-select-menu-padding);
+    overflow-y: auto;
+    list-style: none;
+    background: var(--color-surface-raised);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    animation: dropdown-enter var(--duration-fast) var(--ease-entrance) both;
+}
+
+.option {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: var(--form-select-option-padding-block) var(--form-select-option-padding-inline);
+    color: var(--color-text-primary);
+    font: inherit;
+    font-size: var(--font-size-contact-form);
+    line-height: var(--line-height-body-compact);
+    text-align: left;
+    white-space: nowrap;
+    background: transparent;
+    border: 0;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition:
+        color var(--duration-fast) var(--ease-standard),
+        background-color var(--duration-fast) var(--ease-standard);
+}
+
+.option:hover,
+.optionHighlighted {
+    background: var(--color-surface-sunken);
+}
+
+@keyframes dropdown-enter {
+    from {
+        opacity: 0;
+        transform: translateY(-0.25rem) scale(0.985);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
 }
 
 .error {
     margin-top: 0.25rem;
     font-size: var(--font-size-xs);
-    color: var(--c-ink-600);
+    color: var(--color-feedback-error);
 }

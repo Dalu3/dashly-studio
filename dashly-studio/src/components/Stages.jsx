@@ -1,309 +1,469 @@
-import { useState, useEffect, useLayoutEffect, useRef } from "react";
-import "./Stages.css";
-import arrowRight from "../assets/arrow-right.png";
-import arrowLeft from "../assets/arrow-left.png";
+import { useLayoutEffect, useRef } from "react";
+import styles from "./Stages.module.css";
+import arrowAsset from "../assets/process/arrow.svg";
+import routeAsset from "../assets/process/route.svg";
+import discoveryImage from "../assets/process/stage-1-discovery.jpg";
+import strategyImage from "../assets/process/stage-2-strategy.jpg";
+import wireframesImage from "../assets/process/stage-3-wireframes.jpg";
+import designImage from "../assets/process/stage-4-design.jpg";
+import developmentImage from "../assets/process/stage-5-development.jpg";
+import launchImage from "../assets/process/stage-6-launch.jpg";
+import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
 
-const MOBILE_BREAKPOINT = "(max-width: 768px)";
+const DESKTOP_MEDIA_QUERY = "(min-width: 64rem)";
+const FIGMA_ROUTE_VIEW_BOX = "0 0 997.739 962.71";
+const FIGMA_ROUTE_PATH =
+    "M0.182781 1.48882C152.684 20.2112 509.781 55.2138 718.163 45.4455C926.546 35.6773 971.963 80.448 968.624 104.054C961.375 155.294 357.706 241.89 274.017 279.881L217.246 311.628L177.173 350.701C179.399 366.167 190.53 401.495 217.246 419.078C250.641 441.056 968.624 489.897 968.624 516.759C968.624 543.622 1105.54 541.18 781.614 646.188C457.687 751.195 274.017 712.123 127.081 817.131C9.53184 901.137 607.962 948.187 921.871 961.211";
 
 const stages = [
     {
-        title: "DISCOVERY CALL",
-        description: `We start with a Zoom call or in-person meeting to understand your business, goals, and vision. After that, we’ll send you a detailed summary of what we discussed. \n\nYou’ll have time to review everything and decide if you’d like to move forward with the project.`,
+        title: "Discovery Call",
+        description:
+            "We create page layouts and organise content to ensure a smooth user experience and logical navigation.",
+        image: discoveryImage,
+        imageWidth: 2731,
+        imageHeight: 4096,
+        className: styles.stage1,
     },
     {
-        title: "RESEARCH & STRATEGY",
-        description: `We analyse your industry, audience, and key competitors to uncover opportunities.\n\nThis helps us create a strategy that aligns with your goals and captures your audience’s attention.`,
+        title: "Strategy & Planning",
+        description:
+            "We define the website structure, user journey, features, and a clear roadmap before design begins.",
+        image: strategyImage,
+        imageWidth: 4000,
+        imageHeight: 2667,
+        className: styles.stage2,
     },
     {
-        title: "PLANNING & WIREFRAMES",
-        description: `We organise your content into a clear, user-friendly structure and create low-fidelity wireframes — simple layouts that map out each page's key sections and flow.\n\nThis gives you a clear visual plan of how the website will work before we start designing.`,
+        title: "Wireframes",
+        description:
+            "We create page layouts and organise content to ensure a smooth user experience and logical navigation.",
+        image: wireframesImage,
+        imageWidth: 4096,
+        imageHeight: 2731,
+        className: styles.stage3,
     },
     {
-        title: "DESIGN",
-        description: `We bring the wireframes to life with a modern, responsive design tailored to your brand.\n\nYou’ll receive a full preview and have the chance to share any feedback. We’ll keep adjusting the design until it feels perfect to you.`,
+        title: "UI/UX Design",
+        description:
+            "We transform the wireframes into a modern, engaging interface that reflects your brand and builds trust.",
+        image: designImage,
+        imageWidth: 4096,
+        imageHeight: 2731,
+        className: styles.stage4,
     },
     {
-        title: "DEVELOPMENT",
-        description: `Once the design is approved, we turn it into a fully functional, responsive website using clean, modern code.\n\nEverything is built to be fast, secure, SEO-friendly, and perfectly adapted to all devices — from desktop to mobile.`,
+        title: "Development & Testing",
+        description:
+            "We develop a fast, responsive website and carefully test every page, interaction, and feature before launch.",
+        image: developmentImage,
+        imageWidth: 4096,
+        imageHeight: 2300,
+        className: styles.stage5,
     },
     {
-        title: "LAUNCH & ONGOING SUPPORT",
-        description: `Once the website is completed, we will test it across all devices to ensure everything works smoothly. \n\n Every project includes 2 weeks of post-launch support for any minor fixes or adjustments. After that, you can always reach out for updates or new features.
-        `,
+        title: "Launch & Support",
+        description:
+            "Once everything is approved, we launch your website and provide ongoing support, updates, and improvements.",
+        image: launchImage,
+        imageWidth: 4096,
+        imageHeight: 2731,
+        className: styles.stage6,
     },
 ];
 
+function clamp(value, min = 0, max = 1) {
+    return Math.min(max, Math.max(min, value));
+}
+
+function smoothstep(value) {
+    const clamped = clamp(value);
+    return clamped * clamped * (3 - 2 * clamped);
+}
+
+function buildResponsivePath(points) {
+    if (!points.length) return "";
+
+    return points.slice(1).reduce((path, point, index) => {
+        const previous = points[index];
+        const middleY = previous.y + (point.y - previous.y) / 2;
+
+        return `${path} C ${previous.x} ${middleY}, ${point.x} ${middleY}, ${point.x} ${point.y}`;
+    }, `M ${points[0].x} ${points[0].y}`);
+}
+
 export default function Stages() {
-    const [current, setCurrent] = useState(0);
-    const touchStartRef = useRef({ x: 0, y: 0 });
-    const stageBodyRef = useRef(null);
-    const stageTextRef = useRef(null);
-    const measureRefs = useRef([]);
-    const [stageTextMinHeight, setStageTextMinHeight] = useState(0);
-    const [isMobileViewport, setIsMobileViewport] = useState(() => {
-        if (typeof window === "undefined") return false;
-        return window.matchMedia(MOBILE_BREAKPOINT).matches;
-    });
-
-    const next = () => setCurrent((prev) => (prev + 1) % stages.length);
-    const prev = () =>
-        setCurrent((prev) => (prev - 1 + stages.length) % stages.length);
-
-    useEffect(() => {
-        if (typeof window === "undefined") return undefined;
-
-        const mediaQuery = window.matchMedia(MOBILE_BREAKPOINT);
-        const handleChange = (event) => {
-            setIsMobileViewport(event.matches);
-        };
-
-        setIsMobileViewport(mediaQuery.matches);
-
-        if (mediaQuery.addEventListener) {
-            mediaQuery.addEventListener("change", handleChange);
-            return () => mediaQuery.removeEventListener("change", handleChange);
-        }
-
-        mediaQuery.addListener(handleChange);
-        return () => mediaQuery.removeListener(handleChange);
-    }, []);
-
-    useEffect(() => {
-        const handleKeyDown = (e) => {
-            if (e.key === "ArrowLeft") {
-                prev();
-            } else if (e.key === "ArrowRight") {
-                next();
-            }
-        };
-
-        window.addEventListener("keydown", handleKeyDown);
-        return () => window.removeEventListener("keydown", handleKeyDown);
-    }, [current]);
-
-    const handleTouchStart = (event) => {
-        if (!isMobileViewport) return;
-
-        const touch = event.changedTouches[0];
-        touchStartRef.current = {
-            x: touch.clientX,
-            y: touch.clientY,
-        };
-    };
-
-    const handleTouchEnd = (event) => {
-        if (!isMobileViewport) return;
-
-        const touch = event.changedTouches[0];
-        const deltaX = touch.clientX - touchStartRef.current.x;
-        const deltaY = touch.clientY - touchStartRef.current.y;
-
-        if (Math.abs(deltaX) < 50 || Math.abs(deltaX) <= Math.abs(deltaY)) {
-            return;
-        }
-
-        if (deltaX < 0) {
-            next();
-            return;
-        }
-
-        prev();
-    };
+    const prefersReducedMotion = usePrefersReducedMotion();
+    const sectionRef = useRef(null);
+    const flowRef = useRef(null);
+    const routeSvgRef = useRef(null);
+    const routePathRef = useRef(null);
+    const arrowRef = useRef(null);
+    const stageRefs = useRef([]);
+    const thresholdsRef = useRef(stages.map((_, index) => index / 5));
 
     useLayoutEffect(() => {
-        if (
-            typeof window === "undefined" ||
-            !stageBodyRef.current ||
-            !stageTextRef.current
-        ) {
+        const section = sectionRef.current;
+        const flow = flowRef.current;
+        const routeSvg = routeSvgRef.current;
+        const routePath = routePathRef.current;
+        const arrow = arrowRef.current;
+
+        if (!section || !flow || !routeSvg || !routePath || !arrow) {
             return undefined;
         }
 
-        const updateStageTextHeight = () => {
-            const width = stageTextRef.current?.getBoundingClientRect().width;
-            if (!width) return;
+        const desktopQuery = window.matchMedia(DESKTOP_MEDIA_QUERY);
+        let frameId = 0;
+        let resizeFrameId = 0;
+        let currentProgress = 0;
+        let targetProgress = 0;
+        let scrollStart = 0;
+        let scrollDistance = 1;
+        let routeLength = 0;
+        let disposed = false;
 
-            measureRefs.current.forEach((node) => {
-                if (node) {
-                    node.style.width = `${width}px`;
-                }
+        const pointInFlow = (distance) => {
+            const matrix = routePath.getScreenCTM();
+            const flowRect = flow.getBoundingClientRect();
+
+            if (!matrix) return { x: 0, y: 0 };
+
+            const routePoint = routePath.getPointAtLength(distance);
+            const svgPoint = routeSvg.createSVGPoint();
+            svgPoint.x = routePoint.x;
+            svgPoint.y = routePoint.y;
+
+            const screenPoint = svgPoint.matrixTransform(matrix);
+            return {
+                x: screenPoint.x - flowRect.left,
+                y: screenPoint.y - flowRect.top,
+            };
+        };
+
+        const setArrowPosition = (progress) => {
+            if (!routeLength) return;
+
+            const distance = clamp(progress) * routeLength;
+            const tangentOffset = Math.max(routeLength * 0.002, 0.5);
+            const before = pointInFlow(Math.max(0, distance - tangentOffset));
+            const after = pointInFlow(
+                Math.min(routeLength, distance + tangentOffset),
+            );
+            const point = pointInFlow(distance);
+            const angle =
+                (Math.atan2(after.y - before.y, after.x - before.x) * 180) /
+                Math.PI;
+
+            arrow.style.setProperty("--arrow-x", `${point.x}px`);
+            arrow.style.setProperty("--arrow-y", `${point.y}px`);
+            arrow.style.setProperty("--arrow-rotation", `${angle + 90}deg`);
+        };
+
+        const setStageVisuals = (progress) => {
+            stageRefs.current.forEach((stage, index) => {
+                if (!stage) return;
+
+                const threshold = thresholdsRef.current[index] ?? 0;
+                const reveal = smoothstep(
+                    clamp((progress - (threshold - 0.05)) / 0.1),
+                );
+                const numberReveal = smoothstep(
+                    clamp((reveal - 0.06) / 0.84),
+                );
+                const copyReveal = smoothstep(
+                    clamp((reveal - 0.16) / 0.84),
+                );
+                const imageScale = 0.94 + reveal * 0.06;
+                const imageShift = (1 - reveal) * 1.5;
+                const numberShift = (1 - numberReveal) * 1;
+                const copyShift = (1 - copyReveal) * 1.25;
+
+                stage.style.setProperty(
+                    "--stage-image-opacity",
+                    reveal.toFixed(4),
+                );
+                stage.style.setProperty(
+                    "--stage-image-scale",
+                    imageScale.toFixed(4),
+                );
+                stage.style.setProperty(
+                    "--stage-image-shift",
+                    `${imageShift.toFixed(4)}rem`,
+                );
+                stage.style.setProperty(
+                    "--stage-number-opacity",
+                    numberReveal.toFixed(4),
+                );
+                stage.style.setProperty(
+                    "--stage-number-shift",
+                    `${numberShift.toFixed(4)}rem`,
+                );
+                stage.style.setProperty(
+                    "--stage-copy-opacity",
+                    copyReveal.toFixed(4),
+                );
+                stage.style.setProperty(
+                    "--stage-copy-shift",
+                    `${copyShift.toFixed(4)}rem`,
+                );
             });
+        };
 
-            const measuredHeights = measureRefs.current
-                .map((node) => (node ? node.getBoundingClientRect().height : 0))
-                .filter((height) => height > 0);
-            const maxHeight = Math.ceil(
-                measuredHeights.length
-                    ? Math.max(...measuredHeights)
-                    : stageTextRef.current.getBoundingClientRect().height,
+        const findStageThresholds = () => {
+            if (!routeLength) return;
+
+            const flowRect = flow.getBoundingClientRect();
+            const sampleCount = 360;
+            const samples = Array.from(
+                { length: sampleCount + 1 },
+                (_, index) => {
+                    const progress = index / sampleCount;
+                    return {
+                        progress,
+                        point: pointInFlow(progress * routeLength),
+                    };
+                },
             );
 
-            setStageTextMinHeight((currentHeight) =>
-                currentHeight === maxHeight ? currentHeight : maxHeight,
+            let previousThreshold = 0;
+            thresholdsRef.current = stageRefs.current.map((stage, index) => {
+                const anchor = stage?.querySelector("[data-process-anchor]");
+                if (!anchor) return index / Math.max(stages.length - 1, 1);
+
+                const rect = anchor.getBoundingClientRect();
+                const target = {
+                    x: rect.left + rect.width / 2 - flowRect.left,
+                    y: rect.top + rect.height / 2 - flowRect.top,
+                };
+                let closest = samples[0];
+                let closestDistance = Number.POSITIVE_INFINITY;
+
+                samples.forEach((sample) => {
+                    const deltaX = sample.point.x - target.x;
+                    const deltaY = sample.point.y - target.y;
+                    const distance = deltaX * deltaX + deltaY * deltaY;
+
+                    if (distance < closestDistance) {
+                        closest = sample;
+                        closestDistance = distance;
+                    }
+                });
+
+                const minimum = index === 0 ? 0.05 : previousThreshold + 0.03;
+                const threshold = clamp(
+                    Math.max(minimum, closest.progress),
+                    0,
+                    0.94,
+                );
+                previousThreshold = threshold;
+                return threshold;
+            });
+        };
+
+        const updateScrollMetrics = () => {
+            const sectionRect = section.getBoundingClientRect();
+            const sectionTop = sectionRect.top + window.scrollY;
+            scrollStart = sectionTop - window.innerHeight * 0.68;
+            const scrollEnd =
+                sectionTop + sectionRect.height - window.innerHeight * 0.38;
+            scrollDistance = Math.max(scrollEnd - scrollStart, 1);
+            targetProgress = clamp(
+                (window.scrollY - scrollStart) / scrollDistance,
             );
         };
 
-        updateStageTextHeight();
+        const updateGeometry = () => {
+            if (desktopQuery.matches) {
+                routeSvg.setAttribute("viewBox", FIGMA_ROUTE_VIEW_BOX);
+                routePath.setAttribute("d", FIGMA_ROUTE_PATH);
+            } else {
+                const flowRect = flow.getBoundingClientRect();
+                const points = stageRefs.current
+                    .map((stage) =>
+                        stage?.querySelector("[data-process-anchor]"),
+                    )
+                    .filter(Boolean)
+                    .map((anchor) => {
+                        const rect = anchor.getBoundingClientRect();
+                        return {
+                            x: rect.left + rect.width / 2 - flowRect.left,
+                            y: rect.top + rect.height / 2 - flowRect.top,
+                        };
+                    });
 
-        const ResizeObserverConstructor = window.ResizeObserver;
-        const resizeObserver =
-            typeof ResizeObserverConstructor === "function"
-                ? new ResizeObserverConstructor(updateStageTextHeight)
-                : null;
+                routeSvg.setAttribute(
+                    "viewBox",
+                    `0 0 ${Math.max(flowRect.width, 1)} ${Math.max(flowRect.height, 1)}`,
+                );
+                routePath.setAttribute("d", buildResponsivePath(points));
+            }
 
-        resizeObserver?.observe(stageBodyRef.current);
+            routeLength = routePath.getTotalLength();
+            findStageThresholds();
+            updateScrollMetrics();
 
-        window.addEventListener("resize", updateStageTextHeight);
-        document.fonts?.ready?.then(updateStageTextHeight);
+            const settledProgress = prefersReducedMotion ? 1 : targetProgress;
+            currentProgress = settledProgress;
+            setArrowPosition(settledProgress);
+            setStageVisuals(settledProgress);
+        };
+
+        const render = () => {
+            frameId = 0;
+            const difference = targetProgress - currentProgress;
+
+            if (Math.abs(difference) < 0.0005) {
+                currentProgress = targetProgress;
+            } else {
+                currentProgress += difference * 0.16;
+            }
+
+            setArrowPosition(currentProgress);
+            setStageVisuals(currentProgress);
+
+            if (Math.abs(targetProgress - currentProgress) >= 0.0005) {
+                frameId = window.requestAnimationFrame(render);
+            }
+        };
+
+        const requestRender = () => {
+            updateScrollMetrics();
+            if (!frameId) frameId = window.requestAnimationFrame(render);
+        };
+
+        const requestGeometryUpdate = () => {
+            if (disposed) return;
+
+            if (resizeFrameId) {
+                window.cancelAnimationFrame(resizeFrameId);
+            }
+
+            resizeFrameId = window.requestAnimationFrame(() => {
+                resizeFrameId = 0;
+                updateGeometry();
+            });
+        };
+
+        section.dataset.motionReady = "true";
+        updateGeometry();
+
+        const resizeObserver = new ResizeObserver(requestGeometryUpdate);
+        resizeObserver.observe(section);
+        resizeObserver.observe(flow);
+
+        window.addEventListener("resize", requestGeometryUpdate);
+        desktopQuery.addEventListener("change", requestGeometryUpdate);
+        document.fonts?.ready?.then(() => {
+            if (!disposed) requestGeometryUpdate();
+        });
+
+        if (!prefersReducedMotion) {
+            window.addEventListener("scroll", requestRender, {
+                passive: true,
+            });
+        }
 
         return () => {
-            resizeObserver?.disconnect();
-            window.removeEventListener("resize", updateStageTextHeight);
+            disposed = true;
+            delete section.dataset.motionReady;
+            resizeObserver.disconnect();
+            window.removeEventListener("resize", requestGeometryUpdate);
+            desktopQuery.removeEventListener("change", requestGeometryUpdate);
+
+            if (!prefersReducedMotion) {
+                window.removeEventListener("scroll", requestRender);
+            }
+
+            if (frameId) window.cancelAnimationFrame(frameId);
+            if (resizeFrameId) {
+                window.cancelAnimationFrame(resizeFrameId);
+            }
         };
-    }, [isMobileViewport]);
+    }, [prefersReducedMotion]);
 
     return (
         <section
-            className="stages-container"
+            className={styles.section}
             id="stages"
-            aria-labelledby="stages-title"
+            ref={sectionRef}
+            aria-labelledby="process-title"
         >
-            <div className="stages-header">
-                <h2 className="block-title" id="stages-title">
-                    {isMobileViewport
-                        ? "Website Process in 7 Steps"
-                        : "7 Stages of Website You Need to Know"}
-                </h2>
-
-                <div className="stages-navigation">
-                    <button
-                        className="arrow-button"
-                        onClick={prev}
-                        type="button"
-                        aria-label="Previous stage"
-                    >
-                        <span className="arrow-line" />
-                        <img
-                            src={arrowRight}
-                            alt=""
-                            className="arrow-image"
-                            aria-hidden="true"
-                        />
-                    </button>
-
-                    <div className="stage-counter">
-                        <span className="stage-current">{current + 1}</span>
-                        <span className="stage-total">/{stages.length}</span>
-                    </div>
-
-                    <button
-                        className="arrow-button"
-                        onClick={next}
-                        type="button"
-                        aria-label="Next stage"
-                    >
-                        <img
-                            src={arrowLeft}
-                            alt=""
-                            className="arrow-image"
-                            aria-hidden="true"
-                        />
-
-                        <span className="arrow-line" />
-                    </button>
-                </div>
-            </div>
-
-            <div className="stage-buttons">
-                {stages.map((_, i) => (
-                    <button
-                        key={i}
-                        className={i === current ? "active" : ""}
-                        onClick={() => setCurrent(i)}
-                        type="button"
-                        aria-label={`Show stage ${i + 1}`}
-                    >
-                        Stage {i + 1}
-                    </button>
-                ))}
-            </div>
-
-            <div
-                className="stage-body"
-                ref={stageBodyRef}
-                onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchEnd}
-            >
-                <div
-                    className="stage-text"
-                    key={current}
-                    ref={stageTextRef}
-                    style={
-                        stageTextMinHeight
-                            ? { minHeight: `${stageTextMinHeight}px` }
-                            : undefined
-                    }
-                >
-                    <h3>{stages[current].title}</h3>
-                    <p className="stage-description">
-                        {stages[current].description}
+            <div className={styles.canvas}>
+                <header className={styles.header}>
+                    <h2 className={styles.heading} id="process-title">
+                        From First Idea To A Website That Works
+                    </h2>
+                    <p className={styles.intro}>
+                        We guide every project through a clear, thoughtful
+                        process — combining strategy, design and development to
+                        create a website that looks great, works smoothly and
+                        supports your business goals.
                     </p>
-                </div>
+                </header>
 
-                <div className="stage-circle">
-                    <svg width="270" height="270" viewBox="0 0 100 100">
-                        <circle
-                            cx="50"
-                            cy="50"
-                            r="45"
-                            stroke="#b6ecff"
-                            strokeWidth="10"
-                            fill="none"
-                        />
-                        <circle
-                            cx="50"
-                            cy="50"
-                            r="45"
-                            stroke="#29c9ff"
-                            strokeWidth="10"
-                            fill="none"
-                            strokeDasharray="282"
-                            strokeDashoffset={
-                                (1 - (current + 1) / stages.length) * 282
-                            }
-                            strokeLinecap="round"
-                            transform="rotate(-90 50 50)"
-                            style={{
-                                transition:
-                                    "stroke-dashoffset 0.6s ease-in-out",
-                            }}
-                        />
-                        {current === stages.length - 1 ? (
-                            <path
-                                d="M39 50L46.5 57.5L60 44"
-                                className="stage-checkmark"
-                                fill="none"
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                            />
-                        ) : null}
-                    </svg>
-                </div>
-            </div>
-
-            <div className="stage-measurements" aria-hidden="true">
-                {stages.map((stage, index) => (
-                    <div
-                        key={index}
-                        ref={(element) => {
-                            measureRefs.current[index] = element;
-                        }}
-                        className="stage-text stage-text--measure"
+                <div className={styles.flow} ref={flowRef}>
+                    <img
+                        className={styles.routeAsset}
+                        src={routeAsset}
+                        alt=""
+                        aria-hidden="true"
+                    />
+                    <svg
+                        className={styles.routeGeometry}
+                        ref={routeSvgRef}
+                        viewBox={FIGMA_ROUTE_VIEW_BOX}
+                        preserveAspectRatio="none"
+                        aria-hidden="true"
                     >
-                        <h3>{stage.title}</h3>
-                        <p className="stage-description">{stage.description}</p>
-                    </div>
-                ))}
+                        <path ref={routePathRef} d={FIGMA_ROUTE_PATH} />
+                    </svg>
+
+                    <span
+                        className={styles.arrow}
+                        ref={arrowRef}
+                        aria-hidden="true"
+                    >
+                        <img src={arrowAsset} alt="" />
+                    </span>
+
+                    {stages.map((stage, index) => (
+                        <article
+                            className={`${styles.stage} ${stage.className}`}
+                            key={stage.title}
+                            ref={(node) => {
+                                stageRefs.current[index] = node;
+                            }}
+                        >
+                            <span
+                                className={styles.anchor}
+                                data-process-anchor
+                                aria-hidden="true"
+                            />
+                            <span className={styles.number} aria-hidden="true">
+                                {index + 1}
+                            </span>
+                            <div className={styles.copy}>
+                                <h3>{stage.title}</h3>
+                                <p>{stage.description}</p>
+                            </div>
+                            <figure className={styles.figure}>
+                                <div className={styles.card}>
+                                    <span className={styles.media}>
+                                        <img
+                                            src={stage.image}
+                                            alt=""
+                                            width={stage.imageWidth}
+                                            height={stage.imageHeight}
+                                            loading="lazy"
+                                            decoding="async"
+                                        />
+                                    </span>
+                                </div>
+                            </figure>
+                        </article>
+                    ))}
+                </div>
             </div>
         </section>
     );

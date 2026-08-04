@@ -8,7 +8,7 @@ import {
     type PerspectiveCamera,
 } from "three";
 
-import type { FrameLoopHandle } from "./frameLoop";
+import type { FrameLoopHandle, FrameTickResult } from "./frameLoop";
 
 /**
  * This module has no counterpart in the piellardj/fur-threejs reference.
@@ -62,9 +62,6 @@ export interface CursorInteractionOptions {
     raycastTargets: Object3D[];
     /** Every fur material (shells + fins) that should react to the cursor. */
     materials: CursorReactiveMaterial[];
-    /** Called once per settling frame, after uniforms are updated — the host
-     *  uses this to request a render. */
-    onFrame: () => void;
     /** Shared rAF driver — see frameLoop.ts. Registering here rather than
      *  calling requestAnimationFrame directly is what keeps this module and
      *  idleAnimation.ts from ever running two independent rAF chains (and so
@@ -77,8 +74,13 @@ export interface CursorInteractionHandle {
 }
 
 /** Overall hover fade in/out — is the cursor over the model at all. */
-const STRENGTH_STIFFNESS = 210;
-const STRENGTH_DAMPING = 24;
+const STRENGTH_RISE_STIFFNESS = 340;
+const STRENGTH_RISE_DAMPING = 28;
+const STRENGTH_FALL_STIFFNESS = 105;
+const STRENGTH_FALL_DAMPING = 13;
+const IMPULSE_DECAY = 7;
+const SPEED_BOOST = 0.055;
+const MAX_CURSOR_STRENGTH = 1.6;
 
 /**
  * The cursor's OWN effective position/direction trail behind the real
@@ -89,9 +91,9 @@ const STRENGTH_DAMPING = 24;
  * spring on the effective brush centre is the lightweight, responsive
  * approximation of the same idea, applied once instead of per fibre.
  */
-const FOLLOW_STIFFNESS = 220;
-const FOLLOW_DAMPING = 26;
-const DIRECTION_STIFFNESS = 300;
+const FOLLOW_STIFFNESS = 360;
+const FOLLOW_DAMPING = 28;
+const DIRECTION_STIFFNESS = 420;
 const DIRECTION_DAMPING = 30;
 
 /**
@@ -104,8 +106,8 @@ const DIRECTION_DAMPING = 30;
  * cheap substitute for simulating propagation, built from a spring
  * constant choice rather than new physics.
  */
-const RIPPLE_STIFFNESS = 55;
-const RIPPLE_DAMPING = 7;
+const RIPPLE_STIFFNESS = 42;
+const RIPPLE_DAMPING = 5.8;
 
 /** Critically-damped-ish spring integrator for a single scalar, applied
  *  per-axis for a Vector3. Shared shape for strength/position/direction so
@@ -128,8 +130,7 @@ function springStep(
 
 /**
  * Wires up local, raycasting-based cursor interaction for a set of fur
- * materials: only fibres (and, via the base mesh's own compression, the
- * skin itself) near the cursor react, with a smooth radial falloff
+ * materials: only fibres near the cursor react, with a smooth radial falloff
  * (computed per-vertex in strand.vert / support.vert, using the
  * `uCursor`/`uCursorRadius` this module maintains), inertia, and damping —
  * see the module doc comment above for why none of this is adapted from the
@@ -138,7 +139,7 @@ function springStep(
 export function createCursorInteraction(
     options: CursorInteractionOptions,
 ): CursorInteractionHandle {
-    const { camera, domElement, viewportElement, raycastTargets, materials, onFrame, frameLoop } =
+    const { camera, domElement, viewportElement, raycastTargets, materials, frameLoop } =
         options;
 
     const pointerNdc = new Vector2(2, 2);
@@ -148,7 +149,9 @@ export function createCursorInteraction(
     const targetPoint = new Vector3(1e6, 1e6, 1e6);
     const targetDir = new Vector3();
     const lastHit = new Vector3();
+    const hitDelta = new Vector3();
     let hasLastHit = false;
+    let lastHitTime = 0;
     let hovering = false;
     // True once the cursor has ever actually landed on the mesh — see the
     // snap in resolvePendingMove() below for why this exists.
@@ -172,6 +175,8 @@ export function createCursorInteraction(
     let strengthVelocity = 0;
     let lastTickTime = 0;
     let disposed = false;
+    let visible = true;
+    let loopActive = false;
 
     // The raw pointer position from the most recent `pointermove`, applied
     // to a real Raycaster at most ONCE PER FRAME inside tick() below —
@@ -182,6 +187,7 @@ export function createCursorInteraction(
     // entirely wasted work between two events that land in the same frame.
     let pendingClientX = 0;
     let pendingClientY = 0;
+    let pendingEventTime = 0;
     let hasPendingMove = false;
 
     const applyUniforms = () => {
@@ -220,17 +226,29 @@ export function createCursorInteraction(
             const local = hit.object.worldToLocal(hit.point.clone());
 
             if (hasLastHit) {
-                const delta = local.clone().sub(lastHit);
+                hitDelta.copy(local).sub(lastHit);
+                const distance = hitDelta.length();
 
-                if (delta.lengthSq() > 1e-12) {
-                    targetDir.copy(delta.normalize());
+                if (distance > 1e-6) {
+                    targetDir.copy(hitDelta).multiplyScalar(1 / distance);
+                    const elapsed = Math.max(
+                        (pendingEventTime - lastHitTime) / 1000,
+                        1 / 240,
+                    );
+                    const speed = distance / elapsed;
+                    targetStrength = Math.min(
+                        MAX_CURSOR_STRENGTH,
+                        Math.max(targetStrength, 1 + speed * SPEED_BOOST),
+                    );
                 }
+            } else {
+                targetStrength = 1;
             }
 
             lastHit.copy(local);
+            lastHitTime = pendingEventTime;
             hasLastHit = true;
             targetPoint.copy(local);
-            targetStrength = 1;
             hovering = true;
 
             if (!hasEverHit) {
@@ -257,6 +275,7 @@ export function createCursorInteraction(
         } else if (hovering) {
             targetStrength = 0;
             hasLastHit = false;
+            lastHitTime = 0;
             hovering = false;
         }
     };
@@ -269,9 +288,10 @@ export function createCursorInteraction(
      *  (see frameLoop.ts) rather than calling requestAnimationFrame itself —
      *  returns whether it wants to keep being called, instead of
      *  self-scheduling. */
-    const tick = (now: number): boolean => {
+    const tick = (now: number): FrameTickResult => {
         if (disposed) {
-            return false;
+            loopActive = false;
+            return { keepRunning: false, needsRender: false };
         }
 
         resolvePendingMove();
@@ -281,15 +301,25 @@ export function createCursorInteraction(
             : 1 / 60;
         lastTickTime = now;
 
+        // A fast pass injects extra energy, then eases back to the steady
+        // hover level. The slower release spring below preserves the brief
+        // follow-through after the pointer has already moved on.
+        if (hovering && targetStrength > 1) {
+            targetStrength = 1 +
+                (targetStrength - 1) * Math.exp(-IMPULSE_DECAY * dt);
+        }
+
+        const strengthRising = targetStrength >= strength;
+
         [strength, strengthVelocity] = springStep(
             strength,
             strengthVelocity,
             targetStrength,
-            STRENGTH_STIFFNESS,
-            STRENGTH_DAMPING,
+            strengthRising ? STRENGTH_RISE_STIFFNESS : STRENGTH_FALL_STIFFNESS,
+            strengthRising ? STRENGTH_RISE_DAMPING : STRENGTH_FALL_DAMPING,
             dt,
         );
-        strength = Math.min(Math.max(strength, -0.2), 1.3);
+        strength = Math.min(Math.max(strength, -0.12), MAX_CURSOR_STRENGTH);
 
         for (const axis of ["x", "y", "z"] as const) {
             [followPoint[axis], followPointVelocity[axis]] = springStep(
@@ -343,23 +373,33 @@ export function createCursorInteraction(
         const atRest = strengthAtRest && pointAtRest && dirAtRest && rippleAtRest;
 
         applyUniforms();
-        onFrame();
+        loopActive = !atRest;
 
-        return !atRest;
+        return { keepRunning: !atRest, needsRender: true };
     };
 
     const startLoop = () => {
+        if (loopActive || disposed || document.hidden || !visible) {
+            return;
+        }
+
+        loopActive = true;
         lastTickTime = 0;
         frameLoop.request(tick);
     };
 
     const handlePointerMove = (event: Event) => {
-        if (!(event instanceof PointerEvent)) {
+        if (
+            !(event instanceof PointerEvent) ||
+            document.hidden ||
+            !visible
+        ) {
             return;
         }
 
         pendingClientX = event.clientX;
         pendingClientY = event.clientY;
+        pendingEventTime = event.timeStamp;
         hasPendingMove = true;
         startLoop();
     };
@@ -368,9 +408,36 @@ export function createCursorInteraction(
         hasPendingMove = false;
         targetStrength = 0;
         hasLastHit = false;
+        lastHitTime = 0;
+        targetDir.set(0, 0, 0);
         hovering = false;
         startLoop();
     };
+
+    // Pointer events are listened to on window because the canvas is
+    // intentionally click-through. Do not raycast the word for every mouse
+    // move once the Hero has left the viewport.
+    const visibilityObserver =
+        typeof IntersectionObserver === "function"
+            ? new IntersectionObserver(
+                  ([entry]) => {
+                      visible = Boolean(entry?.isIntersecting);
+
+                      if (!visible) {
+                          hasPendingMove = false;
+                          targetStrength = 0;
+                          strength = 0;
+                          strengthVelocity = 0;
+                          loopActive = false;
+                          frameLoop.cancel(tick);
+                          applyUniforms();
+                      }
+                  },
+                  { threshold: 0.01 },
+              )
+            : null;
+
+    visibilityObserver?.observe(viewportElement);
 
     // A settling spring left running in a backgrounded tab is wasted work —
     // rAF is throttled there but not guaranteed to stop, and the tab can
@@ -379,8 +446,8 @@ export function createCursorInteraction(
     // throttling alone.
     const handleVisibilityChange = () => {
         if (document.hidden) {
-            looping = false;
-            cancelAnimationFrame(frameId);
+            loopActive = false;
+            frameLoop.cancel(tick);
         } else {
             // If a spring hadn't finished settling before the tab was
             // hidden, this picks it back up; if everything was already at
@@ -406,7 +473,9 @@ export function createCursorInteraction(
                 "visibilitychange",
                 handleVisibilityChange,
             );
-            cancelAnimationFrame(frameId);
+            visibilityObserver?.disconnect();
+            loopActive = false;
+            frameLoop.cancel(tick);
         },
     };
 }

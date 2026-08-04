@@ -24,21 +24,19 @@ import { isSpringAtRest, springStep, type SpringState } from "./springStep";
  *
  * The scroll-tilt layer (search "TILT" below) is a second, independent system
  * bolted onto the same measurements: it never touches `offset`, `raw` or the
- * snap logic above — it only READS `offset` each frame. A card's own
- * cursor-tilt (`useCardTilt.ts`) is a third, fully separate system again;
- * `ProjectCard.module.css` is what composes all three into one `transform`.
+ * snap logic above — it only READS `offset` each frame. Cards have no
+ * cursor-driven transform, so hover can never change their resting pose.
  *
  * Scroll-tilt is driven ENTIRELY by scroll velocity — never by a card's
  * position. At rest (velocity 0) the target is always exactly 0deg, so
- * every card is perfectly flat the instant scrolling stops; there is no
- * permanent per-card lean. It's `rotateY` (with a very small `rotateX`
- * riding along for depth), one shared value written once on `track` and
- * inherited by every `.card` (ordinary CSS custom-property inheritance) —
- * the whole visible strip leans together, like inertia acting on one
- * physical object, not each card independently. The spring is tuned for
- * ZERO overshoot (see TILT_STIFFNESS/TILT_DAMPING below): no bounce, no
- * wobble, just a smooth rise while scrolling and a smooth fall back to
- * exactly flat once it stops.
+ * every card is perfectly flat and the temporary inline tilt values are
+ * removed. It's `rotateY` (with a very small `rotateX` riding along for
+ * depth), one shared value written once on `track` and inherited by every
+ * `.card` (ordinary CSS custom-property inheritance) — the whole visible
+ * strip leans together, like inertia acting on one physical object, not each
+ * card independently. The spring is tuned for ZERO overshoot (see
+ * TILT_STIFFNESS/TILT_DAMPING below): no bounce, no wobble, just a smooth rise
+ * while scrolling and a smooth fall back to exactly flat once it stops.
  */
 
 /** Velocity retained per 60fps frame after release. 0.94 ≈ a 280ms glide. */
@@ -60,35 +58,29 @@ const RUBBER_BAND = 0.35;
 const DRAG_THRESHOLD = 4;
 
 /** Settle animation bounds. Long drags get more time, but never sluggish. */
-const MIN_SETTLE_MS = 320;
-const MAX_SETTLE_MS = 780;
-const SETTLE_MS_PER_PX = 1.05;
+const MIN_SETTLE_MS = 380;
+const MAX_SETTLE_MS = 900;
+const SETTLE_MS_PER_PX = 1.2;
 
 /** Weight of the newest sample in the velocity average. Lower = smoother, but
  *  slower to notice a direction change mid-drag. */
-const VELOCITY_SMOOTHING = 0.3;
+const VELOCITY_SMOOTHING = 0.22;
 
 /** Trackpad horizontal scrolling settles once it has been quiet this long. */
 const WHEEL_SETTLE_DELAY_MS = 140;
 
 // ---- TILT: tuning ---------------------------------------------------------
 
-/** Rotation per (px/sec) of scroll velocity — the ONLY input to scroll-tilt.
- *  At rest (velocity 0) this always evaluates to 0deg.
- *
- *  Sign convention (this is the one thing I can't verify visually in this
- *  environment — flip the sign here first if the lean reads backwards):
- *  `offset` DEcreases while scrolling right (revealing later cards), so
- *  `frameVelocity` below is negative during a rightward scroll. Using it
- *  UNNEGATED means a rightward scroll produces a NEGATIVE rotateY target —
- *  by CSS's convention that brings the card's LEFT edge forward and tucks
- *  the right edge back, read here as "leaning left". */
-const VELOCITY_TILT_DEG = 0.005;
+/** Rotation per (px/sec) of on-screen track velocity — the ONLY input to
+ *  scroll-tilt. The target is negated at the use site so the visual lean is
+ *  always opposite to the direction the cards are moving. At rest (velocity
+ *  0) this always evaluates to 0deg. */
+const VELOCITY_TILT_DEG = 0.016;
 /** Ceiling — brief asks for "very subtle", 4-8deg. */
-const MAX_ROTATE_Y_DEG = 6;
+const MAX_ROTATE_Y_DEG = 8;
 /** The X-axis contribution is a sliver of the (already-smoothed) rotateY
  *  value — never its own input or spring, so it can't lead or lag it. */
-const ROTATE_X_RATIO = 0.15;
+const ROTATE_X_RATIO = 0.2;
 /** Touch/coarse-pointer devices keep scroll-tilt but softer, per the brief. */
 const MOBILE_TILT_SCALE = 0.6;
 /** Tuned via a standalone step simulation for ZERO overshoot: settles in
@@ -96,13 +88,20 @@ const MOBILE_TILT_SCALE = 0.6;
  *  wobbling" ruled out the springier overshoot-and-settle style used
  *  elsewhere in this file (the position SETTLE animation is a different,
  *  intentionally snappy thing and is untouched). */
-const TILT_STIFFNESS = 150;
-const TILT_DAMPING = 0.7;
+const TILT_STIFFNESS = 190;
+const TILT_DAMPING = 0.6;
+/** Pointer events do not necessarily arrive on every animation frame. Retain
+ *  the last measured velocity briefly so the spring has time to express the
+ *  gesture, then decay it smoothly to an exact rest without wobble. */
+const TILT_VELOCITY_RETENTION = 0.86;
+const TILT_VELOCITY_REST_PX_PER_SECOND = 4;
 
 export interface DragCarouselOptions {
     /** Applied to the viewport while a drag is in progress — drives the
      *  `grabbing` cursor and suppresses hover effects mid-gesture. */
     draggingClassName?: string;
+    /** Applied until all scroll-driven movement and tilt have settled. */
+    movingClassName?: string;
 }
 
 const clamp = (value: number, min: number, max: number) =>
@@ -116,7 +115,7 @@ const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
 export function useDragCarousel(
     viewportRef: RefObject<HTMLElement | null>,
     trackRef: RefObject<HTMLElement | null>,
-    { draggingClassName }: DragCarouselOptions = {},
+    { draggingClassName, movingClassName }: DragCarouselOptions = {},
 ) {
     const prefersReducedMotion = usePrefersReducedMotion();
     const isCoarsePointer = useMediaQuery("(pointer: coarse)");
@@ -159,6 +158,7 @@ export function useDragCarousel(
         let tiltFrame = 0;
         let tiltPrevOffset = 0;
         let tiltPrevTime = 0;
+        let tiltVelocity = 0;
 
         const write = () => {
             track.style.transform = `translate3d(${offset}px, 0, 0)`;
@@ -239,6 +239,7 @@ export function useDragCarousel(
                 offset = target;
                 raw = target;
                 write();
+                ensureTiltLoop();
                 return;
             }
 
@@ -293,19 +294,31 @@ export function useDragCarousel(
 
         const tickTilt = (now: number) => {
             const dt = Math.min(0.05, (now - tiltPrevTime) / 1000 || FRAME_MS / 1000);
-            const frameVelocity = (offset - tiltPrevOffset) / dt;
+            const offsetDelta = offset - tiltPrevOffset;
+
+            if (Math.abs(offsetDelta) > 0.01) {
+                tiltVelocity = offsetDelta / dt;
+            } else {
+                tiltVelocity *= TILT_VELOCITY_RETENTION;
+
+                if (Math.abs(tiltVelocity) < TILT_VELOCITY_REST_PX_PER_SECOND) {
+                    tiltVelocity = 0;
+                }
+            }
 
             tiltPrevOffset = offset;
             tiltPrevTime = now;
 
             const intensity = isCoarsePointer ? MOBILE_TILT_SCALE : 1;
 
-            // See the sign-convention note above VELOCITY_TILT_DEG. At rest,
-            // frameVelocity is exactly 0, so this is exactly 0 too.
+            // Cards lean opposite to their on-screen movement. `offset` is the
+            // track's on-screen translation, so negate its velocity here:
+            // moving right produces a leftward lean and vice versa. At rest,
+            // retained velocity is exactly 0, so this is exactly 0 too.
             rotationYTarget = prefersReducedMotion
                 ? 0
                 : clamp(
-                      frameVelocity * VELOCITY_TILT_DEG * intensity,
+                      -tiltVelocity * VELOCITY_TILT_DEG * intensity,
                       -MAX_ROTATE_Y_DEG,
                       MAX_ROTATE_Y_DEG,
                   );
@@ -320,15 +333,42 @@ export function useDragCarousel(
                 `${(rotationY.value * ROTATE_X_RATIO).toFixed(3)}deg`,
             );
 
-            tiltFrame = isSpringAtRest(rotationY, rotationYTarget)
-                ? 0
-                : requestAnimationFrame(tickTilt);
+            // Reaching a non-zero moving target is not a resting state. The
+            // loop must keep running so retained velocity can decay and pull
+            // the card all the way back to 0deg. Stopping here used to leave
+            // the last non-zero custom property frozen on every card.
+            const atRest =
+                rotationYTarget === 0 && isSpringAtRest(rotationY, rotationYTarget);
+
+            if (atRest) {
+                // Do not leave a fractional residual custom property behind.
+                // Removing both values makes the CSS fallback the authoritative
+                // idle state: cards are flat without a stale inline transform
+                // signal waiting to be composed with the next gesture.
+                rotationY.value = 0;
+                rotationY.velocity = 0;
+                track.style.removeProperty("--tilt-rotate-y");
+                track.style.removeProperty("--tilt-rotate-x");
+
+                if (movingClassName) {
+                    viewport.classList.remove(movingClassName);
+                }
+            }
+
+            tiltFrame = atRest ? 0 : requestAnimationFrame(tickTilt);
         };
 
-        const ensureTiltLoop = () => {
+        const ensureTiltLoop = (previousOffset = offset) => {
+            if (movingClassName) {
+                viewport.classList.add(movingClassName);
+            }
+
             if (!tiltFrame) {
                 tiltPrevTime = performance.now();
-                tiltPrevOffset = offset;
+                // Preserve the movement that started the loop. If we sample
+                // from the already-updated offset, short drags and wheel
+                // gestures lose their first velocity frame and appear flat.
+                tiltPrevOffset = previousOffset;
                 tiltFrame = requestAnimationFrame(tickTilt);
             }
         };
@@ -362,7 +402,6 @@ export function useDragCarousel(
                 viewport.classList.add(draggingClassName);
             }
 
-            ensureTiltLoop();
         };
 
         const onPointerMove = (event: PointerEvent) => {
@@ -384,6 +423,7 @@ export function useDragCarousel(
                 velocity * (1 - VELOCITY_SMOOTHING) +
                 (dx / dt) * VELOCITY_SMOOTHING;
 
+            const previousOffset = offset;
             raw += dx;
 
             // Past either end the content follows the finger at a fraction of
@@ -397,6 +437,10 @@ export function useDragCarousel(
             }
 
             write();
+            // A paused drag can let the tilt spring reach rest. Restart it on
+            // the next movement so the response stays velocity-driven during
+            // the whole gesture.
+            ensureTiltLoop(previousOffset);
         };
 
         const endDrag = (event: PointerEvent) => {
@@ -451,10 +495,11 @@ export function useDragCarousel(
             event.preventDefault();
             cancelSettle();
 
+            const previousOffset = offset;
             offset = clamp(offset - event.deltaX, minOffset, 0);
             raw = offset;
             write();
-            ensureTiltLoop();
+            ensureTiltLoop(previousOffset);
 
             window.clearTimeout(wheelTimer);
             wheelTimer = window.setTimeout(() => {
@@ -492,7 +537,6 @@ export function useDragCarousel(
         };
 
         measure();
-        ensureTiltLoop();
 
         const observer = new ResizeObserver(() => {
             cancelSettle();
@@ -517,6 +561,7 @@ export function useDragCarousel(
 
             if (tiltFrame) {
                 cancelAnimationFrame(tiltFrame);
+                tiltFrame = 0;
             }
 
             track.style.removeProperty("--tilt-rotate-y");
@@ -536,6 +581,17 @@ export function useDragCarousel(
             if (draggingClassName) {
                 viewport.classList.remove(draggingClassName);
             }
+
+            if (movingClassName) {
+                viewport.classList.remove(movingClassName);
+            }
         };
-    }, [viewportRef, trackRef, draggingClassName, prefersReducedMotion, isCoarsePointer]);
+    }, [
+        viewportRef,
+        trackRef,
+        draggingClassName,
+        movingClassName,
+        prefersReducedMotion,
+        isCoarsePointer,
+    ]);
 }

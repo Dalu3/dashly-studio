@@ -3,11 +3,9 @@
  * one thing: driving `uTime` for strand.vert's idle sway, so the fur never
  * reads as a static prop even when nothing is touching it.
  *
- * This is deliberately separate from cursorInteraction.ts's own loop, which
- * stops the instant its springs settle — an idle-motion loop can't do that,
- * it has to keep running for as long as the fur is visible at all. That
- * makes it the one piece of this whole system that runs continuously, so it
- * is gated hard on three independent conditions, any one of which stops it:
+ * It is registered with the same scene-wide frame loop as cursor interaction,
+ * but remains gated hard on three independent conditions, any one of which
+ * stops it:
  *
  *  - `prefers-reduced-motion` — checked ONCE at creation, never started at
  *    all if set. This is ambient/autoplaying motion, exactly what that
@@ -23,12 +21,14 @@
 export interface IdleAnimationOptions {
     /** Observed for visibility — normally the renderer's canvas. */
     viewportElement: HTMLElement;
-    /** Called every active frame with elapsed seconds since creation. */
+    /** Called every active idle update with elapsed seconds since creation. */
     setTime: (seconds: number) => void;
-    /** Called after `setTime`, so the host can request a render. */
-    onFrame: () => void;
+    /** The one scene-wide rAF driver shared with cursor interaction. */
+    frameLoop: FrameLoopHandle;
     /** If true, the loop never starts at all. */
     reducedMotion: boolean;
+    /** Maximum render cadence for the barely-moving breeze. */
+    idleFps: number;
 }
 
 export interface IdleAnimationHandle {
@@ -42,38 +42,41 @@ export function createIdleAnimation(
         return { dispose: () => {} };
     }
 
-    const { viewportElement, setTime, onFrame } = options;
+    const { viewportElement, setTime, frameLoop } = options;
 
     const start = performance.now();
-    let frameId = 0;
-    let running = false;
     let visible = false;
     let disposed = false;
+    let lastUpdate = 0;
 
-    const tick = (now: number) => {
+    // The shared frame loop still wakes for cursor work at display cadence,
+    // while this decorative breeze requests a render only at preset cadence.
+    const MIN_FRAME_MS = 1000 / options.idleFps;
+
+    const shouldRun = () => visible && !document.hidden && !disposed;
+
+    const tick = (now: number): FrameTickResult => {
         if (disposed) {
-            return;
+            return { keepRunning: false, needsRender: false };
         }
 
+        if (now - lastUpdate < MIN_FRAME_MS) {
+            return { keepRunning: shouldRun(), needsRender: false };
+        }
+
+        lastUpdate = now;
         setTime((now - start) / 1000);
-        onFrame();
-        frameId = requestAnimationFrame(tick);
+        return { keepRunning: shouldRun(), needsRender: true };
     };
 
-    const shouldRun = () => visible && !document.hidden;
-
     const startLoop = () => {
-        if (!running && shouldRun()) {
-            running = true;
-            frameId = requestAnimationFrame(tick);
+        if (shouldRun()) {
+            frameLoop.request(tick);
         }
     };
 
     const stopLoop = () => {
-        if (running) {
-            running = false;
-            cancelAnimationFrame(frameId);
-        }
+        frameLoop.cancel(tick);
     };
 
     const observer = new IntersectionObserver(
@@ -114,3 +117,4 @@ export function createIdleAnimation(
         },
     };
 }
+import type { FrameLoopHandle, FrameTickResult } from "./frameLoop";

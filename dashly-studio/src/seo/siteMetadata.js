@@ -16,16 +16,12 @@ export const SOCIAL_LINKS = [
 
 export const faqItems = [
     {
-        question: "How long does it take to build a website?",
-        answer: "Most projects take 1–2 month, depending on the scope and response time. We’ll give you a timeline before we start.",
+        question: "How long will my project take?",
+        answer: "Most projects take one to two months, depending on the scope, complexity, and how quickly feedback and content are provided. We’ll confirm a clear timeline before work begins.",
     },
     {
-        question: "Will my website work on phones and tablets?",
-        answer: "Absolutely. All our websites are fully responsive and look great on all screen sizes.",
-    },
-    {
-        question: "What is your work and payment process?",
-        answer: "We work in stages. First, we start with a free consultation. Once we agree on the scope, a 50% deposit is required to begin. The remaining 50% is paid after the website is completed and approved.",
+        question: "How much should I budget for a website?",
+        answer: "Budgets vary by project type and scope. After a free consultation, we’ll recommend the right approach and provide a clear quote with no hidden costs.",
     },
     {
         question: "What affects the cost of the website?",
@@ -40,8 +36,8 @@ export const faqItems = [
         answer: "Yes. We build websites with clear heading structure, metadata, mobile responsiveness, and technical foundations that support Google visibility.",
     },
     {
-        question: "Do you build landing pages for ads or niche services?",
-        answer: "Yes. Landing pages are perfect when you have one offer, one audience, and one goal — to turn visitors into clients.",
+        question: "Can I update the website without a developer?",
+        answer: "Yes. When content editing is part of your project, we’ll provide an easy way to manage routine updates and show you how to use it confidently.",
     },
 ];
 

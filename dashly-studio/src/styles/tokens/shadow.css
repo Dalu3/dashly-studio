@@ -21,4 +21,5 @@
     /* Focus ring — see color.css for the hue. Defined here so every focusable
        element in the site shares one visual treatment. */
     --shadow-focus-ring: 0 0 0 3px rgb(var(--c-accent-400-rgb) / 0.55);
+    --shadow-error-ring: 0 0 0 3px rgb(var(--c-error-500-rgb) / 0.18);
 }

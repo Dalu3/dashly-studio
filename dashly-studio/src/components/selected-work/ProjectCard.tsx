@@ -28,36 +28,44 @@ export function ProjectCard({
     priority = false,
     className,
 }: ProjectCardProps) {
-    const { title, description, image, width, height, imageAlt } = project;
+    const { title, description, image, width, height, imageAlt, url } = project;
     const cardRef = useRef<HTMLElement>(null);
+    const frameRef = useRef<HTMLDivElement>(null);
 
-    useCardTilt(cardRef);
+    useCardTilt(cardRef, frameRef);
 
     return (
         <article ref={cardRef} className={cn(styles.card, className)}>
-            <div className={styles.frame}>
-                {image ? (
-                    <img
-                        className={styles.image}
-                        src={image}
-                        alt={imageAlt ?? `${title} — ${description}`}
-                        width={width}
-                        height={height}
-                        loading={priority ? "eager" : "lazy"}
-                        decoding="async"
-                        /* Native image dragging would steal the gesture from
-                           the carousel before the pointer handlers ever run. */
-                        draggable={false}
-                    />
-                ) : (
-                    <div className={styles.placeholder} aria-hidden="true" />
-                )}
-            </div>
+            <a
+                className={styles.link}
+                href={url}
+                target="_blank"
+                rel="noreferrer"
+            >
+                <div ref={frameRef} className={styles.frame}>
+                    {image ? (
+                        <img
+                            className={styles.image}
+                            src={image}
+                            alt={imageAlt ?? `${title} — ${description}`}
+                            width={width}
+                            height={height}
+                            loading={priority ? "eager" : "lazy"}
+                            decoding="async"
+                            /* Native image dragging would steal the gesture from
+                               the carousel before the pointer handlers ever run. */
+                            draggable={false}
+                        />
+                    ) : (
+                        <div className={styles.placeholder} aria-hidden="true" />
+                    )}
+                </div>
 
-            <div className={styles.meta}>
-                <h3 className={styles.title}>{title}</h3>
-                <p className={styles.description}>{description}</p>
-            </div>
+                <div className={styles.meta}>
+                    <h3 className={styles.title}>{title}</h3>
+                    <p className={styles.description}>{description}</p>
+                </div>
+            </a>
         </article>
     );
 }

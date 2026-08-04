@@ -1,0 +1,540 @@
+.section {
+    position: relative;
+    width: 100%;
+    overflow: clip;
+    color: var(--color-text-inverse);
+    background: var(--color-surface-process);
+    font-family: var(--font-family-sans);
+}
+
+.canvas {
+    position: relative;
+    width: 100%;
+    max-width: var(--process-canvas-max-width);
+    aspect-ratio: var(--process-canvas-aspect-ratio);
+    margin-inline: auto;
+    overflow: hidden;
+    background: var(--color-surface-process);
+}
+
+.header,
+.flow,
+.stage {
+    position: absolute;
+    inset: 0;
+}
+
+.heading,
+.intro,
+.number,
+.copy h3,
+.copy p {
+    position: absolute;
+    margin: 0;
+    font-weight: var(--font-weight-semibold);
+}
+
+.heading {
+    top: var(--process-header-top);
+    left: var(--process-header-left);
+    width: var(--process-header-width);
+    color: var(--color-text-inverse);
+    font-size: var(--process-heading-size);
+    line-height: var(--process-heading-line-height);
+    text-align: left;
+    text-transform: capitalize;
+}
+
+.intro {
+    top: var(--process-intro-top);
+    left: var(--process-intro-left);
+    width: var(--process-intro-width);
+    color: var(--color-text-process-muted);
+    font-size: var(--process-body-size);
+    line-height: var(--process-copy-line-height);
+    text-align: center;
+}
+
+.flow {
+    z-index: var(--z-base);
+}
+
+.routeAsset,
+.routeGeometry {
+    position: absolute;
+    top: var(--process-route-top);
+    left: var(--process-route-left);
+    width: var(--process-route-width);
+    height: var(--process-route-height);
+    overflow: visible;
+    pointer-events: none;
+}
+
+.routeAsset {
+    z-index: var(--z-base);
+    display: block;
+}
+
+.routeGeometry {
+    z-index: var(--z-base);
+    opacity: 0;
+}
+
+.routeGeometry path {
+    fill: none;
+    stroke: var(--color-process-route);
+    stroke-width: var(--process-route-stroke-width);
+    stroke-dasharray: var(--process-route-dash) var(--process-route-dash);
+}
+
+.arrow {
+    --arrow-x: 0rem;
+    --arrow-y: 0rem;
+    --arrow-rotation: 90deg;
+
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: var(--z-sticky);
+    display: block;
+    width: var(--process-arrow-width);
+    pointer-events: none;
+    transform: translate3d(var(--arrow-x), var(--arrow-y), 0)
+        translate(-50%, -50%) rotate(var(--arrow-rotation));
+    transform-origin: center;
+    will-change: transform;
+}
+
+.arrow img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.stage {
+    --stage-image-opacity: 1;
+    --stage-image-scale: 1;
+    --stage-image-shift: 0rem;
+    --stage-number-opacity: 1;
+    --stage-number-shift: 0rem;
+    --stage-copy-opacity: 1;
+    --stage-copy-shift: 0rem;
+
+    z-index: var(--z-raised);
+    pointer-events: none;
+}
+
+.anchor {
+    position: absolute;
+    top: var(--anchor-top);
+    left: var(--anchor-left);
+    width: var(--space-3xs);
+    height: var(--space-3xs);
+    pointer-events: none;
+}
+
+.number {
+    top: var(--number-top);
+    left: var(--number-left);
+    color: var(--color-text-process-number);
+    font-size: var(--process-stage-number-size);
+    line-height: var(--line-height-normal);
+    z-index: var(--z-raised);
+    transform: translate3d(0, var(--stage-number-shift), 0);
+    will-change: transform, opacity;
+}
+
+.copy {
+    display: contents;
+}
+
+.copy h3 {
+    top: var(--title-top);
+    left: var(--title-left);
+    max-width: var(--description-width);
+    color: var(--color-text-inverse);
+    font-size: var(--process-stage-title-size);
+    line-height: var(--line-height-normal);
+    z-index: var(--z-raised);
+    text-transform: capitalize;
+    white-space: nowrap;
+    transform: translate3d(0, var(--stage-copy-shift), 0);
+    will-change: transform, opacity;
+}
+
+.copy p {
+    top: var(--description-top);
+    left: var(--description-left);
+    width: var(--description-width);
+    color: var(--color-text-process-muted);
+    font-size: var(--process-body-size);
+    line-height: var(--process-copy-line-height);
+    z-index: var(--z-raised);
+    transform: translate3d(0, var(--stage-copy-shift), 0);
+    will-change: transform, opacity;
+}
+
+.figure {
+    position: absolute;
+    top: var(--image-top);
+    left: var(--image-left);
+    width: var(--process-card-width);
+    aspect-ratio: var(--process-card-aspect-ratio);
+    margin: 0;
+    z-index: var(--z-base);
+    transform: translate(-50%, -50%)
+        translate3d(0, var(--stage-image-shift), 0)
+        scale(var(--stage-image-scale));
+    transform-origin: center;
+    will-change: transform, opacity;
+}
+
+.card {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: var(--process-card-radius);
+    background: var(--color-surface-raised);
+    transform: rotate(var(--image-rotation));
+    transform-origin: center;
+}
+
+.media {
+    position: absolute;
+    top: var(--media-top);
+    left: var(--media-left);
+    display: block;
+    width: var(--media-width);
+    height: var(--media-height);
+    transform: rotate(var(--media-rotation));
+    transform-origin: center;
+}
+
+.media::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+    background: linear-gradient(
+            var(--process-image-darkening),
+            var(--process-image-darkening)
+        ),
+        var(--image-overlay);
+}
+
+.media img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.section[data-motion-ready="true"] .number {
+    opacity: var(--stage-number-opacity);
+}
+
+.section[data-motion-ready="true"] .copy h3,
+.section[data-motion-ready="true"] .copy p {
+    opacity: var(--stage-copy-opacity);
+}
+
+.section[data-motion-ready="true"] .figure {
+    opacity: var(--stage-image-opacity);
+}
+
+.stage1 {
+    --number-left: var(--process-1-number-left);
+    --number-top: var(--process-1-number-top);
+    --title-left: var(--process-1-title-left);
+    --title-top: var(--process-1-title-top);
+    --description-left: var(--process-1-description-left);
+    --description-top: var(--process-1-description-top);
+    --description-width: var(--process-1-description-width);
+    --image-left: var(--process-1-image-left);
+    --image-top: var(--process-1-image-top);
+    --image-rotation: var(--process-1-image-rotation);
+    --media-left: var(--process-1-media-left);
+    --media-top: var(--process-1-media-top);
+    --media-width: var(--process-1-media-width);
+    --media-height: var(--process-1-media-height);
+    --media-rotation: var(--process-1-media-rotation);
+    --image-overlay: var(--process-1-image-overlay);
+    --anchor-left: var(--process-1-anchor-left);
+    --anchor-top: var(--process-1-anchor-top);
+}
+
+.stage2 {
+    --number-left: var(--process-2-number-left);
+    --number-top: var(--process-2-number-top);
+    --title-left: var(--process-2-title-left);
+    --title-top: var(--process-2-title-top);
+    --description-left: var(--process-2-description-left);
+    --description-top: var(--process-2-description-top);
+    --description-width: var(--process-2-description-width);
+    --image-left: var(--process-2-image-left);
+    --image-top: var(--process-2-image-top);
+    --image-rotation: var(--process-2-image-rotation);
+    --media-left: var(--process-2-media-left);
+    --media-top: var(--process-2-media-top);
+    --media-width: var(--process-2-media-width);
+    --media-height: var(--process-2-media-height);
+    --media-rotation: var(--process-2-media-rotation);
+    --image-overlay: var(--process-2-image-overlay);
+    --anchor-left: var(--process-2-anchor-left);
+    --anchor-top: var(--process-2-anchor-top);
+}
+
+.stage3 {
+    --number-left: var(--process-3-number-left);
+    --number-top: var(--process-3-number-top);
+    --title-left: var(--process-3-title-left);
+    --title-top: var(--process-3-title-top);
+    --description-left: var(--process-3-description-left);
+    --description-top: var(--process-3-description-top);
+    --description-width: var(--process-3-description-width);
+    --image-left: var(--process-3-image-left);
+    --image-top: var(--process-3-image-top);
+    --image-rotation: var(--process-3-image-rotation);
+    --media-left: var(--process-3-media-left);
+    --media-top: var(--process-3-media-top);
+    --media-width: var(--process-3-media-width);
+    --media-height: var(--process-3-media-height);
+    --media-rotation: var(--process-3-media-rotation);
+    --image-overlay: var(--process-3-image-overlay);
+    --anchor-left: var(--process-3-anchor-left);
+    --anchor-top: var(--process-3-anchor-top);
+}
+
+.stage4 {
+    --number-left: var(--process-4-number-left);
+    --number-top: var(--process-4-number-top);
+    --title-left: var(--process-4-title-left);
+    --title-top: var(--process-4-title-top);
+    --description-left: var(--process-4-description-left);
+    --description-top: var(--process-4-description-top);
+    --description-width: var(--process-4-description-width);
+    --image-left: var(--process-4-image-left);
+    --image-top: var(--process-4-image-top);
+    --image-rotation: var(--process-4-image-rotation);
+    --media-left: var(--process-4-media-left);
+    --media-top: var(--process-4-media-top);
+    --media-width: var(--process-4-media-width);
+    --media-height: var(--process-4-media-height);
+    --media-rotation: var(--process-4-media-rotation);
+    --image-overlay: var(--process-4-image-overlay);
+    --anchor-left: var(--process-4-anchor-left);
+    --anchor-top: var(--process-4-anchor-top);
+}
+
+.stage5 {
+    --number-left: var(--process-5-number-left);
+    --number-top: var(--process-5-number-top);
+    --title-left: var(--process-5-title-left);
+    --title-top: var(--process-5-title-top);
+    --description-left: var(--process-5-description-left);
+    --description-top: var(--process-5-description-top);
+    --description-width: var(--process-5-description-width);
+    --image-left: var(--process-5-image-left);
+    --image-top: var(--process-5-image-top);
+    --image-rotation: var(--process-5-image-rotation);
+    --media-left: var(--process-5-media-left);
+    --media-top: var(--process-5-media-top);
+    --media-width: var(--process-5-media-width);
+    --media-height: var(--process-5-media-height);
+    --media-rotation: var(--process-5-media-rotation);
+    --image-overlay: var(--process-5-image-overlay);
+    --anchor-left: var(--process-5-anchor-left);
+    --anchor-top: var(--process-5-anchor-top);
+}
+
+.stage6 {
+    --number-left: var(--process-6-number-left);
+    --number-top: var(--process-6-number-top);
+    --title-left: var(--process-6-title-left);
+    --title-top: var(--process-6-title-top);
+    --description-left: var(--process-6-description-left);
+    --description-top: var(--process-6-description-top);
+    --description-width: var(--process-6-description-width);
+    --image-left: var(--process-6-image-left);
+    --image-top: var(--process-6-image-top);
+    --image-rotation: var(--process-6-image-rotation);
+    --media-left: var(--process-6-media-left);
+    --media-top: var(--process-6-media-top);
+    --media-width: var(--process-6-media-width);
+    --media-height: var(--process-6-media-height);
+    --media-rotation: var(--process-6-media-rotation);
+    --image-overlay: var(--process-6-image-overlay);
+    --anchor-left: var(--process-6-anchor-left);
+    --anchor-top: var(--process-6-anchor-top);
+}
+
+@media (max-width: 63.999rem) {
+    .canvas {
+        aspect-ratio: auto;
+        padding: var(--process-responsive-padding-block)
+            var(--process-responsive-padding-inline);
+        box-sizing: border-box;
+    }
+
+    .header {
+        position: relative;
+        inset: auto;
+        width: min(100%, var(--process-responsive-header-width));
+        margin-inline: auto;
+        text-align: center;
+    }
+
+    .heading,
+    .intro {
+        position: relative;
+        inset: auto;
+        width: auto;
+        text-align: center;
+    }
+
+    .heading {
+        font-size: var(--process-heading-size);
+        line-height: var(--line-height-tight);
+    }
+
+    .intro {
+        max-width: var(--measure-wide);
+        margin: var(--process-responsive-header-gap) auto 0;
+        font-size: var(--process-responsive-body-size);
+    }
+
+    .flow {
+        position: relative;
+        inset: auto;
+        display: grid;
+        gap: var(--process-responsive-flow-gap);
+        width: min(100%, var(--container-default));
+        margin: var(--process-responsive-flow-margin) auto 0;
+    }
+
+    .routeAsset {
+        display: none;
+    }
+
+    .routeGeometry {
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        opacity: 1;
+    }
+
+    .stage {
+        position: relative;
+        inset: auto;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: var(--space-lg);
+        min-height: var(--process-responsive-stage-min-height);
+        padding-left: var(--process-responsive-stage-padding);
+        box-sizing: border-box;
+    }
+
+    .anchor {
+        top: 50%;
+        left: var(--process-mobile-route-left);
+        transform: translate(-50%, -50%);
+    }
+
+    .stage2 .anchor,
+    .stage4 .anchor,
+    .stage6 .anchor {
+        right: var(--process-mobile-route-right);
+        left: auto;
+    }
+
+    .number {
+        top: var(--process-responsive-number-offset);
+        left: 0;
+        font-size: var(--process-responsive-number-size);
+        line-height: var(--line-height-none);
+    }
+
+    .copy {
+        display: block;
+        max-width: var(--process-responsive-copy-width);
+    }
+
+    .copy h3,
+    .copy p {
+        position: relative;
+        inset: auto;
+        width: auto;
+        max-width: none;
+        white-space: normal;
+    }
+
+    .copy h3 {
+        font-size: var(--process-responsive-title-size);
+        line-height: var(--line-height-tight);
+    }
+
+    .copy p {
+        margin-top: var(--process-responsive-copy-gap);
+        font-size: var(--process-responsive-body-size);
+        line-height: var(--line-height-normal);
+    }
+
+    .figure {
+        position: relative;
+        inset: auto;
+        grid-column: 2;
+        width: var(--process-responsive-card-width);
+        transform: translate3d(0, var(--stage-image-shift), 0)
+            scale(var(--stage-image-scale));
+    }
+}
+
+@media (max-width: 47.999rem) {
+    .canvas {
+        padding-block: var(--space-section-sm);
+    }
+
+    .flow {
+        gap: var(--space-3xl);
+        margin-top: var(--space-section-md);
+    }
+
+    .stage {
+        grid-template-columns: minmax(0, 1fr);
+        align-content: start;
+        gap: var(--space-lg);
+        min-height: 24rem;
+        padding-left: var(--process-responsive-stage-padding);
+    }
+
+    .stage2 .anchor,
+    .stage4 .anchor,
+    .stage6 .anchor {
+        right: auto;
+        left: var(--process-mobile-route-right);
+    }
+
+    .figure {
+        grid-column: 1;
+        width: min(65vw, var(--process-responsive-card-width));
+        margin-left: auto;
+    }
+
+    .stage2 .figure,
+    .stage4 .figure,
+    .stage6 .figure {
+        margin-right: var(--space-md);
+        margin-left: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .arrow,
+    .number,
+    .copy h3,
+    .copy p,
+    .figure {
+        will-change: auto;
+    }
+}

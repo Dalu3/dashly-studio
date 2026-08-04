@@ -1,4 +1,5 @@
-import type { ChangeEventHandler } from "react";
+import { useEffect, useRef, useState } from "react";
+import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 
 import { cn } from "@/utils/cn";
 
@@ -9,16 +10,15 @@ export interface FormSelectProps {
     name: string;
     label: string;
     value: string;
-    onChange: ChangeEventHandler<HTMLSelectElement>;
+    onChange: (value: string) => void;
     options: readonly string[];
     required?: boolean;
     error?: string;
 }
 
 /**
- * Labeled `<select>` styled to match `FormField`'s text inputs — same border,
- * radius and focus ring, plus a chevron glyph since the browser's native
- * arrow is removed along with the rest of the native select chrome.
+ * Accessible custom select styled to match `FormField`'s text inputs. The
+ * hidden input keeps the selected value available to EmailJS `sendForm`.
  */
 export function FormSelect({
     id,
@@ -31,42 +31,149 @@ export function FormSelect({
     error,
 }: FormSelectProps) {
     const errorId = `${id}-error`;
+    const listboxId = `${id}-listbox`;
     const hasError = Boolean(error);
+    const rootRef = useRef<HTMLDivElement>(null);
+    const [isOpen, setIsOpen] = useState(false);
+    const selectedIndex = Math.max(0, options.indexOf(value));
+    const [highlightedIndex, setHighlightedIndex] = useState(selectedIndex);
+
+    useEffect(() => {
+        if (!isOpen) {
+            return undefined;
+        }
+
+        const closeOnOutsidePointer = (event: PointerEvent) => {
+            if (!rootRef.current?.contains(event.target as Node)) {
+                setIsOpen(false);
+            }
+        };
+
+        const closeOnEscape = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setIsOpen(false);
+            }
+        };
+
+        document.addEventListener("pointerdown", closeOnOutsidePointer);
+        document.addEventListener("keydown", closeOnEscape);
+
+        return () => {
+            document.removeEventListener("pointerdown", closeOnOutsidePointer);
+            document.removeEventListener("keydown", closeOnEscape);
+        };
+    }, [isOpen]);
+
+    const selectOption = (option: string) => {
+        onChange(option);
+        setIsOpen(false);
+    };
+
+    const handleTriggerKeyDown = (event: ReactKeyboardEvent<HTMLButtonElement>) => {
+        if (event.key === "ArrowDown" || event.key === "ArrowUp") {
+            event.preventDefault();
+            setIsOpen(true);
+            setHighlightedIndex((current) =>
+                event.key === "ArrowDown"
+                    ? Math.min(current + 1, options.length - 1)
+                    : Math.max(current - 1, 0),
+            );
+            return;
+        }
+
+        if (event.key === "Home" || event.key === "End") {
+            event.preventDefault();
+            setIsOpen(true);
+            setHighlightedIndex(event.key === "Home" ? 0 : options.length - 1);
+            return;
+        }
+
+        if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+
+            if (isOpen) {
+                const highlightedOption = options[highlightedIndex];
+                if (highlightedOption) {
+                    selectOption(highlightedOption);
+                }
+            } else {
+                setHighlightedIndex(selectedIndex);
+                setIsOpen(true);
+            }
+        }
+    };
 
     return (
         <div className={styles.field}>
             <label className={styles.label} htmlFor={id}>
                 {label}
             </label>
-            <div className={styles.selectShell}>
-                <select
+            <div ref={rootRef} className={styles.selectShell}>
+                <button
+                    type="button"
                     id={id}
-                    name={name}
-                    className={cn(styles.control, styles.select, hasError && styles.isInvalid)}
-                    value={value}
-                    onChange={onChange}
-                    required={required}
+                    className={cn(
+                        styles.control,
+                        styles.selectTrigger,
+                        isOpen && styles.selectTriggerOpen,
+                        hasError && styles.isInvalid,
+                    )}
+                    aria-haspopup="listbox"
+                    aria-expanded={isOpen}
+                    aria-controls={listboxId}
+                    aria-activedescendant={
+                        isOpen ? `${id}-option-${highlightedIndex}` : undefined
+                    }
                     aria-invalid={hasError}
                     aria-describedby={hasError ? errorId : undefined}
+                    onClick={() => {
+                        setHighlightedIndex(selectedIndex);
+                        setIsOpen((current) => !current);
+                    }}
+                    onKeyDown={handleTriggerKeyDown}
                 >
-                    {options.map((option) => (
-                        <option key={option} value={option}>
-                            {option}
-                        </option>
-                    ))}
-                </select>
-                <svg
-                    className={styles.chevron}
-                    viewBox="0 0 16 16"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    aria-hidden="true"
-                >
-                    <path d="M4 6L8 10L12 6" />
-                </svg>
+                    <span>{value}</span>
+                    <svg
+                        className={cn(styles.chevron, isOpen && styles.chevronOpen)}
+                        viewBox="0 0 16 16"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="1.6"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                    >
+                        <path d="M4 6L8 10L12 6" />
+                    </svg>
+                </button>
+                {isOpen && (
+                    <ul id={listboxId} className={styles.optionList} role="listbox">
+                        {options.map((option, index) => {
+                            const isSelected = option === value;
+                            const isHighlighted = index === highlightedIndex;
+
+                            return (
+                                <li key={option} role="presentation">
+                                    <button
+                                        type="button"
+                                        id={`${id}-option-${index}`}
+                                        className={cn(
+                                            styles.option,
+                                            isHighlighted && styles.optionHighlighted,
+                                        )}
+                                        role="option"
+                                        aria-selected={isSelected}
+                                        onMouseEnter={() => setHighlightedIndex(index)}
+                                        onClick={() => selectOption(option)}
+                                    >
+                                        <span>{option}</span>
+                                    </button>
+                                </li>
+                            );
+                        })}
+                    </ul>
+                )}
+                <input type="hidden" name={name} value={value} required={required} />
             </div>
             {hasError && (
                 <span id={errorId} className={styles.error} aria-live="polite">

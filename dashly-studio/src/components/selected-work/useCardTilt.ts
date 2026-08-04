@@ -1,86 +1,86 @@
 import { useEffect, type RefObject } from "react";
 
-import { useMediaQuery } from "@/hooks/useMediaQuery";
-import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
-
-import { isSpringAtRest, springStep, type SpringState } from "./springStep";
-
 /**
- * Per-card cursor tilt — entirely independent of the carousel's scroll
- * physics (`useDragCarousel`). Writes its own CSS custom properties on the
- * card element; `ProjectCard.module.css` is what composes them together with
- * the scroll-driven ones into a single `transform`. Neither system needs to
- * know the other exists.
+ * Per-card side hover tilt — entirely independent of the carousel's scroll
+ * physics (`useDragCarousel`). It listens to the image frame and writes its
+ * own CSS custom properties on the card; `ProjectCard.module.css` composes
+ * them with the scroll-driven values into one transform on the complete card.
+ * The image never moves by itself.
  *
- * Desktop/mouse only: guarded by `(hover: hover) and (pointer: fine)` (the
- * same check `ProjectCard.module.css` already uses for its hover-zoom) and by
- * `prefers-reduced-motion`. On touch devices or with reduced motion this hook
- * does nothing — those get scroll-tilt only, per the design brief.
+ * Mouse/trackpad only: the actual pointer event identifies touch input instead
+ * of relying on a media query, which can report a coarse primary pointer on
+ * hybrid devices even while a mouse is active.
  */
 
-/** Very subtle, per the brief — 2-3deg, not the showier scroll-tilt. */
-const MAX_TILT_DEG = 3;
-const MAX_TRANSLATE_PX = 6;
-const STIFFNESS = 210;
-const DAMPING = 0.78;
-
-const clamp = (value: number, min: number, max: number) =>
-    Math.min(max, Math.max(min, value));
+/** The pointer adds a readable but restrained side-to-side lean. */
+const SIDE_TILT_Y_DEG = 5.5;
+const CENTER_DEAD_ZONE = 0.08;
+/** Exponential response reaches the target monotonically, so hover can never
+ *  overshoot, bounce or oscillate around the requested angle. */
+const TILT_RESPONSE = 11;
+const REST_EPSILON_DEG = 0.005;
 
 interface TiltTarget {
     tiltX: number;
     tiltY: number;
-    tx: number;
-    ty: number;
 }
 
-const RESTING_TARGET: TiltTarget = { tiltX: 0, tiltY: 0, tx: 0, ty: 0 };
+const RESTING_TARGET: TiltTarget = { tiltX: 0, tiltY: 0 };
 
-export function useCardTilt(cardRef: RefObject<HTMLElement | null>) {
-    const canHover = useMediaQuery("(hover: hover) and (pointer: fine)");
-    const prefersReducedMotion = usePrefersReducedMotion();
-    const enabled = canHover && !prefersReducedMotion;
-
+export function useCardTilt(
+    cardRef: RefObject<HTMLElement | null>,
+    pointerTargetRef?: RefObject<HTMLElement | null>,
+) {
     useEffect(() => {
         const card = cardRef.current;
+        const imageFrame = pointerTargetRef?.current;
 
-        if (!card || !enabled) {
+        if (!card || !imageFrame) {
             return undefined;
         }
 
-        const springs: Record<keyof TiltTarget, SpringState> = {
-            tiltX: { value: 0, velocity: 0 },
-            tiltY: { value: 0, velocity: 0 },
-            tx: { value: 0, velocity: 0 },
-            ty: { value: 0, velocity: 0 },
-        };
+        const pointerTarget = card;
+
+        const current: TiltTarget = { tiltX: 0, tiltY: 0 };
 
         let target: TiltTarget = RESTING_TARGET;
         let frame = 0;
         let lastTime = 0;
 
         const write = () => {
-            card.style.setProperty("--mouse-tilt-x", `${springs.tiltX.value.toFixed(3)}deg`);
-            card.style.setProperty("--mouse-tilt-y", `${springs.tiltY.value.toFixed(3)}deg`);
-            card.style.setProperty("--mouse-tx", `${springs.tx.value.toFixed(2)}px`);
-            card.style.setProperty("--mouse-ty", `${springs.ty.value.toFixed(2)}px`);
+            card.style.setProperty(
+                "--pointer-tilt-x",
+                `${current.tiltX.toFixed(3)}deg`,
+            );
+            card.style.setProperty(
+                "--pointer-tilt-y",
+                `${current.tiltY.toFixed(3)}deg`,
+            );
         };
 
-        const allSpringsAtRest = () =>
-            (Object.keys(springs) as (keyof TiltTarget)[]).every((key) =>
-                isSpringAtRest(springs[key], target[key]),
+        const isAtRest = () =>
+            (Object.keys(current) as (keyof TiltTarget)[]).every(
+                (key) => Math.abs(current[key] - target[key]) < REST_EPSILON_DEG,
             );
 
         const tick = (now: number) => {
             const dt = Math.min(0.05, (now - lastTime) / 1000 || 1 / 60);
             lastTime = now;
 
-            (Object.keys(springs) as (keyof TiltTarget)[]).forEach((key) => {
-                springStep(springs[key], target[key], STIFFNESS, DAMPING, dt);
+            const interpolation = 1 - Math.exp(-TILT_RESPONSE * dt);
+
+            (Object.keys(current) as (keyof TiltTarget)[]).forEach((key) => {
+                current[key] += (target[key] - current[key]) * interpolation;
             });
+
+            if (isAtRest()) {
+                current.tiltX = target.tiltX;
+                current.tiltY = target.tiltY;
+            }
+
             write();
 
-            frame = allSpringsAtRest() ? 0 : requestAnimationFrame(tick);
+            frame = isAtRest() ? 0 : requestAnimationFrame(tick);
         };
 
         const ensureLoop = () => {
@@ -91,21 +91,36 @@ export function useCardTilt(cardRef: RefObject<HTMLElement | null>) {
         };
 
         const onPointerMove = (event: PointerEvent) => {
-            if (event.pointerType !== "mouse") {
+            if (event.pointerType === "touch") {
                 return;
             }
 
-            const rect = card.getBoundingClientRect();
-            // Normalized to [-1, 1] on each axis, origin at the card's center.
+            const rect = pointerTarget.getBoundingClientRect();
+            const imageBottom = rect.top + imageFrame.offsetHeight;
+
+            // The article is deliberately the stable, untransformed hit area.
+            // Only its image-height portion drives tilt; moving over the text
+            // returns the card to rest without letting a rotating boundary
+            // repeatedly fire pointerleave/pointerenter near its edges.
+            if (event.clientY < rect.top || event.clientY > imageBottom) {
+                target = RESTING_TARGET;
+                ensureLoop();
+                return;
+            }
+
+            // Normalized to [-1, 1] on each axis, origin at the image center.
             const normalX = ((event.clientX - rect.left) / rect.width) * 2 - 1;
-            const normalY = ((event.clientY - rect.top) / rect.height) * 2 - 1;
+            const tiltY =
+                Math.abs(normalX) <= CENTER_DEAD_ZONE
+                    ? 0
+                    : Math.sign(normalX) * SIDE_TILT_Y_DEG;
 
             target = {
-                // Cursor above center tilts the top back (negative rotateX).
-                tiltX: clamp(-normalY * MAX_TILT_DEG, -MAX_TILT_DEG, MAX_TILT_DEG),
-                tiltY: clamp(normalX * MAX_TILT_DEG, -MAX_TILT_DEG, MAX_TILT_DEG),
-                tx: clamp(normalX * MAX_TRANSLATE_PX, -MAX_TRANSLATE_PX, MAX_TRANSLATE_PX),
-                ty: clamp(normalY * MAX_TRANSLATE_PX, -MAX_TRANSLATE_PX, MAX_TRANSLATE_PX),
+                // Stable left/centre/right zones avoid tiny cursor movements
+                // continuously retargeting the animation. Perspective on the
+                // carousel supplies the depth; hover only needs rotateY.
+                tiltX: 0,
+                tiltY,
             };
 
             ensureLoop();
@@ -116,21 +131,21 @@ export function useCardTilt(cardRef: RefObject<HTMLElement | null>) {
             ensureLoop();
         };
 
-        card.addEventListener("pointermove", onPointerMove);
-        card.addEventListener("pointerleave", onPointerLeave);
+        pointerTarget.addEventListener("pointerenter", onPointerMove);
+        pointerTarget.addEventListener("pointermove", onPointerMove);
+        pointerTarget.addEventListener("pointerleave", onPointerLeave);
 
         return () => {
-            card.removeEventListener("pointermove", onPointerMove);
-            card.removeEventListener("pointerleave", onPointerLeave);
+            pointerTarget.removeEventListener("pointerenter", onPointerMove);
+            pointerTarget.removeEventListener("pointermove", onPointerMove);
+            pointerTarget.removeEventListener("pointerleave", onPointerLeave);
 
             if (frame) {
                 cancelAnimationFrame(frame);
             }
 
-            card.style.removeProperty("--mouse-tilt-x");
-            card.style.removeProperty("--mouse-tilt-y");
-            card.style.removeProperty("--mouse-tx");
-            card.style.removeProperty("--mouse-ty");
+            card.style.removeProperty("--pointer-tilt-x");
+            card.style.removeProperty("--pointer-tilt-y");
         };
-    }, [cardRef, enabled]);
+    }, [cardRef, pointerTargetRef]);
 }

@@ -8,9 +8,8 @@
        carousel can never be scrolled out of sync with its own transform.
        X only, deliberately: this is what stops the draggable strip from
        creating page-wide horizontal scroll. Y stays `visible` — a rotated
-       card's painted footprint (perspective foreshortening) can extend a few
-       px past its flat layout box, and clipping THAT vertically is what was
-       cropping cards during the tilt. */
+       card's painted footprint can extend a small amount past its flat layout
+       box. Keep the vertical axis visible so the tilt never crops the card. */
     overflow-x: clip;
     overflow-y: visible;
 
@@ -25,14 +24,6 @@
 
     cursor: grab;
 
-    /* Establishes the 3D viewing frustum each card's rotateY/rotateX
-       (ProjectCard.module.css) render within. 1600px is a literal, not a
-       token — a physical depth-of-field choice tuned against the card
-       width, not a design-system value. Rotation itself is capped low
-       (MAX_ROTATE_Y_DEG in useDragCarousel.ts, 4-8deg), so this doesn't need
-       to be especially soft to stay looking like a gentle lean rather than a
-       fisheye warp. */
-    perspective: 1600px;
 }
 
 /* Focus lands here because the region is keyboard operable — never remove it. */
@@ -71,4 +62,12 @@
    this also stops hover states flickering on cards sliding under the cursor. */
 .isDragging .track {
     pointer-events: none;
+}
+
+/* Scroll inertia owns the card pose while the track is moving. This override
+   prevents a stationary cursor from pulling one card away from the shared
+   velocity-driven tilt. */
+.isMoving .track > * {
+    --pointer-tilt-x: 0deg !important;
+    --pointer-tilt-y: 0deg !important;
 }

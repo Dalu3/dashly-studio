@@ -24,7 +24,7 @@
 .top {
     /* Wider than the sitewide --content-max-width on purpose — see
        --content-max-width-wide in layout.css for why. */
-    max-width: var(--content-max-width-wide);
+    max-width: var(--content-max-width-footer);
     margin-inline: auto;
     padding-block: clamp(2.5rem, 1.5rem + 4vw, 5.125rem) clamp(2.5rem, 1.5rem + 4vw, 4.25rem);
     display: grid;
@@ -40,8 +40,7 @@
            own content, so they move together as a fixed-gap pair and the
            touch column's own right edge lands on the container's right
            edge instead of stopping short in the middle. */
-        grid-template-columns: minmax(0, auto) minmax(1.5rem, 1fr) auto auto;
-        column-gap: clamp(1.5rem, 2vw, 3.5rem);
+        grid-template-columns: minmax(0, auto) minmax(1.5rem, 1fr) auto;
     }
 
     .brand {
@@ -56,13 +55,14 @@
         white-space: nowrap;
     }
 
-    .nav {
+    .columns {
         grid-column: 3;
     }
+}
 
-    .touch {
-        grid-column: 4;
-    }
+.columns {
+    display: grid;
+    gap: clamp(2rem, 1rem + 3vw, 3rem);
 }
 
 .brand {
@@ -73,23 +73,21 @@
 
 .tagline {
     margin: 0;
-    /* 20px, not Figma's 24px — sized down per explicit user request. */
-    font-size: 1.25rem;
+    font-size: var(--font-size-footer-tagline);
     font-weight: var(--font-weight-semibold);
     letter-spacing: var(--letter-spacing-wide-plus);
 }
 
 .wordmark {
     margin: 0;
-    /* 32px, not Figma's 40px — sized down per explicit user request. */
-    font-size: 2rem;
+    font-size: var(--font-size-footer-wordmark);
     font-weight: var(--font-weight-bold);
     letter-spacing: var(--letter-spacing-wide-plus);
 }
 
 .columnHeading {
     margin: 0;
-    font-size: 1.25rem;
+    font-size: var(--font-size-footer-heading);
     font-weight: var(--font-weight-bold);
     letter-spacing: var(--letter-spacing-wide-plus);
 }
@@ -113,7 +111,7 @@
 }
 
 .nav .linkList {
-    gap: 1rem;
+    gap: 1.125rem;
 }
 
 .touch .linkList {
@@ -123,7 +121,7 @@
 .link {
     color: inherit;
     text-decoration: none;
-    font-size: 1.125rem;
+    font-size: var(--font-size-footer-link);
     font-weight: var(--font-weight-extralight);
     letter-spacing: var(--letter-spacing-wide-plus);
     opacity: 1;
@@ -147,28 +145,86 @@
        so this needs to sit in [298, 365)px. The 17.8rem I had before was
        narrower than line 2 itself, which wrapped it to 3 lines. */
     max-width: 19rem;
-    font-size: 1.125rem;
+    font-size: var(--font-size-footer-link);
     font-weight: var(--font-weight-extralight);
     line-height: 1.265;
     letter-spacing: var(--letter-spacing-wide-plus);
 }
 
+@media (min-width: 72rem) {
+    .columns {
+        grid-template-columns:
+            max-content
+            calc(19rem - var(--footer-columns-shift-desktop));
+        column-gap: var(--footer-column-gap-desktop);
+        row-gap: 0;
+        align-items: stretch;
+        transform: translateX(var(--footer-columns-visual-shift-desktop));
+    }
+
+    .nav,
+    .touch {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        row-gap: var(--footer-column-heading-gap);
+    }
+
+    .nav .columnHeading,
+    .touch .columnHeading {
+        margin: 0;
+    }
+
+    .nav .linkList {
+        justify-content: space-between;
+    }
+
+    .touchBody {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .touch,
+    .touchBody,
+    .touchBlurb {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .touchBlurb {
+        overflow-wrap: break-word;
+        text-align: left;
+    }
+
+    .touchBody .linkList {
+        margin-top: auto;
+    }
+
+    .nav .link,
+    .touch .link {
+        line-height: 1;
+    }
+
+    .nav .linkList,
+    .touch .linkList {
+        gap: var(--footer-list-row-gap);
+    }
+}
+
 .divider {
-    max-width: var(--content-max-width-wide);
+    max-width: var(--content-max-width-footer);
     margin-inline: auto;
     height: 1px;
     background: rgb(214 237 248 / 0.15);
 }
 
 .bottom {
-    max-width: var(--content-max-width-wide);
+    max-width: var(--content-max-width-footer);
     margin-inline: auto;
-    padding-block: 1.125rem 4.75rem;
+    padding-block: 1.25rem 4.75rem;
     display: flex;
     flex-direction: column;
     gap: var(--space-sm);
-    /* 18px, not Figma's 20px — sized down per explicit user request. */
-    font-size: 1.125rem;
+    font-size: var(--font-size-footer-meta);
     font-weight: var(--font-weight-regular);
     letter-spacing: var(--letter-spacing-wide-plus);
 }
@@ -187,11 +243,90 @@
 
 .legal {
     display: flex;
-    gap: 3.5rem;
+    gap: 4.25rem;
 }
 
 .legalLink {
     font-size: inherit;
     font-weight: inherit;
     letter-spacing: inherit;
+}
+
+/* Keep footer content aligned with the Contact composition instead of
+   allowing it to grow to the viewport edges. */
+@media (min-width: 64rem) {
+    .root {
+        padding-inline: max(0.5rem, calc((100vw - var(--content-max-width-contact)) / 2));
+    }
+
+    .top,
+    .divider,
+    .bottom {
+        max-width: var(--content-max-width-contact);
+    }
+}
+
+/* At the large desktop breakpoint the footer keeps the same fixed-width shell
+   while returning to the regular responsive grid inside that shell. */
+@media (min-width: 108rem) {
+    .root {
+        height: auto;
+    }
+
+    .top {
+        position: static;
+        display: grid;
+        height: auto;
+        max-width: none;
+        padding-block: 5.125rem 4.25rem;
+        column-gap: var(--footer-column-gap-figma);
+    }
+
+    .brand,
+    .columns {
+        position: static;
+        top: auto;
+        left: auto;
+        padding: 0;
+    }
+
+    .brand {
+        max-width: 36rem;
+        gap: 1rem;
+    }
+
+    .tagline,
+    .wordmark {
+        line-height: 1.25;
+    }
+
+    .columns {
+        grid-template-columns:
+            max-content
+            calc(19rem - var(--footer-columns-shift-figma));
+        column-gap: var(--footer-column-gap-figma);
+        transform: translateX(var(--footer-columns-visual-shift-figma));
+    }
+
+    .divider {
+        position: static;
+        width: auto;
+        max-width: none;
+        margin: 0;
+        height: 1px;
+    }
+
+    .bottom {
+        position: static;
+        width: auto;
+        max-width: none;
+        margin: 0;
+        padding: 1.25rem 0 4.75rem;
+        line-height: 1.25;
+    }
+
+    .legal {
+        position: static;
+        gap: 4.25rem;
+    }
 }

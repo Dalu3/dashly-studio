@@ -1,6 +1,6 @@
 import {
     Color,
-    DoubleSide,
+    FrontSide,
     GLSL3,
     ShaderMaterial,
     Vector3,
@@ -20,7 +20,6 @@ export interface StrandUniforms extends CursorReactiveUniforms {
     uTipColor: IUniform<Color>;
     uLightDir: IUniform<Vector3>;
     uGravity: IUniform<Vector3>;
-    uCompress: IUniform<number>;
     uMaxAo: IUniform<number>;
     /** Seconds, driven by idleAnimation.ts — see strand.vert's own comment. */
     uTime: IUniform<number>;
@@ -45,12 +44,11 @@ export function createStrandMaterial(options: StrandMaterialOptions): StrandMate
         uTipColor: { value: new Color(options.tipColor ?? "#6fd4fb") },
         uLightDir: { value: new Vector3(-0.4, 0.8, 0.6).normalize() },
         uGravity: { value: new Vector3(0, -0.1, 0) },
-        uCompress: { value: 0.5 },
         uMaxAo: { value: 0.84 },
         uTime: { value: 0 },
         uCursor: { value: new Vector3(1e6, 1e6, 1e6) },
         uCursorDir: { value: new Vector3(0, 0, 0) },
-        uCursorRadius: { value: 0.036 },
+        uCursorRadius: { value: 0.052 },
         uCursorStrength: { value: 0 },
         uRipplePoint: { value: new Vector3(1e6, 1e6, 1e6) },
     };
@@ -73,12 +71,12 @@ export function createStrandMaterial(options: StrandMaterialOptions): StrandMate
         transparent: false,
         depthWrite: true,
         depthTest: true,
-        // The billboard axis is recomputed per vertex from the current view
-        // direction (see strand.vert) rather than baked into a fixed
-        // winding, so keeping both faces enabled is cheap insurance against
-        // ever culling the "wrong" side rather than a load-bearing
-        // requirement.
-        side: DoubleSide,
+        // strand.vert builds every ribbon's width axis from the current view
+        // direction, so its winding consistently faces the camera. Keeping
+        // back-face culling enabled avoids rasterising the hidden side of
+        // these very numerous opaque ribbons without changing the visible
+        // silhouette.
+        side: FrontSide,
     });
 
     return material as StrandMaterial;

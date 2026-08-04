@@ -1,7 +1,7 @@
 /**
  * Hero background — soft light-blue satin fabric.
  *
- * Structure: one clipping root + five oversized, absolutely positioned layers.
+ * Structure: one clipping root + oversized, absolutely positioned fabric layers.
  *
  * Highlights are built from heavily STRETCHED ellipses (roughly 8:1), not from
  * full-width linear bands. A linear band always spans the whole surface edge to
@@ -71,12 +71,12 @@
        the four layers never resynchronise and the composition never visibly
        repeats. Short enough that the surface is clearly alive when the page is
        still; slow enough to stay calm. */
-    --drift-streak-a: 10s;
-    --drift-streak-b: 12s;
-    --drift-streak-c: 14s;
-    --drift-streak-d: 17s;
-    --drift-sheen: 11s;
-    --drift-depth: 16s;
+    --drift-streak-a: 8s;
+    --drift-streak-b: 10s;
+    --drift-streak-c: 12s;
+    --drift-streak-d: 14s;
+    --drift-sheen: 9s;
+    --drift-depth: 13s;
 
     /* Written by JS each frame: eased 0..1 progress of the hero scrolling out
        of view. Falls back to 0, so with JS disabled the idle animation simply
@@ -113,7 +113,7 @@
      * not affected by the mask's shaping in the same way the layer content is,
      * and an opaque colour here would sit under the fade and stop dead at the
      * bottom edge, re-creating the hard line. The .base layer already paints a
-     * full-coverage gradient across a box 40% larger than this one, so a
+     * full-coverage gradient across an oversized box, so a
      * background-color was redundant regardless. */
 
     isolation: isolate;
@@ -135,56 +135,33 @@
      * gone well before the white section arrives. Twelve stops keep the
      * falloff smooth enough that no part of it reads as a step.
      *
-     * Four soft ellipses composited with `add` hold the blue a little lower in
-     * irregular places, so the dissolve reads as mist rather than a ruled
-     * line. Every one of them falls to zero at least 100px above the bottom,
-     * so none can leave stray alpha at the boundary.
+     * This is intentionally a single linear mask. Combining several radial
+     * masks caused intermittent transparent bands in Chromium while the large
+     * blurred compositor layers were moving.
      * ------------------------------------------------------------------ */
     --dissolve-height: 320px;
 
     mask-image: linear-gradient(
-            to bottom,
-            #000 calc(100% - var(--dissolve-height)),
-            rgb(0 0 0 / 0.86) calc(100% - 268px),
-            rgb(0 0 0 / 0.66) calc(100% - 224px),
-            rgb(0 0 0 / 0.48) calc(100% - 186px),
-            rgb(0 0 0 / 0.33) calc(100% - 152px),
-            rgb(0 0 0 / 0.22) calc(100% - 122px),
-            rgb(0 0 0 / 0.14) calc(100% - 96px),
-            rgb(0 0 0 / 0.08) calc(100% - 72px),
-            rgb(0 0 0 / 0.04) calc(100% - 50px),
-            rgb(0 0 0 / 0.015) calc(100% - 30px),
-            rgb(0 0 0 / 0.005) calc(100% - 14px),
-            transparent 100%
-        ),
-        radial-gradient(
-            ellipse 42% 110px at 22% calc(100% - 232px),
-            rgb(0 0 0 / 0.42) 0%,
-            transparent 74%
-        ),
-        radial-gradient(
-            ellipse 34% 92px at 56% calc(100% - 196px),
-            rgb(0 0 0 / 0.34) 0%,
-            transparent 72%
-        ),
-        radial-gradient(
-            ellipse 48% 124px at 84% calc(100% - 250px),
-            rgb(0 0 0 / 0.38) 0%,
-            transparent 76%
-        ),
-        radial-gradient(
-            ellipse 26% 76px at 40% calc(100% - 160px),
-            rgb(0 0 0 / 0.24) 0%,
-            transparent 70%
-        );
+        to bottom,
+        #000 0%,
+        #000 calc(100% - var(--dissolve-height)),
+        rgb(0 0 0 / 0.86) calc(100% - 268px),
+        rgb(0 0 0 / 0.66) calc(100% - 224px),
+        rgb(0 0 0 / 0.48) calc(100% - 186px),
+        rgb(0 0 0 / 0.33) calc(100% - 152px),
+        rgb(0 0 0 / 0.22) calc(100% - 122px),
+        rgb(0 0 0 / 0.14) calc(100% - 96px),
+        rgb(0 0 0 / 0.08) calc(100% - 72px),
+        rgb(0 0 0 / 0.04) calc(100% - 50px),
+        transparent 100%
+    );
     mask-repeat: no-repeat;
-    mask-composite: add;
 }
 
 /* -------------------------------------------------------------------------
  * Shared layer geometry.
  *
- * Every layer overhangs the root by 40% on each side — the budget that both
+ * Every layer overhangs the root by 30% on each side — the budget that both
  * the idle drift and the scroll parallax are sized against (see --parallax-*
  * above), so a layer edge can never travel into view and expose the flat base
  * colour. That is the "no empty edges during movement" requirement.
@@ -192,7 +169,7 @@
 
 .layer {
     position: absolute;
-    inset: -40%;
+    inset: -30%;
     /* Promote to its own compositor layer so drift moves a cached texture
        rather than repainting a large blurred surface every frame. */
     will-change: transform;
@@ -217,7 +194,7 @@
  * component alternates sign so scrolling shears the weave diagonally instead
  * of sliding it straight down.
  *
- * Budget: deepest layer is 11% of hero, idle peak adds ~13%, against 40% of
+ * Budget: deepest layer is 11% of hero, idle peak adds ~13%, against 30% of
  * overhang on each side.
  * ---------------------------------------------------------------------- */
 
@@ -656,7 +633,7 @@
  * replaces the whole property.
  *
  * Translation peaks near 9% of layer size and scale stays within 1.03-1.10,
- * which sits inside the 40% overhang budget alongside the scroll parallax.
+ * which sits inside the 30% overhang budget alongside the scroll parallax.
  * ---------------------------------------------------------------------- */
 
 @keyframes drift-streak-a {
@@ -1354,12 +1331,12 @@
 /* --bp-xl */
 @media (min-width: 80rem) {
     .root {
-        --blur-streak-a: 14px;
-        --blur-streak-b: 20px;
-        --blur-streak-c: 27px;
-        --blur-streak-d: 36px;
-        --blur-sheen: 78px;
-        --blur-depth: 58px;
+        --blur-streak-a: 12px;
+        --blur-streak-b: 17px;
+        --blur-streak-c: 23px;
+        --blur-streak-d: 30px;
+        --blur-sheen: 56px;
+        --blur-depth: 44px;
     }
 }
 

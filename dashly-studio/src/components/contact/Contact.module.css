@@ -11,7 +11,7 @@
 
 .root {
     background: var(--color-surface-accent-subtle);
-    padding-block: clamp(3rem, 1rem + 8vw, 8.5rem) clamp(3rem, 1rem + 7vw, 7.25rem);
+    padding-block: clamp(3rem, 1rem + 8vw, 8.4625rem) clamp(3rem, 1rem + 7vw, 7.2747rem);
 }
 
 .container {
@@ -30,21 +30,21 @@
     .container {
         /* Text column flexible, form column capped at its Figma width
            (716.58px) so it never stretches past its real design size. */
-        grid-template-columns: 1fr minmax(0, 44.79rem);
+        grid-template-columns: 1fr minmax(0, 35.2rem);
     }
 }
 
 .intro {
     display: flex;
     flex-direction: column;
-    gap: 0.875rem;
+    gap: 0.9625rem;
 }
 
 .heading {
     font-family: var(--font-family-sans);
-    font-size: clamp(2.25rem, 1.5rem + 3.5vw, 4rem);
+    font-size: var(--font-size-contact-heading);
     font-weight: var(--font-weight-bold);
-    line-height: var(--line-height-tight);
+    line-height: var(--line-height-display);
     letter-spacing: var(--letter-spacing-wide-plus);
     /* Figma uses solid black here, not --color-text-primary (#2a2a26). */
     color: #000;
@@ -60,12 +60,12 @@
 }
 
 .body {
-    font-size: clamp(1.05rem, 1rem + 0.25vw, 1.25rem);
+    font-size: var(--font-size-contact-body);
     font-weight: var(--font-weight-regular);
-    line-height: var(--line-height-normal);
+    line-height: var(--line-height-body-compact);
     letter-spacing: var(--letter-spacing-wide-plus);
     color: #000;
-    max-width: 35.4rem;
+    max-width: 31rem;
 }
 
 /* ---- Form card ---------------------------------------------------------- */
@@ -77,27 +77,47 @@
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: 0.875rem;
     width: 100%;
-    max-width: 44.79rem;
+    max-width: 35.2rem;
     background: var(--color-surface-raised);
     border-radius: var(--radius-lg);
     box-shadow: var(--shadow-sm);
-    padding: 1.5rem 1.5rem 2.125rem;
+    padding: 1.1rem 1.1rem 1.65rem;
+}
+
+@media (min-width: 64rem) {
+    .container {
+        max-width: var(--content-max-width-contact);
+        padding-inline: 0;
+        transform: scale(var(--contact-ui-scale));
+        transform-origin: center top;
+    }
+
+    .intro {
+        align-self: start;
+        margin-top: 11.8675rem;
+    }
+}
+
+@media (min-width: 108rem) {
+    .container {
+        transform: translateX(0.25rem) scale(var(--contact-ui-scale));
+    }
 }
 
 .submit {
     box-sizing: border-box;
     width: 100%;
     font-family: var(--font-family-sans);
-    font-size: 1rem;
+    font-size: var(--font-size-contact-form);
     font-weight: var(--font-weight-semibold);
     /* Exact hex pair from Figma's Send button (sds text/background-brand). */
     color: #f5f5f5;
     background: #2c2c2c;
     border: none;
     border-radius: var(--radius-pill);
-    padding-block: 0.6875rem;
+    padding-block: 0.5625rem;
     cursor: pointer;
     transition: background-color 0.2s ease;
 }
@@ -124,6 +144,6 @@
 }
 
 .statusError {
-    color: var(--c-ink-600);
+    color: var(--color-feedback-error);
     font-weight: var(--font-weight-medium);
 }

@@ -36,8 +36,11 @@ export function MouseFollower() {
             posX = lerp(posX, mouseX, 0.9);
             posY = lerp(posY, mouseY, 0.9);
 
-            cursor.style.left = `${posX}px`;
-            cursor.style.top = `${posY}px`;
+            // Keep the cursor on the compositor. Writing left/top here forces
+            // layout work on every settling frame; custom properties consumed
+            // by transform only update the tiny cursor layer.
+            cursor.style.setProperty("--cursor-x", `${posX}px`);
+            cursor.style.setProperty("--cursor-y", `${posY}px`);
 
             const atRest =
                 Math.abs(mouseX - posX) < 0.5 && Math.abs(mouseY - posY) < 0.5;

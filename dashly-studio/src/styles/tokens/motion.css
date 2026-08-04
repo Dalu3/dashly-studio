@@ -37,6 +37,9 @@
     --transition-transform: transform var(--duration-normal)
         var(--ease-standard);
     --transition-shadow: box-shadow var(--duration-normal) var(--ease-standard);
+    --transition-faq-reveal: grid-template-rows var(--duration-slow)
+        var(--ease-standard),
+        visibility var(--duration-slow) var(--ease-standard);
 
     /* Only for elements whose animated properties genuinely vary. Prefer the
        specific tokens above — `all` forces the browser to watch every property. */

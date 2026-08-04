@@ -57,9 +57,10 @@ function HomePage({ onHeroReady }) {
         <main id="main-content">
             {/* Redesign preview: animated Hero background only. The existing
                 MainPage hero below is untouched and still the live one. */}
-            <Hero onReady={onHeroReady} />
+            <Hero onReady={onHeroReady}>
+                <MainPage />
+            </Hero>
             <SelectedWork />
-            <MainPage />
             <Packages />
             <Stages />
             <FAQ />

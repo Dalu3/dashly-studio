@@ -19,7 +19,6 @@
 uniform float uStrandLength;
 uniform float uStrandWidth;
 uniform vec3  uGravity;
-uniform float uCompress;
 uniform vec3  uCursor;
 uniform vec3  uCursorDir;
 uniform float uCursorRadius;
@@ -48,9 +47,6 @@ void main() {
     float side = position.x;
     float t = position.y;
 
-    // Every other piece of per-strand variation comes from hashing this ONE
-    // seed with a different salt per output — one float of instance
-    // bandwidth standing in for what would otherwise be seven.
     float hLen     = hash1(aSeed * 12.9898);
     float hWidth   = hash1(aSeed * 29.7331);
     float hCurlAmt = hash1(aSeed * 41.311);
@@ -69,9 +65,15 @@ void main() {
     // strands clearly shorter or longer than their neighbours, is what
     // breaks up the "every hair the same" look into something that reads as
     // individual and organic rather than a uniform surface texture.
-    float lenScale    = mix(0.5, 1.55, hLen);
-    float widthScale  = mix(0.45, 1.7, hWidth);
-    float curlAmount  = mix(0.25, 1.0, hCurlAmt);
+    // Keep the average pile length close to the previous realistic pass, but
+    // widen the distribution in both directions. More short undercoat fibres
+    // fill the body while sparse longer guard hairs break up the silhouette.
+    // Dense, shorter undercoat builds the plush body; a smaller population
+    // of distinctly longer guard hairs supplies flow and a soft silhouette.
+    float guardHair   = smoothstep(0.92, 1.0, hLen);
+    float lenScale    = mix(0.64, 1.32, hLen) + guardHair * 0.26;
+    float widthScale  = mix(0.68, 1.48, hWidth) * mix(1.06, 0.9, guardHair);
+    float curlAmount  = mix(0.04, 0.32, hCurlAmt);
     float curlAngle   = hCurlAng * 6.28318530718;
     // A strand whose growth direction points close to straight at the
     // camera foreshortens to almost nothing on screen — correct physically,
@@ -83,7 +85,7 @@ void main() {
     // (not just a small maximum) is the fix for both: every strand leans by
     // at least ~14 degrees, most by quite a bit more, so most of them read
     // as a visible slanted line instead of a foreshortened dot even head-on.
-    float tiltAmount  = mix(0.25, 1.05, hTiltAmt);
+    float tiltAmount  = mix(0.08, 0.48, hTiltAmt);
     float tiltAngle   = hTiltAng * 6.28318530718;
     float responseExp = mix(0.55, 1.9, hResp);
     float strengthMul = mix(0.55, 1.35, hStrMul);
@@ -97,15 +99,90 @@ void main() {
     // what keeps a whole patch of strands from standing up in mechanical
     // lockstep even before the cursor ever touches them.
     vec3 tiltDir = cos(tiltAngle) * tangent + sin(tiltAngle) * bitangent;
-    vec3 growDir = normalize(n + tiltDir * tiltAmount);
 
-    // Curl basis around the TILTED direction, so curl bends away from where
-    // the strand actually points rather than the raw surface normal.
+    // Soft spatial clumping: follicles in the same small surface cell lean
+    // gently toward a shared, jittered centre. This makes neighbouring hairs
+    // overlap in silky locks instead of every fibre standing independently,
+    // while the low strength preserves the full coat volume.
+    float clumpSize = 0.014;
+    vec3 clumpCell = floor(aRoot / clumpSize);
+    float clumpId = dot(clumpCell, vec3(1.0, 57.0, 113.0));
+    vec3 clumpJitter = vec3(
+        hash1(clumpId + 11.7),
+        hash1(clumpId + 37.1),
+        hash1(clumpId + 73.9)
+    ) - 0.5;
+    vec3 clumpCentre = (clumpCell + 0.5 + clumpJitter * 0.48) * clumpSize;
+    vec3 clumpOffset = clumpCentre - aRoot;
+    vec3 clumpDir = clumpOffset - n * dot(clumpOffset, n);
+    float clumpDistance = length(clumpDir);
+    clumpDir = clumpDistance > 1e-5 ? clumpDir / clumpDistance : tiltDir;
+    float clumpStrength = mix(0.06, 0.16, hash1(clumpId + 19.3));
+
+    vec3 growDir = normalize(
+        n + tiltDir * tiltAmount + clumpDir * clumpStrength
+    );
+
+    // Curl basis around the static direction. Cursor motion changes only the
+    // strand's growth orientation below; the curl itself remains a stable
+    // per-fibre shape, so the pile bends without collapsing.
     vec3 curlTangent, curlBitangent;
     basisFromNormal(growDir, curlTangent, curlBitangent);
     vec3 curlDir = cos(curlAngle) * curlTangent + sin(curlAngle) * curlBitangent;
 
     float len = uStrandLength * lenScale;
+
+    // The word's surface is the fixed anchor. Build a soft radial brush field
+    // in the tangent plane of each follicle, then rotate only this strand's
+    // outward direction away from the cursor. No base-mesh position,
+    // object-space transform, or shared rigid block is changed.
+    vec3 bentGrowDir = growDir;
+
+    // Uniform early-out: idle frames skip the entire brush path. During an
+    // interaction, squared-distance tests reject the overwhelming majority
+    // of strands before any normalize(), distance(), pow() or ripple work.
+    if (abs(uCursorStrength) > 0.001) {
+        vec3 cursorOffset = aRoot - uCursor;
+        vec3 rippleOffset = aRoot - uRipplePoint;
+        float cursorDistanceSq = dot(cursorOffset, cursorOffset);
+        float rippleRadius = uCursorRadius * 2.1;
+        float rippleDistanceSq = dot(rippleOffset, rippleOffset);
+
+        if (
+            cursorDistanceSq < uCursorRadius * uCursorRadius ||
+            rippleDistanceSq < rippleRadius * rippleRadius
+        ) {
+            vec3 away = cursorOffset - n * dot(cursorOffset, n);
+            float awayLength = length(away);
+            vec3 awayDir = awayLength > 1e-5 ? away / awayLength : tangent;
+            float radialFalloff = smoothstep(
+                uCursorRadius,
+                0.0,
+                sqrt(cursorDistanceSq)
+            );
+            float infl = pow(radialFalloff, responseExp) * strengthMul * uCursorStrength;
+            float cursorDirLength = length(uCursorDir);
+            vec3 travelDir = cursorDirLength > 1e-5
+                ? uCursorDir / cursorDirLength
+                : awayDir;
+            vec3 brushDir = normalize(awayDir * 0.78 + travelDir * 0.22);
+            float bendAmount = infl * mix(0.8, 1.25, hResp);
+            bentGrowDir = normalize(growDir + brushDir * bendAmount);
+
+            vec3 rippleAway = rippleOffset - n * dot(rippleOffset, n);
+            float rippleDistance = length(rippleAway);
+            vec3 rippleAwayDir = rippleDistance > 1e-5
+                ? rippleAway / rippleDistance
+                : awayDir;
+            float rippleFalloff = smoothstep(
+                rippleRadius,
+                0.0,
+                sqrt(rippleDistanceSq)
+            );
+            float rippleAmount = pow(rippleFalloff, 2.0) * uCursorStrength * 0.32;
+            bentGrowDir = normalize(bentGrowDir + rippleAwayDir * rippleAmount);
+        }
+    }
 
     // Centreline: extends along growDir, curling sideways more toward the
     // tip (t*t — more bend far from the root, same shape the old shell
@@ -115,47 +192,10 @@ void main() {
     // (see support.vert), so only the strand growing outward from a root
     // moves; the root is the one anchor point that never does.
     vec3 centre = aRoot
-        + growDir * (len * t)
+        + bentGrowDir * (len * t)
         + curlDir * (curlAmount * len * 0.55 * t * t);
 
     centre += uGravity * (t * t) * len;
-
-    // Cursor bend: same falloff SHAPE the old shell/fin system used, but
-    // raised to this strand's own responseExp and scaled by its own
-    // strengthMul — the actual desync mechanism described above.
-    float d = distance(aRoot, uCursor);
-    float rawFalloff = pow(clamp(1.0 - d / uCursorRadius, 0.0, 1.0), 1.6);
-    float infl = pow(rawFalloff, responseExp) * strengthMul * uCursorStrength;
-    float bend = t * t;
-    centre -= growDir * (uCompress * infl * (1.0 - bend) * len);
-    centre += uCursorDir * (infl * bend * len * 0.55);
-
-    // "Comb part": strands split to either side of the brush's TRAVEL line
-    // instead of every strand under the brush leaning the same way — this
-    // is what makes the interaction read as combing/brushing through fur
-    // rather than a uniform gust pushing on it. `cursorDirSafe` guards the
-    // rest position (uCursorDir = (0,0,0) there, which normalize() cannot
-    // take); the `+ vec3(1e-6)` on the cross product guards the separate,
-    // rarer case where growDir happens to be exactly parallel to the travel
-    // direction, which would otherwise zero the cross product too.
-    float cursorDirLenSq = dot(uCursorDir, uCursorDir);
-    vec3 cursorDirSafe = cursorDirLenSq > 1e-10 ? uCursorDir * inversesqrt(cursorDirLenSq) : tangent;
-    vec3 partAxis = normalize(cross(n, cursorDirSafe) + vec3(1e-6, 0.0, 0.0));
-    float partSign = dot(aRoot - uCursor, partAxis) >= 0.0 ? 1.0 : -1.0;
-    centre += partAxis * (partSign * infl * bend * len * 0.3);
-
-    // Trailing ripple: a SECOND, softer brush point (uRipplePoint, see
-    // cursorInteraction.ts's own underdamped spring for it) with a wider
-    // radius and gentler push, in the same travel direction. Its natural
-    // lag and overshoot as it catches up to the real brush is what reads
-    // as a wave running through the fur just after the cursor passes,
-    // rather than the bend simply switching off the instant the cursor
-    // moves on.
-    float dRipple = distance(aRoot, uRipplePoint);
-    float rippleRadius = uCursorRadius * 1.8;
-    float rippleFalloff = pow(clamp(1.0 - dRipple / rippleRadius, 0.0, 1.0), 2.0);
-    float rippleInfl = rippleFalloff * uCursorStrength * 0.45;
-    centre += uCursorDir * (rippleInfl * bend * len * 0.4);
 
     // Idle sway: a small, always-on, per-strand-phased wobble so the fur
     // never reads as a static prop even at rest — driven by uTime (see
@@ -170,10 +210,13 @@ void main() {
     float idleAmount = sin(uTime * idleFreq + idlePhase) * 0.05 * len * t;
     centre += idleDir * idleAmount;
 
-    float width = uStrandWidth * widthScale * (1.0 - t);
+    // Keep a plush body through the middle of the fibre, then taper all the
+    // way to a genuinely fine zero-width tip. The sub-linear profile creates
+    // soft overlap without the blunt, flat-card appearance of a wide tip.
+    float width = uStrandWidth * widthScale * pow(1.0 - t, 0.48);
 
     vec3 worldCentre = (modelMatrix * vec4(centre, 1.0)).xyz;
-    vec3 worldGrowDir = normalize(mat3(modelMatrix) * growDir);
+    vec3 worldGrowDir = normalize(mat3(modelMatrix) * bentGrowDir);
 
     // Billboard the ribbon's WIDTH toward the viewer, per vertex, so a
     // strand reads as a visible sliver from any angle instead of vanishing

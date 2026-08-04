@@ -1,6 +1,6 @@
 import "./Header.css";
 import { useEffect, useRef, useState } from "react";
-import arrowIcon from "../assets/arrow.png";
+import arrowIcon from "../assets/arrow.webp";
 import { navigateToHash } from "../utils/scrollToHash";
 
 function Header() {
@@ -84,6 +84,12 @@ function Header() {
                     className={`nav-links ${isMenuOpen ? "open" : ""}`}
                 >
                     <a
+                        href="/#work"
+                        onClick={(event) => handleHashLinkClick(event, "#work")}
+                    >
+                        Work
+                    </a>
+                    <a
                         href="/#packages"
                         onClick={(event) => handleHashLinkClick(event, "#packages")}
                     >
@@ -106,7 +112,7 @@ function Header() {
                         className="cta"
                         onClick={(event) => handleHashLinkClick(event, "#contact")}
                     >
-                        Get In Touch
+                        Let’s Talk
                         <img
                             src={arrowIcon}
                             alt="Contact Dashly Studio"

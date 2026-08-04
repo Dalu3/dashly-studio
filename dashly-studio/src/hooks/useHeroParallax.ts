@@ -56,12 +56,10 @@ export function getScrollSource(): Element {
  *
  * Two deliberate choices, both learned the hard way here:
  *
- * 1. No scroll listeners. The event target depends on which element owns the
- *    viewport's overflow, element scroll events do not bubble, and in a
- *    throttled document they are not dispatched at all because they are
- *    delivered on the frame boundary. Reading `getBoundingClientRect()` inside
- *    a rAF loop is correct no matter what scrolls — window, documentElement,
- *    body, or a nested container.
+ * 1. Scroll events only schedule work. The event handler never reads layout;
+ *    `getBoundingClientRect()` is sampled once inside the coalesced rAF tick.
+ *    The loop stops as soon as the eased value reaches its target, so an idle
+ *    page does not pay for a permanent 60fps layout read.
  *
  * 2. Transforms are written STRAIGHT onto each layer's style. The earlier
  *    version set one custom property on the container and let CSS `calc()`
@@ -70,8 +68,9 @@ export function getScrollSource(): Element {
  *    blurred layers on every frame. Writing five transforms directly touches
  *    only the five wrapper elements and keeps the blurred children untouched.
  *
- * The loop is bounded by an IntersectionObserver, so it stops entirely once
- * the hero scrolls off screen. No React state, so scrolling causes no renders.
+ * The coalesced loop is bounded by an IntersectionObserver, so it stops
+ * entirely once the hero scrolls off screen. No React state, so scrolling
+ * causes no renders.
  *
  * @param containerRef Element whose scroll progress drives the effect.
  * @param targets      Layers to move, with their per-layer travel.
@@ -169,9 +168,7 @@ export function useHeroParallax(
                 scrollSource: getScrollSource().tagName.toLowerCase(),
             });
 
-            // Keep spinning while on screen: the rect can change with no scroll
-            // event at all (momentum, pinch zoom, layout shift, address bar).
-            if (onScreen) {
+            if (onScreen && !settled) {
                 frameId = requestAnimationFrame(tick);
             } else {
                 looping = false;
@@ -179,7 +176,7 @@ export function useHeroParallax(
         };
 
         const startLoop = () => {
-            if (looping) {
+            if (looping || !onScreen) {
                 return;
             }
 
@@ -204,18 +201,42 @@ export function useHeroParallax(
 
                 if (onScreen) {
                     startLoop();
+                } else {
+                    looping = false;
+                    cancelAnimationFrame(frameId);
                 }
             },
             { threshold: 0 },
         );
 
         observer.observe(container);
-        startLoop();
+
+        const scheduleFromViewportChange = () => {
+            startLoop();
+        };
+
+        window.addEventListener("scroll", scheduleFromViewportChange, {
+            passive: true,
+        });
+        window.addEventListener("resize", scheduleFromViewportChange, {
+            passive: true,
+        });
+        window.addEventListener(
+            "orientationchange",
+            scheduleFromViewportChange,
+            { passive: true },
+        );
 
         return () => {
             observer.disconnect();
             cancelAnimationFrame(frameId);
             looping = false;
+            window.removeEventListener("scroll", scheduleFromViewportChange);
+            window.removeEventListener("resize", scheduleFromViewportChange);
+            window.removeEventListener(
+                "orientationchange",
+                scheduleFromViewportChange,
+            );
         };
     }, [containerRef, enabled]);
 }

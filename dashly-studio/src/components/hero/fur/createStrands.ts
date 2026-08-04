@@ -19,7 +19,7 @@ import { createStrandMaterial, type StrandMaterial } from "./createStrandMateria
  *
  * Deliberately NOT full per-strand physics (agreed scope: "middle ground").
  * Each strand still reacts to the one shared, CPU-spring-damped cursor brush
- * from cursorInteraction.ts — unchanged — but every instance carries its own
+ * from cursorInteraction.ts, but every instance carries its own
  * hashed seed that desyncs its response curve, strength, tilt and curl, so
  * neighbouring strands visibly diverge under the same brush instead of
  * moving as one rigid patch. See strand.vert for exactly how.
@@ -106,8 +106,7 @@ interface SampledRoots {
     /** vec3 per strand, the surface's own (smooth, interpolated) normal at
      *  that point — each strand's un-tilted growth direction. */
     normals: Float32Array;
-    /** One float per strand: a stable, arbitrary hash seed strand.vert
-     *  derives every other piece of per-strand variation from. */
+    /** One stable seed per strand for shader-side variation. */
     seeds: Float32Array;
 }
 
@@ -132,6 +131,8 @@ function sampleRoots(geometry: BufferGeometry, count: number): SampledRoots {
     const a = new Vector3();
     const b = new Vector3();
     const c = new Vector3();
+    const edgeA = new Vector3();
+    const edgeB = new Vector3();
     let total = 0;
 
     for (let i = 0; i < triCount; i += 1) {
@@ -139,7 +140,10 @@ function sampleRoots(geometry: BufferGeometry, count: number): SampledRoots {
         b.fromBufferAttribute(position, index.getX(i * 3 + 1));
         c.fromBufferAttribute(position, index.getX(i * 3 + 2));
 
-        const area = b.clone().sub(a).cross(c.clone().sub(a)).length() * 0.5;
+        const area = edgeA
+            .subVectors(b, a)
+            .cross(edgeB.subVectors(c, a))
+            .length() * 0.5;
         total += area;
         cumulativeArea[i] = total;
     }
@@ -235,9 +239,13 @@ function sampleRoots(geometry: BufferGeometry, count: number): SampledRoots {
  *  (~0.3ms/frame against a 16.6ms 60fps budget, gl.finish()-synced, not
  *  just CPU submit time), so there was room to spend on density rather than
  *  compromise on how thin each strand could be. */
-const STRAND_DENSITY_DESKTOP = 3.6e6;
-const STRAND_DENSITY_MOBILE = 1.5e6;
-
+// Restore the full pile density used by the realistic rendering pass. The
+// shared scene loop now keeps this affordable: idle draws are capped, cursor
+// and idle updates share one render, and the shadow map is no longer rebuilt
+// per frame. Density is important here because front-facing fibres are heavily
+// foreshortened; reducing the count exposes the support mesh and makes the
+// letter interiors look flat even though roots are sampled across the whole
+// surface.
 function measureSurfaceArea(geometry: BufferGeometry): number {
     const position = geometry.getAttribute("position");
     const index = geometry.getIndex();
@@ -250,27 +258,31 @@ function measureSurfaceArea(geometry: BufferGeometry): number {
     const a = new Vector3();
     const b = new Vector3();
     const c = new Vector3();
+    const edgeA = new Vector3();
+    const edgeB = new Vector3();
     let total = 0;
 
     for (let i = 0; i < triCount; i += 1) {
         a.fromBufferAttribute(position, index.getX(i * 3));
         b.fromBufferAttribute(position, index.getX(i * 3 + 1));
         c.fromBufferAttribute(position, index.getX(i * 3 + 2));
-        total += b.clone().sub(a).cross(c.clone().sub(a)).length() * 0.5;
+        total += edgeA
+            .subVectors(b, a)
+            .cross(edgeB.subVectors(c, a))
+            .length() * 0.5;
     }
 
     return total;
 }
 
-export function strandCountFor(geometry: BufferGeometry, mobile: boolean): number {
+export function strandCountFor(geometry: BufferGeometry, density: number): number {
     const area = measureSurfaceArea(geometry);
-    const density = mobile ? STRAND_DENSITY_MOBILE : STRAND_DENSITY_DESKTOP;
 
     return Math.round(area * density);
 }
 
 export interface CreateStrandsOptions {
-    mobile: boolean;
+    density: number;
     rootColor?: string;
     tipColor?: string;
     strandLength: number;
@@ -286,7 +298,7 @@ export function createStrands(
     geometry: BufferGeometry,
     options: CreateStrandsOptions,
 ): StrandsResult {
-    const count = strandCountFor(geometry, options.mobile);
+    const count = strandCountFor(geometry, options.density);
     const { roots, normals, seeds } = sampleRoots(geometry, count);
     const { geometry: template } = buildStrandTemplate();
 

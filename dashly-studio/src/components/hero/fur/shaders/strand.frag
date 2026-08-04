@@ -34,9 +34,14 @@ void main() {
     // colour doesn't visibly shift, just spread further apart so
     // neighbouring hairs read as visibly different fibres instead of a
     // near-uniform tone.
-    color *= mix(0.75, 1.08, vShade);
+    color *= mix(0.58, 1.18, vShade);
 
     vec3 shaded = shadeFibre(color, n, normalize(uLightDir), viewDir, vStrandT);
+
+    // A little extra root occlusion reveals the layered pile and prevents a
+    // very dense coat from merging into one flat cyan cloud. Tips retain the
+    // clean highlight while the overlap beneath them carries visible depth.
+    shaded *= mix(0.62, 1.07, smoothstep(0.0, 0.76, vStrandT));
 
     fragColor = vec4(linearToSRGB(shaded), 1.0);
 }

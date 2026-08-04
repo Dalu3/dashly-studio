@@ -14,7 +14,10 @@ export interface SelectedWorkProps {
 
 /** Cards on screen at rest on a desktop viewport — see ProjectCard's
  *  `priority`. Anything past this loads lazily as it is dragged in. */
-const EAGER_CARDS = 2;
+// The Hero occupies the first viewport, so even the first Selected Work cards
+// are below the fold at initial load. Let the browser fetch them near their
+// actual reveal instead of making the first paint pay for ~800KB of PNGs.
+const EAGER_CARDS = 0;
 
 /**
  * "Selected work" — a looping headline ticker over a draggable project

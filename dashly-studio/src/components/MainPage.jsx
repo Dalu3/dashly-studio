@@ -1,76 +1,35 @@
 import "./MainPage.css";
-import arrowImage from "../assets/arrow.png";
 import { navigateToHash } from "../utils/scrollToHash";
 
 export function MainPage() {
     return (
-        <>
-            <div className="hero-wrapper" id="main">
-                <div className="hero">
-                    <div className="hero-content">
-                        <div className="hero-left">
-                            <p className="subtitle">
-                                Need a website that actually brings you clients?
-                                Dashly Studio builds websites that convert.
-                            </p>
-                            <a
-                                href="#packages"
-                                className="services-link"
-                                onClick={(event) =>
-                                    navigateToHash(event, "#packages")
-                                }
-                            >
-                                Services{" "}
-                                <img
-                                    src={arrowImage}
-                                    alt="Arrow"
-                                    className="arrow-icon"
-                                />
-                            </a>
-                        </div>
-
-                        <div className="hero-line"></div>
-
-                        <div className="hero-right">
-                            <h1 className="headline">
-                                Your Digital <br />
-                                <span className="highlight">
-                                    Excellence
-                                </span>{" "}
-                                <br />
-                                Begins Here
-                            </h1>
-                        </div>
-                    </div>
-
-                    <div className="hero-stats">
-                        <div>
-                            <p className="stat-number">
-                                3<span>+</span>
-                            </p>
-                            <p className="stat-label">Experience</p>
-                        </div>
-                        <div>
-                            <p className="stat-number">
-                                30<span>+</span>
-                            </p>
-                            <p className="stat-label">Projects</p>
-                        </div>
-                        <div>
-                            <p className="stat-number">
-                                1000<span>+</span>
-                            </p>
-                            <p className="stat-label">Hours of work</p>
-                        </div>
-                        <div>
-                            <p className="stat-number">
-                                15<span>+</span>
-                            </p>
-                            <p className="stat-label">Clients</p>
-                        </div>
-                    </div>
-                </div>
+        <div className="hero-copy" id="main">
+            <div className="hero-copy__message">
+                <h1>
+                    <span>We create websites</span>
+                    <span>That perform</span>
+                </h1>
+                <p>
+                    Dashly Studio is a web design and development studio<br />
+                    helping businesses build a stronger online presence
+                </p>
             </div>
-        </>
+
+            <div className="hero-copy__meta" aria-label="Studio information">
+                <span>Based in Scotland</span>
+                <a
+                    href="#work"
+                    onClick={(event) => navigateToHash(event, "#work")}
+                >
+                    Scroll to explore
+                    <span className="hero-copy__scroll-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" focusable="false">
+                            <path d="M7 17 17 7M9 7h8v8" />
+                        </svg>
+                    </span>
+                </a>
+                <span>Working worldwide</span>
+            </div>
+        </div>
     );
 }

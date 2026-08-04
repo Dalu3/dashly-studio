@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import "./Packages.css";
-import arrowImage from "../assets/arrow.png";
+import arrowImage from "../assets/arrow.webp";
 import { VIEWPORT_CHECK_EVENT, navigateToHash } from "../utils/scrollToHash";
 
 const MOBILE_BREAKPOINT = "(max-width: 768px)";
@@ -142,18 +142,12 @@ export default function Packages() {
             });
         };
 
-        const forceLayout = () => {
-            gridRef.current?.getBoundingClientRect();
-            cards.forEach((card) => card.getBoundingClientRect());
-        };
-
         const scheduleRevealVisibleCards = () => {
             if (revealFrameId) {
                 window.cancelAnimationFrame(revealFrameId);
             }
 
             revealFrameId = window.requestAnimationFrame(() => {
-                forceLayout();
                 revealVisibleCards();
             });
         };
@@ -185,7 +179,6 @@ export default function Packages() {
             );
 
             window.requestAnimationFrame(() => {
-                forceLayout();
                 cards.forEach((card) => {
                     if (!card.classList.contains("animated")) {
                         observer?.observe(card);
@@ -290,6 +283,7 @@ export default function Packages() {
                                 src={arrowImage}
                                 alt="Ask a question"
                                 className="arrow-icon"
+                                loading="lazy"
                             />
                         </a>
                     </article>

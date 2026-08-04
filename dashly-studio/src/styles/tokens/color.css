@@ -31,9 +31,13 @@
     --c-accent-400: #63d5ff;
     --c-accent-500: #29c9ff;
 
+    /* ---- Primitives: feedback ------------------------------------------ */
+    --c-error-500: #d92d20;
+
     /* ---- Primitives: channels (for alpha composition) ------------------- */
     --c-ink-800-rgb: 42 42 38;
     --c-accent-400-rgb: 99 213 255;
+    --c-error-500-rgb: 217 45 32;
     --c-black-rgb: 0 0 0;
     --c-white-rgb: 255 255 255;
 
@@ -46,6 +50,8 @@
     --color-surface-inverse: #2c2c2c;
     /* Exact hex from Figma node 466:121 (the Contact section background). */
     --color-surface-accent-subtle: #d6edf8;
+    /* Exact surface from the process frame in Figma node 491:175. */
+    --color-surface-process: #242424;
 
     /* ---- Semantic: text ------------------------------------------------- */
     --color-text-primary: var(--c-ink-800);
@@ -54,6 +60,8 @@
     /* Exact hex from Figma's Footer text (node 458:88) — every text node in
        that frame, at every weight, uses this one solid colour. */
     --color-text-inverse: #d6edf8;
+    --color-text-process-muted: rgb(214 237 248 / 0.6);
+    --color-text-process-number: rgb(var(--c-white-rgb) / 0.18);
     --color-text-accent: var(--c-accent-500);
 
     /* ---- Semantic: borders ---------------------------------------------- */
@@ -67,6 +75,7 @@
     --color-action-primary-bg-hover: var(--c-ink-900);
 
     --color-action-accent-bg: var(--c-accent-400);
+    --color-action-accent-bg-subtle: rgb(var(--c-accent-400-rgb) / 0.22);
     --color-action-accent-text: var(--c-ink-900);
     --color-action-accent-bg-hover: var(--c-accent-500);
 
@@ -74,7 +83,11 @@
        depends on it being consistent and never removed. */
     --color-focus-ring: var(--c-accent-500);
 
+    /* ---- Semantic: feedback --------------------------------------------- */
+    --color-feedback-error: var(--c-error-500);
+
     /* ---- Semantic: overlays --------------------------------------------- */
     --color-overlay-scrim: rgb(var(--c-black-rgb) / 0.5);
     --color-overlay-veil: rgb(var(--c-white-rgb) / 0.9);
+    --color-process-route: rgb(214 237 248 / 0.2);
 }

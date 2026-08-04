@@ -34,13 +34,35 @@
     /* ---- Content max-width in use ------------------------------------------- */
     --content-max-width: var(--container-default);
 
-    /* Contact + Footer (Figma node 563:92) are laid out on a visibly wider
-       frame than the rest of the site (~1425-1540px content at the 1728px
-       frame width) — wide enough that the sitewide --content-max-width would
-       force the Figma heading's "Have A Project / In Mind?" line break and
-       the form card's own width to both collapse. Scoped to those two
-       sections only; every other section keeps --content-max-width. */
+    /* Contact + Footer are intentionally wider than normal site content to
+       preserve the two-column Figma composition at the 1728px frame. */
     --content-max-width-wide: 92rem; /* 1472px */
+
+    /* Figma 563:92 composition widths at the 1728px desktop frame. */
+    --content-max-width-contact: 79.2rem;
+    --content-max-width-footer: 95.21rem;
+    --bp-figma-desktop: 108rem;
+    --contact-ui-scale: 1;
+
+    /* FAQ composition: compact intro beside a wider accordion on desktop. */
+    --faq-intro-width: 20rem;
+    --faq-column-gap: var(--space-3xl);
+    --faq-control-min-height: 4rem;
+    --faq-chevron-size: 1rem;
+
+    /* Footer coordinates from Figma node 458:88, expressed in rem. */
+    --footer-figma-left: 6.394rem;
+    --footer-figma-nav-left: 62.962rem;
+    --footer-figma-touch-left: 78.547rem;
+    --footer-figma-divider-width: 96.36rem;
+    --footer-column-gap-desktop: 7.5rem;
+    --footer-column-gap-figma: 9.375rem;
+    --footer-column-heading-gap: 1.25rem;
+    --footer-list-row-gap: 1rem;
+    --footer-columns-shift-desktop: 3rem;
+    --footer-columns-shift-figma: 7rem;
+    --footer-columns-visual-shift-desktop: 1.5rem;
+    --footer-columns-visual-shift-figma: 2.5rem;
 }
 
 /* Gutter widens with the viewport. Declared once, globally, instead of being

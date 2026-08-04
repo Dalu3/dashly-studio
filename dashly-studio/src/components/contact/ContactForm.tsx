@@ -124,11 +124,19 @@ export function ContactForm() {
     }, [showStatus]);
 
     const handleChange = (
-        event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>,
+        event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
     ) => {
         const { name, value } = event.target;
         const field = name as keyof FormValues;
 
+        setFormValues((current) => ({ ...current, [field]: value }));
+
+        if (touched[field]) {
+            setErrors((current) => ({ ...current, [field]: validateField(field, value) }));
+        }
+    };
+
+    const handleSelectChange = (field: "projectType" | "budget", value: string) => {
         setFormValues((current) => ({ ...current, [field]: value }));
 
         if (touched[field]) {
@@ -224,7 +232,7 @@ export function ContactForm() {
                 name="projectType"
                 label="What do you need?"
                 value={formValues.projectType}
-                onChange={handleChange}
+                onChange={(value) => handleSelectChange("projectType", value)}
                 options={PROJECT_TYPE_OPTIONS}
             />
 
@@ -233,7 +241,7 @@ export function ContactForm() {
                 name="budget"
                 label="Budget"
                 value={formValues.budget}
-                onChange={handleChange}
+                onChange={(value) => handleSelectChange("budget", value)}
                 options={BUDGET_OPTIONS}
             />
 

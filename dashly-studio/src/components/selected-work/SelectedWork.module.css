@@ -29,7 +29,7 @@
     --work-card-gap: clamp(var(--space-sm), 0.4rem + 2vw, 2.25rem);
     --work-card-meta-gap: clamp(var(--space-sm), 0.7rem + 0.6vw, var(--space-md));
     --work-card-text-size: var(--font-size-md);
-    --work-card-zoom: 1.06;
+    --work-card-perspective: 55rem;
 
     /* Consumed by DragCarousel.module.css. */
     --carousel-gap: var(--work-card-gap);

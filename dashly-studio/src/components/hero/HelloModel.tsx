@@ -17,6 +17,8 @@ import {
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 import { createFur, type FurHandles } from "./fur/createFur";
+import { createFrameLoop } from "./fur/frameLoop";
+import { resolveFurQuality } from "./fur/quality";
 import type { StrandMaterial } from "./fur/createStrandMaterial";
 import type { SupportMaterial } from "./fur/createSupportMaterial";
 import {
@@ -64,8 +66,8 @@ export interface HelloModelProps {
  * means re-checking this pair.
  */
 const LAYOUT = {
-    desktop: { width: 0.93, offsetY: 0.11, maxHeight: 0.57 },
-    tablet: { width: 0.9, offsetY: 0.12, maxHeight: 0.57 },
+    desktop: { width: 0.9, offsetY: 0.19, maxHeight: 0.54 },
+    tablet: { width: 0.88, offsetY: 0.18, maxHeight: 0.54 },
     mobile: { width: 0.9, offsetY: 0.12, maxHeight: 0.46 },
 } as const;
 
@@ -77,7 +79,7 @@ const LAYOUT = {
  * stay exactly as tuned; this only makes the whole word smaller within that
  * same composition, still centred by the same Box3 + offsetY logic below.
  */
-const SIZE_SCALE = 0.87;
+const SIZE_SCALE = 0.8;
 
 const CAMERA_FOV = 20;
 const CAMERA_Z = 6.5;
@@ -96,7 +98,7 @@ const STAND_UP_X = Math.PI / 2;
  * colour rather than a pre-compensated one; pushing it paler desaturates the
  * word instead of brightening it, since the shading already sits near 1.0.
  */
-const FUR_ROOT_COLOR = "#1eb6f7";
+const FUR_ROOT_COLOR = "#159fdf";
 
 /**
  * Host component: loads hello.glb, sets up the scene/camera/renderer/
@@ -130,10 +132,17 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
         const camera = new PerspectiveCamera(CAMERA_FOV, 1, 0.1, 100);
         camera.position.set(0, 0, CAMERA_Z);
 
-        const renderer = new WebGLRenderer({ antialias: true, alpha: true });
+        const renderer = new WebGLRenderer({
+            antialias: true,
+            alpha: true,
+            powerPreference: "high-performance",
+        });
         renderer.setClearAlpha(0);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = PCFShadowMap;
+        // The base word and light never animate. Generate their contact shadow
+        // on layout changes only, not for every moving-fibre render.
+        renderer.shadowMap.autoUpdate = false;
         host.appendChild(renderer.domElement);
 
         /* Soft, simple lighting: one broad ambient fill plus a single
@@ -155,15 +164,13 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
         key.shadow.camera.bottom = -2;
         key.shadow.camera.near = 0.5;
         key.shadow.camera.far = 12;
-        // Tighter, cleaner contact shadow — soft but no longer allowed to
-        // spread far or read as blurry haze.
         key.shadow.radius = 2.6;
         scene.add(key);
         const lightDir = key.position.clone().normalize();
 
         const shadowPlane = new Mesh(
             new PlaneGeometry(24, 24),
-            new ShadowMaterial({ opacity: 0.045 }),
+            new ShadowMaterial({ opacity: 0.07 }),
         );
         shadowPlane.position.z = -0.24;
         shadowPlane.receiveShadow = true;
@@ -201,6 +208,8 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
             }
         };
 
+        const frameLoop = createFrameLoop(render);
+
         const layout = () => {
             const w = host.clientWidth;
             const h = host.clientHeight;
@@ -214,7 +223,10 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
             const aspect = w / h;
             camera.aspect = aspect;
             camera.updateProjectionMatrix();
-            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            const quality = resolveFurQuality(w, reducedMotionRef.current);
+            renderer.setPixelRatio(
+                Math.min(window.devicePixelRatio, quality.maxDpr),
+            );
             renderer.setSize(w, h, false);
 
             if (!modelReady) {
@@ -239,6 +251,7 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
             holder.scale.setScalar(scale);
             holder.position.set(0, preset.offsetY * visibleH, 0);
 
+            renderer.shadowMap.needsUpdate = true;
             render();
         };
 
@@ -261,7 +274,10 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
                 return;
             }
 
-            const mobile = lastMeasuredWidth > 0 && lastMeasuredWidth <= 640;
+            const quality = resolveFurQuality(
+                lastMeasuredWidth,
+                reducedMotionRef.current,
+            );
             const rootColor = FUR_ROOT_COLOR;
 
             // Every mesh actually inside the GLB gets its own, fully
@@ -276,10 +292,10 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
                     camera,
                     viewportElement: renderer.domElement,
                     pointerTarget: window,
-                    mobile,
+                    quality,
                     rootColor,
                     lightDir,
-                    requestRender: render,
+                    frameLoop,
                     reducedMotion: reducedMotionRef.current,
                 });
 
@@ -304,13 +320,6 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
             pivot.position.sub(box.getCenter(new Vector3()));
 
             modelReady = true;
-
-            // Every fur/support ShaderMaterial compiles its GLSL program the
-            // first time it's actually drawn — normally that cost lands
-            // silently inside the first render() call. Paying it here,
-            // explicitly, while still hidden behind the loader, means it
-            // can never stall the reveal itself.
-            renderer.compile(scene, camera);
 
             // Computes final scale/position for the now-measured model and
             // performs the actual first render.
@@ -388,7 +397,7 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
             }
             shadowPlane.geometry.dispose();
             (shadowPlane.material as ShadowMaterial).dispose();
-
+            frameLoop.dispose();
             renderer.dispose();
             renderer.domElement.remove();
         };

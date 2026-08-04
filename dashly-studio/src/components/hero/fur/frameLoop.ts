@@ -13,19 +13,24 @@
  * keep animating" are active.
  */
 
-type FrameTick = (now: number) => boolean;
+export interface FrameTickResult {
+    keepRunning: boolean;
+    needsRender: boolean;
+}
+
+type FrameTick = (now: number) => boolean | FrameTickResult;
 
 export interface FrameLoopHandle {
     /** Registers `tick`, starting the shared rAF chain if it isn't already
-     *  running. `tick` is called at most once per real frame and must return
-     *  true to stay registered for the next one, false to drop itself. */
+     *  running. `tick` is called at most once per real frame and can return a
+     *  keep-running/render pair so the scene is drawn once after all ticks. */
     request: (tick: FrameTick) => void;
     /** Removes `tick` immediately, without waiting for it to return false. */
     cancel: (tick: FrameTick) => void;
     dispose: () => void;
 }
 
-export function createFrameLoop(): FrameLoopHandle {
+export function createFrameLoop(render: () => void): FrameLoopHandle {
     const ticks = new Set<FrameTick>();
     let frameId = 0;
     let running = false;
@@ -42,10 +47,23 @@ export function createFrameLoop(): FrameLoopHandle {
         // OTHER ticks (cursorInteraction and idleAnimation are independent
         // consumers of this one loop), which must not mutate `ticks` while
         // this very iteration is still reading it.
+        let needsRender = false;
+
         for (const tick of Array.from(ticks)) {
-            if (!tick(now)) {
+            const result = tick(now);
+            const keepRunning =
+                typeof result === "boolean" ? result : result.keepRunning;
+
+            needsRender ||=
+                typeof result === "boolean" ? true : result.needsRender;
+
+            if (!keepRunning) {
                 ticks.delete(tick);
             }
+        }
+
+        if (needsRender) {
+            render();
         }
 
         if (ticks.size > 0) {

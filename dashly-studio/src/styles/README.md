@@ -29,6 +29,7 @@ tokens; they never hardcode values.**
 | `tokens/shadow.css` | Elevation scale + focus ring |
 | `tokens/motion.css` | Durations, easings, composed transitions, reduced-motion |
 | `tokens/z-index.css` | Ordered stacking ladder |
+| `tokens/process.css` | Landing-page process section geometry and responsive scale |
 | `base/reset.css` | Modern reset, base element styles |
 | `base/utilities.css` | `.visually-hidden`, `.skip-link` |
 | `index.css` | Redesign global entry point (**not yet wired in**) |

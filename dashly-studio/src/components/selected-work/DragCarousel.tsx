@@ -30,6 +30,7 @@ export function DragCarousel({ children, label, className }: DragCarouselProps) 
 
     useDragCarousel(viewportRef, trackRef, {
         draggingClassName: styles.isDragging ?? "",
+        movingClassName: styles.isMoving ?? "",
     });
 
     return (

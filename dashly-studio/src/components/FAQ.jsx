@@ -1,68 +1,64 @@
-import { useState, useEffect, useRef } from "react";
+import { useId, useState } from "react";
 import "./FAQ.css";
 import { faqItems } from "../seo/siteMetadata.js";
 
 export default function FAQ() {
     const [activeIndex, setActiveIndex] = useState(null);
-    const containerRef = useRef(null);
+    const idPrefix = useId().replace(/:/g, "");
 
     const toggleFAQ = (index) => {
         setActiveIndex(index === activeIndex ? null : index);
     };
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            const activeItem =
-                containerRef.current?.querySelector(".faq-item.active");
-
-            if (activeItem && !activeItem.contains(event.target)) {
-                setActiveIndex(null);
-            }
-        };
-
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
-
     return (
         <section
             className="faq-container"
-            ref={containerRef}
             id="faq"
             aria-labelledby="faq-title"
         >
-            <h2 className="block-title" id="faq-title">
-                <span className="faq-title-desktop">FAQ</span>
-                <span className="faq-title-mobile">
-                    Frequently Asked Questions
-                </span>
-            </h2>
-            {faqItems.map((item, i) => (
-                <div
-                    key={i}
-                    className={`faq-item ${activeIndex === i ? "active" : ""}`}
-                >
-                    <button
-                        className="faq-question"
-                        onClick={() => toggleFAQ(i)}
-                        type="button"
-                        aria-expanded={activeIndex === i}
-                        aria-controls={`faq-answer-${i}`}
-                    >
-                        <span className="faq-question-text">{item.question}</span>
-                        <span className="faq-icon" aria-hidden="true" />
-                    </button>
-                    <div
-                        id={`faq-answer-${i}`}
-                        className="faq-answer"
-                        onClick={() => setActiveIndex(null)}
-                    >
-                        <p>{item.answer}</p>
-                    </div>
-                </div>
-            ))}
+            <div className="faq-intro">
+                <h2 id="faq-title">FAQ</h2>
+                <p>Everything You Need to Know</p>
+            </div>
+            <div className="faq-list">
+                {faqItems.map((item, i) => {
+                    const isOpen = activeIndex === i;
+                    const answerId = `${idPrefix}-faq-answer-${i}`;
+
+                    return (
+                        <div
+                            key={item.question}
+                            className={`faq-item ${isOpen ? "active" : ""}`}
+                        >
+                            <button
+                                className="faq-question"
+                                onClick={() => toggleFAQ(i)}
+                                type="button"
+                                aria-expanded={isOpen}
+                                aria-controls={answerId}
+                            >
+                                <span className="faq-question-text">
+                                    {item.question}
+                                </span>
+                                <span className="faq-icon" aria-hidden="true">
+                                    <svg viewBox="0 0 16 10" focusable="false">
+                                        <path d="m1 1 7 7 7-7" />
+                                    </svg>
+                                </span>
+                            </button>
+                            <div
+                                id={answerId}
+                                className="faq-answer"
+                                aria-hidden={!isOpen}
+                            >
+                                <div className="faq-answer-inner">
+                                    <p>{item.answer}</p>
+                                </div>
+                            </div>
+                        </div>
+                    );
+                })}
+            </div>
         </section>
     );
 }

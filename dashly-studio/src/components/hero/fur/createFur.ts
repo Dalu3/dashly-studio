@@ -16,6 +16,8 @@ import type { StrandMaterial } from "./createStrandMaterial";
 import { createSupportMaterial, type SupportMaterial } from "./createSupportMaterial";
 import { createIdleAnimation, type IdleAnimationHandle } from "./idleAnimation";
 import { prepareGeometry } from "./prepareGeometry";
+import type { FrameLoopHandle } from "./frameLoop";
+import type { FurQualityPreset } from "./quality";
 
 /**
  * Public entry point for the fur system. Everything it needs is passed in —
@@ -32,17 +34,15 @@ export interface CreateFurOptions {
      *  `pointer-events: none` canvas can still react without ever
      *  intercepting a click meant for the page. */
     pointerTarget?: EventTarget;
-    /** Lower strand count on small screens. */
-    mobile: boolean;
+    quality: FurQualityPreset;
     rootColor?: string;
     tipColor?: string;
     /** Synced to the host's own key light, if provided — keeps the fur and
      *  whatever else is in the scene lit consistently instead of the fur
      *  guessing at a separately hand-picked direction. */
     lightDir?: Vector3;
-    /** Called after cursor-interaction uniforms change, so the host can
-     *  request a render. The fur system does not own a renderer. */
-    requestRender: () => void;
+    /** The one scene-wide rAF/render driver shared by every fur subsystem. */
+    frameLoop: FrameLoopHandle;
     /** Disables the idle sway loop entirely (see idleAnimation.ts) — the
      *  cursor interaction elsewhere in this system is unaffected, since it
      *  only ever moves in direct response to the user's own pointer. */
@@ -72,17 +72,14 @@ export interface FurHandles {
  *  needs a bit more reach to read as hair rather than stubble); width a
  *  small fraction of the tube's own radius, per strand, before per-strand
  *  widthScale variation (see strand.vert) spreads it further. */
-// Shortened from 0.009 — paired with the further density increase in
-// createStrands.ts (more, shorter strands rather than fewer, longer ones),
-// this is what makes short DENSE pile read correctly instead of the letters
-// growing a longer, sparser-looking coat.
-const STRAND_LENGTH = 0.0065;
-// Trimmed again from 0.00075 — still paired with a further density increase
-// (see STRAND_DENSITY_DESKTOP/MOBILE in createStrands.ts) so total coverage
-// doesn't drop: more, thinner hairs instead of fewer, thicker ones is what
-// actually reads as "fine" rather than "uniform blur" at this word's
-// on-screen size.
-const STRAND_WIDTH = 0.00062;
+// A longer pile gives the word a silky coat rather than short plush fuzz.
+// Per-strand length variation in strand.vert still keeps the silhouette from
+// becoming a uniform inflated outline.
+const STRAND_LENGTH = 0.0078;
+// Slightly fuller roots and mid-sections improve overlap and front-surface
+// coverage. The shader keeps the final tip at zero width, so the additional
+// body does not turn the fibres into blunt ribbons.
+const STRAND_WIDTH = 0.0009;
 
 /**
  * Builds a complete fur system — base mesh plus thousands of individually-
@@ -108,11 +105,12 @@ export function createFur(
         rootColor: options.rootColor,
     });
     const baseMesh = new Mesh(geometry, supportMaterial);
+    // The support body is perfectly static, so its contact shadow can be
+    // generated once and reused while only the fibres animate.
     baseMesh.castShadow = true;
-    baseMesh.receiveShadow = true;
 
     const { mesh: strandMesh, material: strandMaterial } = createStrands(geometry, {
-        mobile: options.mobile,
+        density: options.quality.density,
         rootColor: options.rootColor,
         tipColor: options.tipColor,
         strandLength: STRAND_LENGTH,
@@ -136,7 +134,7 @@ export function createFur(
         // must never move, so it isn't cursor-reactive at all (see
         // createSupportMaterial.ts). Only strandMaterial reacts.
         materials: [strandMaterial],
-        onFrame: options.requestRender,
+        frameLoop: options.frameLoop,
     });
 
     const idle: IdleAnimationHandle = createIdleAnimation({
@@ -144,8 +142,9 @@ export function createFur(
         setTime: (seconds) => {
             strandMaterial.uniforms.uTime.value = seconds;
         },
-        onFrame: options.requestRender,
+        frameLoop: options.frameLoop,
         reducedMotion: options.reducedMotion,
+        idleFps: options.quality.idleFps,
     });
 
     const dispose = () => {

@@ -1,0 +1,16 @@
+/**
+ * Contact-form control tokens.
+ *
+ * These values extend the shared design system with the compact dimensions
+ * needed by the custom select popover. Keeping them here prevents the menu
+ * from growing independently of the rest of the form controls.
+ */
+
+:root {
+    --form-select-menu-width: 15rem;
+    --form-select-menu-max-height: 12rem;
+    --form-select-menu-offset: var(--space-3xs);
+    --form-select-menu-padding: var(--space-3xs);
+    --form-select-option-padding-block: var(--space-3xs);
+    --form-select-option-padding-inline: var(--space-xs);
+}
