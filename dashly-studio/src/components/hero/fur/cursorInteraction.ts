@@ -8,6 +8,8 @@ import {
     type PerspectiveCamera,
 } from "three";
 
+import type { FrameLoopHandle } from "./frameLoop";
+
 /**
  * This module has no counterpart in the piellardj/fur-threejs reference.
  * Its "brush" is a manually-dragged UI slider that applies one GLOBAL
@@ -30,6 +32,15 @@ export interface CursorReactiveUniforms {
     uCursorDir: IUniform<Vector3>;
     uCursorRadius: IUniform<number>;
     uCursorStrength: IUniform<number>;
+    /** A SECOND brush position, trailing the real one via its own softer,
+     *  underdamped spring (see RIPPLE_STIFFNESS/RIPPLE_DAMPING below) — not
+     *  a copy of `uCursor`. Strand.vert uses the gap between the two, and
+     *  the gentle overshoot as this one catches up, as a cheap stand-in for
+     *  a wave propagating through the fur after the cursor passes, without
+     *  actually simulating one. Declared on every cursor-reactive material
+     *  for uniformity even where a shader doesn't read it (support.vert
+     *  doesn't) — an unused uniform costs nothing. */
+    uRipplePoint: IUniform<Vector3>;
     [key: string]: IUniform;
 }
 
@@ -54,6 +65,11 @@ export interface CursorInteractionOptions {
     /** Called once per settling frame, after uniforms are updated — the host
      *  uses this to request a render. */
     onFrame: () => void;
+    /** Shared rAF driver — see frameLoop.ts. Registering here rather than
+     *  calling requestAnimationFrame directly is what keeps this module and
+     *  idleAnimation.ts from ever running two independent rAF chains (and so
+     *  calling render() twice in the same real frame) at once. */
+    frameLoop: FrameLoopHandle;
 }
 
 export interface CursorInteractionHandle {
@@ -78,6 +94,19 @@ const FOLLOW_DAMPING = 26;
 const DIRECTION_STIFFNESS = 300;
 const DIRECTION_DAMPING = 30;
 
+/**
+ * A SECOND position spring chasing the same raw target as `followPoint`,
+ * but much softer and deliberately underdamped (damping well below the
+ * critical value for this stiffness) — where `followPoint` is tuned to
+ * settle promptly, this one visibly over-travels and oscillates its way to
+ * a stop. That lag-plus-overshoot is what strand.vert's ripple term turns
+ * into "a wave trailing the brush and settling after it passes": a real
+ * cheap substitute for simulating propagation, built from a spring
+ * constant choice rather than new physics.
+ */
+const RIPPLE_STIFFNESS = 55;
+const RIPPLE_DAMPING = 7;
+
 /** Critically-damped-ish spring integrator for a single scalar, applied
  *  per-axis for a Vector3. Shared shape for strength/position/direction so
  *  all three settle with the same character. */
@@ -99,8 +128,9 @@ function springStep(
 
 /**
  * Wires up local, raycasting-based cursor interaction for a set of fur
- * materials: only fibres near the cursor bend, with a smooth radial
- * falloff (computed per-vertex in the shell/fin vertex shaders, using the
+ * materials: only fibres (and, via the base mesh's own compression, the
+ * skin itself) near the cursor react, with a smooth radial falloff
+ * (computed per-vertex in strand.vert / support.vert, using the
  * `uCursor`/`uCursorRadius` this module maintains), inertia, and damping —
  * see the module doc comment above for why none of this is adapted from the
  * reference project.
@@ -108,7 +138,7 @@ function springStep(
 export function createCursorInteraction(
     options: CursorInteractionOptions,
 ): CursorInteractionHandle {
-    const { camera, domElement, viewportElement, raycastTargets, materials, onFrame } =
+    const { camera, domElement, viewportElement, raycastTargets, materials, onFrame, frameLoop } =
         options;
 
     const pointerNdc = new Vector2(2, 2);
@@ -120,6 +150,9 @@ export function createCursorInteraction(
     const lastHit = new Vector3();
     let hasLastHit = false;
     let hovering = false;
+    // True once the cursor has ever actually landed on the mesh — see the
+    // snap in resolvePendingMove() below for why this exists.
+    let hasEverHit = false;
 
     // What actually reaches the shader — trailing behind the raw values
     // above via a damped spring, never assigned directly.
@@ -128,12 +161,16 @@ export function createCursorInteraction(
     const followDir = new Vector3();
     const followDirVelocity = new Vector3();
 
+    // The ripple point chases `targetPoint` too — the SAME raw raycast
+    // target as followPoint, not followPoint itself — so it has its own
+    // independent, softer race to get there rather than trailing a trail.
+    const ripplePoint = new Vector3(1e6, 1e6, 1e6);
+    const ripplePointVelocity = new Vector3();
+
     let targetStrength = 0;
     let strength = 0;
     let strengthVelocity = 0;
     let lastTickTime = 0;
-    let frameId = 0;
-    let looping = false;
     let disposed = false;
 
     // The raw pointer position from the most recent `pointermove`, applied
@@ -152,6 +189,7 @@ export function createCursorInteraction(
             material.uniforms.uCursorStrength.value = strength;
             material.uniforms.uCursor.value.copy(followPoint);
             material.uniforms.uCursorDir.value.copy(followDir);
+            material.uniforms.uRipplePoint.value.copy(ripplePoint);
         }
     };
 
@@ -194,6 +232,28 @@ export function createCursorInteraction(
             targetPoint.copy(local);
             targetStrength = 1;
             hovering = true;
+
+            if (!hasEverHit) {
+                hasEverHit = true;
+                // The very FIRST contact ever: followPoint/ripplePoint are
+                // still sitting at their initial off-mesh sentinel
+                // ((1e6, 1e6, 1e6) — see their declarations above), which
+                // exists purely so a position is never accidentally "on the
+                // mesh" while uCursorStrength is legitimately 0. Springing
+                // FROM that sentinel instead of snapping was measured (a
+                // direct simulation of springStep, not a guess) at ~1.7s for
+                // followPoint and ~5.3s for ripplePoint before either got
+                // within 0.001 units of a real target — long enough that the
+                // very first time anyone's cursor ever touches the word, it
+                // looks completely unresponsive. Every LATER retarget is a
+                // jump within the word's own small bounding box (at most
+                // its ~0.4-unit extent) and settles within a fraction of a
+                // second, so this snap only ever needs to happen once.
+                followPoint.copy(local);
+                followPointVelocity.set(0, 0, 0);
+                ripplePoint.copy(local);
+                ripplePointVelocity.set(0, 0, 0);
+            }
         } else if (hovering) {
             targetStrength = 0;
             hasLastHit = false;
@@ -205,12 +265,13 @@ export function createCursorInteraction(
      *  an untouched page draws nothing. Three independent springs (overall
      *  strength, brush position, brush direction) are integrated with real
      *  elapsed time, so the feel doesn't change with frame rate and nothing
-     *  is ever assigned directly. */
-    const tick = (now: number) => {
+     *  is ever assigned directly. Registered with the shared frameLoop
+     *  (see frameLoop.ts) rather than calling requestAnimationFrame itself —
+     *  returns whether it wants to keep being called, instead of
+     *  self-scheduling. */
+    const tick = (now: number): boolean => {
         if (disposed) {
-            looping = false;
-
-            return;
+            return false;
         }
 
         resolvePendingMove();
@@ -247,6 +308,14 @@ export function createCursorInteraction(
                 DIRECTION_DAMPING,
                 dt,
             );
+            [ripplePoint[axis], ripplePointVelocity[axis]] = springStep(
+                ripplePoint[axis],
+                ripplePointVelocity[axis],
+                targetPoint[axis],
+                RIPPLE_STIFFNESS,
+                RIPPLE_DAMPING,
+                dt,
+            );
         }
 
         const strengthAtRest =
@@ -258,30 +327,30 @@ export function createCursorInteraction(
         const dirAtRest =
             followDirVelocity.lengthSq() < 1e-9 &&
             followDir.distanceToSquared(targetDir) < 1e-9;
+        // The ripple spring is deliberately the LAST thing to settle (low
+        // stiffness, underdamped) — the loop has to keep running until it
+        // does too, or the ripple's own tail-end oscillation would get cut
+        // off mid-wobble the instant the (faster) follow point stops.
+        const rippleAtRest =
+            ripplePointVelocity.lengthSq() < 1e-9 &&
+            ripplePoint.distanceToSquared(targetPoint) < 1e-11;
 
         if (strengthAtRest) {
             strength = targetStrength;
             strengthVelocity = 0;
         }
 
-        const atRest = strengthAtRest && pointAtRest && dirAtRest;
+        const atRest = strengthAtRest && pointAtRest && dirAtRest && rippleAtRest;
 
         applyUniforms();
         onFrame();
 
-        if (!atRest) {
-            frameId = requestAnimationFrame(tick);
-        } else {
-            looping = false;
-        }
+        return !atRest;
     };
 
     const startLoop = () => {
-        if (!looping) {
-            looping = true;
-            lastTickTime = 0;
-            frameId = requestAnimationFrame(tick);
-        }
+        lastTickTime = 0;
+        frameLoop.request(tick);
     };
 
     const handlePointerMove = (event: Event) => {

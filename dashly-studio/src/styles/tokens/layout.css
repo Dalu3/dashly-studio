@@ -33,6 +33,14 @@
 
     /* ---- Content max-width in use ------------------------------------------- */
     --content-max-width: var(--container-default);
+
+    /* Contact + Footer (Figma node 563:92) are laid out on a visibly wider
+       frame than the rest of the site (~1425-1540px content at the 1728px
+       frame width) — wide enough that the sitewide --content-max-width would
+       force the Figma heading's "Have A Project / In Mind?" line break and
+       the form card's own width to both collapse. Scoped to those two
+       sections only; every other section keeps --content-max-width. */
+    --content-max-width-wide: 92rem; /* 1472px */
 }
 
 /* Gutter widens with the viewport. Declared once, globally, instead of being

@@ -1,23 +1,18 @@
-// Shared GLSL, prepended to every fur shader (shell/fin/support) at material
-// creation time — see the `COMMON_GLSL + ...` concatenation in
-// createShellMaterial.ts / createFinMaterial.ts / createSupportMaterial.ts.
-// This is a plain .glsl file imported via Vite's `?raw` suffix, not a
-// preprocessor #include — WebGL has no include mechanism, so composition
-// happens in JS before the source ever reaches the GPU compiler.
+// Shared GLSL, prepended to every fur shader (strand/support) at material
+// creation time — see the `commonGlsl + ...` concatenation in
+// createStrandMaterial.ts / createSupportMaterial.ts. This is a plain .glsl
+// file imported via Vite's `?raw` suffix, not a preprocessor #include —
+// WebGL has no include mechanism, so composition happens in JS before the
+// source ever reaches the GPU compiler.
 
 float hash1(float x) {
     return fract(sin(x) * 43758.5453123);
 }
 
-vec2 hash2(vec2 p) {
-    p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3)));
-    return fract(sin(p) * 43758.5453123);
-}
-
 // Branchless orthonormal basis from a normal (Duff, Burgess, Christensen et
-// al., 2017). Still used for per-strand drift DIRECTION, where only the
-// plane matters and a slow rotation is harmless — but no longer for the
-// pattern coordinate itself; see sampleFurPattern below for why.
+// al., 2017). Used to build each strand's own tilt/curl plane in
+// strand.vert, where only the plane matters and a slow rotation around the
+// normal is harmless.
 void basisFromNormal(vec3 n, out vec3 t, out vec3 b) {
     float s = n.z >= 0.0 ? 1.0 : -1.0;
     float a = -1.0 / (s + n.z);
@@ -26,38 +21,29 @@ void basisFromNormal(vec3 n, out vec3 t, out vec3 b) {
     b = vec3(bb, s + n.y * n.y * a, -n.y);
 }
 
-// Triplanar sample of the fur pattern: the same texture projected down each
-// of the three FIXED object axes, blended by how much the surface faces
-// each one.
-//
-// This replaces a normal-derived tangent basis (`uv = vec2(dot(pos, t),
-// dot(pos, b))`), which had a subtle but very visible failure on this mesh.
-// Because that coordinate dots the full POSITION vector against a basis
-// that rotates with the normal, a small change in normal moves the sample
-// point by roughly |pos| * dTheta — and hello.glb's positions reach 0.41
-// object units from origin. Sweeping the normal around a tube's circular
-// cross-section therefore dragged the sampled coordinate across many cells,
-// smearing what should be discrete round strand cross-sections into long
-// marbled streaks along each stroke, worst on exactly the broad
-// front-facing areas that most need to read as evenly furred.
-//
-// Projecting onto fixed axes removes the dependence on the normal entirely,
-// so the pattern is locked to the surface: strands stay put, stay round,
-// and stay the same size everywhere on the word.
-vec4 sampleFurPattern(sampler2D tex, vec3 pos, vec3 n, float scale) {
-    vec3 w = abs(n);
-    // Sharpen toward the dominant axis so most fragments are effectively a
-    // single projection (crisp strands), with a narrow blend band across
-    // the 45-degree seams instead of a hard switch. The largest component of
-    // a unit vector is always >= 0.577, so this can never go all-zero.
-    w = max(w - 0.25, 0.0);
-    w /= max(w.x + w.y + w.z, 1e-5);
+// Local "skin compression" near the cursor — a soft inward press along the
+// surface's own normal, never lateral, so it reads as a press-and-release
+// rather than a slide. Shared VERBATIM between support.vert (the base mesh
+// itself dents) and strand.vert (every strand's root must dent by the exact
+// same amount, or fur visually detaches from the surface it grows from) —
+// one implementation, so the two can never disagree.
+vec3 cursorCompress(vec3 p, vec3 n, vec3 cursor, float radius, float strength) {
+    // Max inward displacement at the very centre of the touch, in the same
+    // object-space units as STROKE_RADIUS (0.0085 in prepareGeometry.ts) —
+    // about a third of the tube's own radius, chosen so the letter visibly
+    // gives under the cursor without ever pinching the tube's silhouette
+    // inside out.
+    float maxDepth = 0.0028;
+    float d = distance(p, cursor);
+    float falloff = pow(clamp(1.0 - d / radius, 0.0, 1.0), 2.0);
+    // Clamped to [0, 1]: cursorInteraction's own spring can overshoot
+    // slightly outside that range for a natural settle on the fur's OWN
+    // bend (see its clamp to [-0.2, 1.3]), but a negative or >1x dent would
+    // read as the surface bulging or over-pinching rather than pressing —
+    // this is always a pure inward press, capped at its own full depth.
+    float amount = clamp(strength, 0.0, 1.0) * falloff * maxDepth;
 
-    vec4 sx = texture2D(tex, pos.yz * scale);
-    vec4 sy = texture2D(tex, pos.zx * scale);
-    vec4 sz = texture2D(tex, pos.xy * scale);
-
-    return sx * w.x + sy * w.y + sz * w.z;
+    return p - n * amount;
 }
 
 // Linear -> sRGB output encoding.

@@ -41,13 +41,19 @@
     --color-surface-page: var(--c-paper-050);
     --color-surface-raised: var(--c-paper-000);
     --color-surface-sunken: var(--c-paper-100);
-    --color-surface-inverse: var(--c-ink-800);
+    /* Exact hex from Figma node 458:88 — a few shades cooler than
+       --c-ink-800, which shadow.css also depends on. */
+    --color-surface-inverse: #2c2c2c;
+    /* Exact hex from Figma node 466:121 (the Contact section background). */
+    --color-surface-accent-subtle: #d6edf8;
 
     /* ---- Semantic: text ------------------------------------------------- */
     --color-text-primary: var(--c-ink-800);
     --color-text-secondary: var(--c-ink-600);
     --color-text-muted: var(--c-ink-400);
-    --color-text-inverse: var(--c-paper-050);
+    /* Exact hex from Figma's Footer text (node 458:88) — every text node in
+       that frame, at every weight, uses this one solid colour. */
+    --color-text-inverse: #d6edf8;
     --color-text-accent: var(--c-accent-500);
 
     /* ---- Semantic: borders ---------------------------------------------- */

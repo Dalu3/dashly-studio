@@ -1,0 +1,85 @@
+import {
+    Color,
+    DoubleSide,
+    GLSL3,
+    ShaderMaterial,
+    Vector3,
+    type IUniform,
+} from "three";
+
+import commonGlsl from "./shaders/common.glsl?raw";
+import strandFragmentSource from "./shaders/strand.frag?raw";
+import strandVertexSource from "./shaders/strand.vert?raw";
+import type { CursorReactiveUniforms } from "./cursorInteraction";
+
+export interface StrandUniforms extends CursorReactiveUniforms {
+    [uniform: string]: IUniform;
+    uStrandLength: IUniform<number>;
+    uStrandWidth: IUniform<number>;
+    uRootColor: IUniform<Color>;
+    uTipColor: IUniform<Color>;
+    uLightDir: IUniform<Vector3>;
+    uGravity: IUniform<Vector3>;
+    uCompress: IUniform<number>;
+    uMaxAo: IUniform<number>;
+    /** Seconds, driven by idleAnimation.ts — see strand.vert's own comment. */
+    uTime: IUniform<number>;
+}
+
+export interface StrandMaterial extends ShaderMaterial {
+    uniforms: StrandUniforms;
+}
+
+export interface StrandMaterialOptions {
+    rootColor?: string;
+    tipColor?: string;
+    strandLength: number;
+    strandWidth: number;
+}
+
+export function createStrandMaterial(options: StrandMaterialOptions): StrandMaterial {
+    const uniforms: StrandUniforms = {
+        uStrandLength: { value: options.strandLength },
+        uStrandWidth: { value: options.strandWidth },
+        uRootColor: { value: new Color(options.rootColor ?? "#1eb6f7") },
+        uTipColor: { value: new Color(options.tipColor ?? "#6fd4fb") },
+        uLightDir: { value: new Vector3(-0.4, 0.8, 0.6).normalize() },
+        uGravity: { value: new Vector3(0, -0.1, 0) },
+        uCompress: { value: 0.5 },
+        uMaxAo: { value: 0.84 },
+        uTime: { value: 0 },
+        uCursor: { value: new Vector3(1e6, 1e6, 1e6) },
+        uCursorDir: { value: new Vector3(0, 0, 0) },
+        uCursorRadius: { value: 0.036 },
+        uCursorStrength: { value: 0 },
+        uRipplePoint: { value: new Vector3(1e6, 1e6, 1e6) },
+    };
+
+    const material = new ShaderMaterial({
+        glslVersion: GLSL3,
+        uniforms,
+        // Unlike the old shell/fin vertex shaders, strand.vert itself needs
+        // common.glsl's hash1/basisFromNormal (for per-strand tilt/curl) —
+        // it, not just the fragment shader, needs the prepend.
+        vertexShader: commonGlsl + "\n" + strandVertexSource,
+        fragmentShader: commonGlsl + "\n" + strandFragmentSource,
+        // Each strand is real, individually-depth-tested geometry — unlike
+        // the old shell stack, there is no shared alpha-blended overdraw to
+        // order, so this can just be opaque with standard depth handling.
+        // That also means none of the depthWrite:false / depth-prepass
+        // machinery the shell system needed (see git history on
+        // createShellMaterial.ts) applies here at all; real geometry
+        // resolves its own occlusion for free.
+        transparent: false,
+        depthWrite: true,
+        depthTest: true,
+        // The billboard axis is recomputed per vertex from the current view
+        // direction (see strand.vert) rather than baked into a fixed
+        // winding, so keeping both faces enabled is cheap insurance against
+        // ever culling the "wrong" side rather than a load-bearing
+        // requirement.
+        side: DoubleSide,
+    });
+
+    return material as StrandMaterial;
+}

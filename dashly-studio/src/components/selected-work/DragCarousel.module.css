@@ -1,0 +1,74 @@
+/**
+ * Draggable carousel shell. The transform is written by useDragCarousel; this
+ * file only sets up the geometry, the affordances and the layer promotion.
+ */
+
+.viewport {
+    /* `clip` rather than `hidden`: no scroll container is created, so the
+       carousel can never be scrolled out of sync with its own transform.
+       X only, deliberately: this is what stops the draggable strip from
+       creating page-wide horizontal scroll. Y stays `visible` — a rotated
+       card's painted footprint (perspective foreshortening) can extend a few
+       px past its flat layout box, and clipping THAT vertically is what was
+       cropping cards during the tilt. */
+    overflow-x: clip;
+    overflow-y: visible;
+
+    /* The browser keeps vertical panning (the page keeps scrolling normally
+       under a finger), and hands us everything horizontal. Without this, a
+       swipe on mobile would fight the page. */
+    touch-action: pan-y;
+
+    /* A drag across cards must not turn into a text selection. */
+    -webkit-user-select: none;
+    user-select: none;
+
+    cursor: grab;
+
+    /* Establishes the 3D viewing frustum each card's rotateY/rotateX
+       (ProjectCard.module.css) render within. 1600px is a literal, not a
+       token — a physical depth-of-field choice tuned against the card
+       width, not a design-system value. Rotation itself is capped low
+       (MAX_ROTATE_Y_DEG in useDragCarousel.ts, 4-8deg), so this doesn't need
+       to be especially soft to stay looking like a gentle lean rather than a
+       fisheye warp. */
+    perspective: 1600px;
+}
+
+/* Focus lands here because the region is keyboard operable — never remove it. */
+.viewport:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: var(--space-3xs);
+}
+
+.isDragging {
+    cursor: grabbing;
+}
+
+.track {
+    /* Establishes the offset parent, so the hook's offsetLeft measurements are
+       relative to the track rather than to some ancestor. */
+    position: relative;
+
+    display: flex;
+    width: max-content;
+    flex-wrap: nowrap;
+    align-items: flex-start;
+    gap: var(--carousel-gap, var(--space-lg));
+
+    /* Cards rest on the page gutter; the last one can still travel fully into
+       view because the same gutter is repeated at the end. */
+    padding-inline: var(--container-gutter);
+
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+    /* Without this, the viewport's `perspective` would flatten to 2D at this
+       level — cards' own rotateX/rotateY need the 3D space to pass through. */
+    transform-style: preserve-3d;
+}
+
+/* Mid-drag the pointer belongs to the carousel, not to anything inside it —
+   this also stops hover states flickering on cards sliding under the cursor. */
+.isDragging .track {
+    pointer-events: none;
+}

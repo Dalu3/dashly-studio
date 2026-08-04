@@ -1,0 +1,102 @@
+/**
+ * Project card. Every dimension comes from a component token defined on the
+ * section root (SelectedWork.module.css) so proportions can be retuned in one
+ * place without touching this file.
+ */
+
+/**
+ * Two independent systems compose into one `transform` here, neither aware
+ * of the other:
+ *   --tilt-rotate-y, --tilt-rotate-x  ← useDragCarousel.ts, written ONCE on
+ *                                        `.track` and inherited here
+ *                                        (ordinary CSS custom-property
+ *                                        inheritance) — the whole visible
+ *                                        strip leans together, driven
+ *                                        purely by scroll velocity, so it's
+ *                                        exactly 0deg at rest. No permanent
+ *                                        per-card tilt, no active-card size
+ *                                        bump — the card sits exactly as
+ *                                        laid out until it's actually moving.
+ *   --mouse-tilt-x, --mouse-tilt-y,
+ *   --mouse-tx, --mouse-ty            ← useCardTilt.ts (cursor), per card
+ * Both hooks write via `style.setProperty` every frame — never React state —
+ * so neither scrolling nor a hover ever causes a re-render. Rotation is
+ * around the card's own center (default `transform-origin`) — the whole
+ * card, image and caption together, rotates as one rigid object.
+ */
+.card {
+    /* Never shrink to fit the flex line — the carousel is meant to overflow. */
+    flex: 0 0 auto;
+    width: var(--work-card-width);
+    box-sizing: border-box;
+    position: relative;
+
+    transform:
+        translate3d(var(--mouse-tx, 0px), var(--mouse-ty, 0px), 0px)
+        rotateY(var(--tilt-rotate-y, 0deg))
+        rotateX(var(--tilt-rotate-x, 0deg))
+        rotateY(var(--mouse-tilt-y, 0deg))
+        rotateX(var(--mouse-tilt-x, 0deg));
+    will-change: transform;
+    box-shadow: var(--shadow-md);
+}
+
+.frame {
+    position: relative;
+    aspect-ratio: var(--work-card-aspect);
+    border-radius: var(--work-card-radius);
+    background-color: var(--color-surface-sunken);
+
+    /* Contains the hover zoom — the image scales up inside a fixed box rather
+       than growing the card and pushing its neighbours. */
+    overflow: hidden;
+    overflow: clip;
+}
+
+.image,
+.placeholder {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.image {
+    object-fit: cover;
+
+    /* translate3d keeps the image on its own layer, so the hover zoom is a
+       composited transform and not a repaint of the card. */
+    transform: translate3d(0, 0, 0) scale(1);
+    transition: transform var(--duration-slow) var(--ease-standard);
+    -webkit-user-drag: none;
+}
+
+/* Empty state until a preview is supplied. Deliberately quiet — a card without
+   artwork should read as "not yet", not as a broken image. */
+.placeholder {
+    background-color: var(--color-surface-sunken);
+    box-shadow: inset 0 0 0 1px var(--color-border-subtle);
+}
+
+/**
+ * Hover zoom, desktop only. `(hover: hover)` keeps it off touch devices, where
+ * the state would otherwise stick after a tap.
+ */
+@media (hover: hover) and (pointer: fine) {
+    .card:hover .image {
+        transform: translate3d(0, 0, 0) scale(var(--work-card-zoom));
+    }
+}
+
+.meta {
+    margin-block-start: var(--work-card-meta-gap);
+}
+
+.title,
+.description {
+    margin: 0;
+    font-size: var(--work-card-text-size);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-snug);
+    letter-spacing: var(--letter-spacing-tight);
+    color: var(--color-text-primary);
+}

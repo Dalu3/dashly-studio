@@ -1,0 +1,88 @@
+/**
+ * Selected work section.
+ *
+ * The custom properties on `.root` are this section's component tokens: every
+ * proportion in the ticker, the carousel and the cards resolves from here, so
+ * matching a Figma tweak is a one-line change rather than a hunt through three
+ * stylesheets.
+ *
+ * Mobile-first throughout, and deliberately free of media queries — clamp()
+ * carries the whole scale from a 320px phone to a 1920px desktop. The
+ * upper bound of each clamp is the design's desktop value.
+ */
+
+.root {
+    /* ---- Ticker ---------------------------------------------------------- */
+    --work-ticker-size: clamp(1.25rem, 0.5rem + 3.4vw, 3rem);
+    --work-ticker-gap: clamp(var(--space-md), 1rem + 1.2vw, var(--space-xl));
+
+    /* ---- Cards ------------------------------------------------------------ */
+    /* 30.625rem = 490px, the card width in the reference. Below that the card
+       is a share of the viewport, so a second card always peeks in and the
+       content reads as draggable without any hint UI. */
+    --work-card-width: clamp(15rem, 78vw, 30.625rem);
+    --work-card-aspect: 12 / 7;
+    --work-card-radius: var(--radius-none);
+    /* 2.25rem = 36px, the gap in the reference, reached at the 1440px design
+       width; below that it tightens with the viewport rather than eating the
+       card. */
+    --work-card-gap: clamp(var(--space-sm), 0.4rem + 2vw, 2.25rem);
+    --work-card-meta-gap: clamp(var(--space-sm), 0.7rem + 0.6vw, var(--space-md));
+    --work-card-text-size: var(--font-size-md);
+    --work-card-zoom: 1.06;
+
+    /* Consumed by DragCarousel.module.css. */
+    --carousel-gap: var(--work-card-gap);
+
+    position: relative;
+    padding-block: var(--space-section-lg);
+    background-color: var(--color-surface-page);
+
+    /* The ticker track and the carousel track are both wider than the page by
+       design; this is what stops either creating horizontal page scroll.
+       X only — Y stays visible so the carousel's scroll-tilt (a few px of
+       perspective foreshortening past a card's flat layout box) never gets
+       vertically cropped by this ancestor either. */
+    overflow-x: clip;
+    overflow-y: visible;
+}
+
+/* The heading is a decorative ticker, so the accessible name is carried by a
+   real, silent <h2> instead. Local copy of the global utility because
+   styles/base/utilities.css is not wired into main.jsx yet. */
+.srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.ticker {
+    --marquee-gap: var(--work-ticker-gap);
+}
+
+.tickerText {
+    display: block;
+    font-family: var(--font-family-sans);
+    font-size: var(--work-ticker-size);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-none);
+    letter-spacing: var(--letter-spacing-tighter);
+    text-transform: uppercase;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+
+    /* Cap height, not the em box, is what should sit on the design's grid — the
+       block padding compensates for the font's internal leading being trimmed
+       by line-height: 1. */
+    padding-block: 0.08em;
+}
+
+.carousel {
+    margin-block-start: clamp(var(--space-lg), 1rem + 3vw, var(--space-2xl));
+}

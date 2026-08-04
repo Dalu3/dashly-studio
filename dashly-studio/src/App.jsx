@@ -2,12 +2,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import "./App.css";
 import Header from "./components/Header.jsx";
 import { Hero } from "./components/hero/Hero";
+import { SelectedWork } from "./components/selected-work/SelectedWork";
 import { MainPage } from "./components/MainPage.jsx";
 import Packages from "./components/Packages.jsx";
 import Stages from "./components/Stages.jsx";
 import FAQ from "./components/FAQ.jsx";
-import Contact from "./components/Contact.jsx";
-import Footer from "./components/Footer.jsx";
+import Contact from "./components/contact/Contact";
+import Footer from "./components/footer/Footer";
 import { MouseFollower } from "./components/MouseFollower.jsx";
 import Loader from "./components/Loader.jsx";
 import Privacy from "./components/Privacy.jsx";
@@ -57,6 +58,7 @@ function HomePage({ onHeroReady }) {
             {/* Redesign preview: animated Hero background only. The existing
                 MainPage hero below is untouched and still the live one. */}
             <Hero onReady={onHeroReady} />
+            <SelectedWork />
             <MainPage />
             <Packages />
             <Stages />

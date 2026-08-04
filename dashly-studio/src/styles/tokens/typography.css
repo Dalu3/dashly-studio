@@ -16,7 +16,8 @@
     --font-family-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo,
         monospace;
 
-    /* ---- Weights (Sora is loaded at 300/400/500/600/700) ---------------- */
+    /* ---- Weights (Sora is loaded at 200/300/400/500/600/700) ------------- */
+    --font-weight-extralight: 200;
     --font-weight-light: 300;
     --font-weight-regular: 400;
     --font-weight-medium: 500;
@@ -47,6 +48,9 @@
     --letter-spacing-tight: -0.015em;
     --letter-spacing-normal: 0;
     --letter-spacing-wide: 0.02em;
+    /* Matches every tracking value in the Contact/Footer Figma frame
+       (node 563:92) — each one is exactly 4% of its own font-size. */
+    --letter-spacing-wide-plus: 0.04em;
     --letter-spacing-wider: 0.08em;
 
     /* ---- Measure (readable line length) ----------------------------------- */

@@ -14,9 +14,10 @@ import {
     WebGLRenderer,
 } from "three";
 
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+
 import { createFur, type FurHandles } from "./fur/createFur";
-import type { FinMaterial } from "./fur/createFinMaterial";
-import type { ShellMaterial } from "./fur/createShellMaterial";
+import type { StrandMaterial } from "./fur/createStrandMaterial";
 import type { SupportMaterial } from "./fur/createSupportMaterial";
 import {
     preloadHelloGeometries,
@@ -28,8 +29,7 @@ export interface HelloModelHandles {
     scene: Scene;
     /** One entry per mesh found in the GLB (currently always one, but the
      *  loader genuinely traverses and handles every mesh it finds). */
-    shellMaterials: ShellMaterial[];
-    finMaterials: FinMaterial[];
+    strandMaterials: StrandMaterial[];
     supportMaterials: SupportMaterial[];
     renderer: WebGLRenderer;
     camera: PerspectiveCamera;
@@ -52,19 +52,32 @@ export interface HelloModelProps {
  * `width` alone there changes nothing at all; the earlier 0.44 maxHeight was
  * the real reason the word read as too small.
  *
- * These also trade against uFurLength: fur grows past the base mesh's own
- * bounding box, which is what these fractions measure, so the true on-screen
- * footprint is larger than the number here. At the current 0.011 fur length
- * these land at roughly 93% (desktop) and 95% (tablet/mobile) of viewport
- * width including fur — deliberately short of 100% so no strand clips at the
- * frustum edge. Shortening the fur is what freed the margin for this larger
- * scale; lengthening it again means walking these back.
+ * These also trade against the fur's own reach: individual strands (see
+ * fur/createStrands.ts, fur/shaders/strand.vert) grow past the base mesh's
+ * own bounding box, which is what these fractions measure, so the true
+ * on-screen footprint is larger than the number here. The stroke body is a
+ * round 0.0085-radius tube (see prepareGeometry.ts) with strands reaching
+ * STRAND_LENGTH (0.009, times each strand's own random length scale) past
+ * it. That is comfortably inside the margin these fractions leave — measured
+ * on the canvas, the word still lands short of the frustum edge at every
+ * breakpoint — but a further rise in either the radius or the strand length
+ * means re-checking this pair.
  */
 const LAYOUT = {
     desktop: { width: 0.93, offsetY: 0.11, maxHeight: 0.57 },
     tablet: { width: 0.9, offsetY: 0.12, maxHeight: 0.57 },
     mobile: { width: 0.9, offsetY: 0.12, maxHeight: 0.46 },
 } as const;
+
+/**
+ * Flat multiplier applied to the computed scale below, on top of the LAYOUT
+ * fractions above — a ~13% reduction, in the middle of the requested 10-15%.
+ * Kept as one separate knob rather than baked into every LAYOUT number so
+ * the width/height/offset RATIOS above (which encode composition, not size)
+ * stay exactly as tuned; this only makes the whole word smaller within that
+ * same composition, still centred by the same Box3 + offsetY logic below.
+ */
+const SIZE_SCALE = 0.87;
 
 const CAMERA_FOV = 20;
 const CAMERA_Z = 6.5;
@@ -96,6 +109,15 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
     const hostRef = useRef<HTMLDivElement>(null);
     const onReadyRef = useRef(onReady);
     onReadyRef.current = onReady;
+
+    // Read once per mount via a ref, same pattern as onReadyRef above — the
+    // effect below builds the whole scene exactly once ([] deps); a live
+    // mid-session change to this OS-level preference re-triggering that
+    // whole rebuild would be a much bigger disruption than just not
+    // reacting to it until next mount.
+    const reducedMotion = usePrefersReducedMotion();
+    const reducedMotionRef = useRef(reducedMotion);
+    reducedMotionRef.current = reducedMotion;
 
     useEffect(() => {
         const host = hostRef.current;
@@ -212,6 +234,7 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
 
             let scale = (preset.width * visibleW) / modelSize.x;
             scale = Math.min(scale, (preset.maxHeight * visibleH) / modelSize.y);
+            scale *= SIZE_SCALE;
 
             holder.scale.setScalar(scale);
             holder.position.set(0, preset.offsetY * visibleH, 0);
@@ -257,6 +280,7 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
                     rootColor,
                     lightDir,
                     requestRender: render,
+                    reducedMotion: reducedMotionRef.current,
                 });
 
                 fur.group.position.copy(source.position);
@@ -294,8 +318,7 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
 
             const handles: HelloModelHandles = {
                 scene,
-                shellMaterials: furHandles.map((fur) => fur.materials.shell),
-                finMaterials: furHandles.map((fur) => fur.materials.fin),
+                strandMaterials: furHandles.map((fur) => fur.materials.strand),
                 supportMaterials: furHandles.map((fur) => fur.materials.support),
                 renderer,
                 camera,

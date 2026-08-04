@@ -1,0 +1,197 @@
+/**
+ * Site footer — rebuilt to match Figma node 458:88 exactly: background,
+ * three-column split, typography (weights/sizes/tracking), and the single
+ * solid text colour every footer text node uses (no opacity variants).
+ *
+ * `line-height: 1.1` on .root is deliberate, not a stylistic pick: every gap
+ * below is derived from Figma's row-to-row deltas MINUS each line's own box
+ * height, so it only lands correctly if that box height is known/tight.
+ * Figma's own text here is near-single-line (~100–110% leading); leaving
+ * line-height at the browser default (~1.2) would silently pad every gap by
+ * a few extra px per row and compound down the column.
+ *
+ * Mobile-first: `.top`'s three columns collapse to one until --bp-lg, and
+ * `.bottom`'s copyright/legal row stacks until --bp-md.
+ */
+
+.root {
+    background: var(--color-surface-inverse);
+    color: var(--color-text-inverse);
+    line-height: 1.1;
+    padding-inline: var(--container-gutter);
+}
+
+.top {
+    /* Wider than the sitewide --content-max-width on purpose — see
+       --content-max-width-wide in layout.css for why. */
+    max-width: var(--content-max-width-wide);
+    margin-inline: auto;
+    padding-block: clamp(2.5rem, 1.5rem + 4vw, 5.125rem) clamp(2.5rem, 1.5rem + 4vw, 4.25rem);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(2rem, 1rem + 3vw, 3rem);
+}
+
+@media (min-width: 72rem) {
+    .top {
+        /* Brand sized to its own content (capped so it can't crowd the other
+           two columns), then a flexible spacer track absorbs all the extra
+           width — nav and touch sit in the last two tracks, sized to their
+           own content, so they move together as a fixed-gap pair and the
+           touch column's own right edge lands on the container's right
+           edge instead of stopping short in the middle. */
+        grid-template-columns: minmax(0, auto) minmax(1.5rem, 1fr) auto auto;
+        column-gap: clamp(1.5rem, 2vw, 3.5rem);
+    }
+
+    .brand {
+        grid-column: 1;
+        /* 36rem, not the tighter 30rem this used to be — the tagline is
+           559px on one line at its own font/weight/tracking, so anything
+           narrower forces it to wrap. */
+        max-width: 36rem;
+    }
+
+    .tagline {
+        white-space: nowrap;
+    }
+
+    .nav {
+        grid-column: 3;
+    }
+
+    .touch {
+        grid-column: 4;
+    }
+}
+
+.brand {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.tagline {
+    margin: 0;
+    /* 20px, not Figma's 24px — sized down per explicit user request. */
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-wide-plus);
+}
+
+.wordmark {
+    margin: 0;
+    /* 32px, not Figma's 40px — sized down per explicit user request. */
+    font-size: 2rem;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-wide-plus);
+}
+
+.columnHeading {
+    margin: 0;
+    font-size: 1.25rem;
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-wide-plus);
+}
+
+/* Nav (heading→links) and touch (heading→blurb→links) columns land on
+   different Figma gaps — 32px vs 20px — so they can't share one value. */
+.nav .columnHeading {
+    margin-bottom: 2rem;
+}
+
+.touch .columnHeading {
+    margin-bottom: 1.25rem;
+}
+
+.linkList {
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav .linkList {
+    gap: 1rem;
+}
+
+.touch .linkList {
+    gap: 1.25rem;
+}
+
+.link {
+    color: inherit;
+    text-decoration: none;
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-extralight);
+    letter-spacing: var(--letter-spacing-wide-plus);
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+.link:hover {
+    opacity: 0.75;
+}
+
+.link:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+    border-radius: var(--radius-xs);
+}
+
+.touchBlurb {
+    margin: 0 0 1.75rem;
+    /* Forces the exact Figma break ("...for" / "updates,...") — measured in
+       browser: line 1 is 277px, line 2 is 298px at this font/weight/tracking,
+       so this needs to sit in [298, 365)px. The 17.8rem I had before was
+       narrower than line 2 itself, which wrapped it to 3 lines. */
+    max-width: 19rem;
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-extralight);
+    line-height: 1.265;
+    letter-spacing: var(--letter-spacing-wide-plus);
+}
+
+.divider {
+    max-width: var(--content-max-width-wide);
+    margin-inline: auto;
+    height: 1px;
+    background: rgb(214 237 248 / 0.15);
+}
+
+.bottom {
+    max-width: var(--content-max-width-wide);
+    margin-inline: auto;
+    padding-block: 1.125rem 4.75rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    /* 18px, not Figma's 20px — sized down per explicit user request. */
+    font-size: 1.125rem;
+    font-weight: var(--font-weight-regular);
+    letter-spacing: var(--letter-spacing-wide-plus);
+}
+
+@media (min-width: 48rem) {
+    .bottom {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+}
+
+.copyright {
+    margin: 0;
+}
+
+.legal {
+    display: flex;
+    gap: 3.5rem;
+}
+
+.legalLink {
+    font-size: inherit;
+    font-weight: inherit;
+    letter-spacing: inherit;
+}
