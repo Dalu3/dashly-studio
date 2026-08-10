@@ -39,7 +39,9 @@
     left: var(--process-header-left);
     width: var(--process-header-width);
     color: var(--color-text-inverse);
-    font-size: var(--process-heading-size);
+    /* Laptop type scale: H2. Below --bp-lg this is overridden back to the
+       fluid --process-heading-size (see the max-width: 63.999rem block). */
+    font-size: var(--font-size-h2);
     line-height: var(--process-heading-line-height);
     text-align: left;
     text-transform: capitalize;
@@ -50,7 +52,8 @@
     left: var(--process-intro-left);
     width: var(--process-intro-width);
     color: var(--color-text-process-muted);
-    font-size: var(--process-body-size);
+    /* Laptop type scale: p. */
+    font-size: var(--font-size-p);
     line-height: var(--process-copy-line-height);
     text-align: center;
 }
@@ -172,6 +175,32 @@
     z-index: var(--z-raised);
     transform: translate3d(0, var(--stage-copy-shift), 0);
     will-change: transform, opacity;
+}
+
+/* Laptop type scale: stage title=H3. Shrinking from the old up-to-48px
+   scale only reduces any bounding-box overlap with the stage image, never
+   creates it, so this is safe.
+   Stage description (.copy p) is deliberately NOT pinned to a fixed size —
+   verified against real geometry (see the code review that landed this
+   comment): both --font-size-p and --font-size-body wrap the description to
+   more lines than the original fluid --process-body-size ever produced at
+   1024-1440px, and the extra height runs past the stage image's bottom edge
+   at every stage. This component's whole canvas (position AND type) is a
+   percentage-scaled miniature of one Figma frame — text and geometry were
+   designed to grow together, so pinning only the text breaks that pairing.
+   Fixing it for real means widening the vertical gap between description
+   and image in process.css, which is a layout change, not a type-scale one. */
+@media (min-width: 64rem) {
+    .copy h3 {
+        font-size: var(--font-size-h3);
+    }
+
+    /* The stage number (01-06) is a decorative accent, not body copy — pinned
+       to H1 as the nearest of the six approved sizes instead of staying fluid
+       past --bp-lg. */
+    .number {
+        font-size: var(--font-size-h1);
+    }
 }
 
 .figure {

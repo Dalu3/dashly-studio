@@ -270,6 +270,30 @@
     outline-offset: 3px;
 }
 
+/* Laptop type scale (--bp-lg/64rem and up): modal/category heading=H3,
+   banner/intro/category body copy=body, buttons/badge/eyebrow=small (the
+   "form & links" size — these are interactive controls, not prose). The
+   modal close glyph ("×") is excluded: it sizes an icon, not text content.
+   Below 64rem the legacy per-breakpoint values above are untouched. */
+@media (min-width: 64rem) {
+    .cookie-consent-banner__content p,
+    .cookie-consent-modal__intro,
+    .cookie-consent-category__copy p {
+        font-size: var(--font-size-body);
+    }
+
+    .cookie-consent-modal__header h2,
+    .cookie-consent-category__copy h3 {
+        font-size: var(--font-size-h3);
+    }
+
+    .cookie-consent-button,
+    .cookie-consent-modal__eyebrow,
+    .cookie-consent-category__badge {
+        font-size: var(--font-size-small);
+    }
+}
+
 @media (max-width: 960px) {
     .cookie-consent-banner {
         grid-template-columns: 1fr;

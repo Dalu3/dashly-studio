@@ -1,0 +1,31 @@
+#main-content {
+    /* The Hero's existing dissolve lands on the milk surface of Selected Work. */
+    background-color: var(--color-surface-page);
+}
+
+.surface-transition {
+    height: var(--surface-transition-height);
+}
+
+.surface-transition--page-to-accent {
+    background: linear-gradient(
+        to bottom,
+        var(--color-surface-page),
+        var(--color-surface-accent-subtle)
+    );
+}
+
+.surface-transition--accent-to-inverse {
+    background: linear-gradient(
+        to bottom in oklab,
+        var(--color-surface-accent-subtle) 0%,
+        color-mix(in oklab, var(--color-surface-accent-subtle) 96%, var(--color-surface-inverse)) 12%,
+        color-mix(in oklab, var(--color-surface-accent-subtle) 87%, var(--color-surface-inverse)) 25%,
+        color-mix(in oklab, var(--color-surface-accent-subtle) 74%, var(--color-surface-inverse)) 39%,
+        color-mix(in oklab, var(--color-surface-accent-subtle) 58%, var(--color-surface-inverse)) 53%,
+        color-mix(in oklab, var(--color-surface-accent-subtle) 41%, var(--color-surface-inverse)) 67%,
+        color-mix(in oklab, var(--color-surface-accent-subtle) 22%, var(--color-surface-inverse)) 82%,
+        color-mix(in oklab, var(--color-surface-accent-subtle) 8%, var(--color-surface-inverse)) 93%,
+        var(--color-surface-inverse) 100%
+    );
+}

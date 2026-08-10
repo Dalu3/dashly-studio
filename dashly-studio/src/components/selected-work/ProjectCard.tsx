@@ -28,7 +28,7 @@ export function ProjectCard({
     priority = false,
     className,
 }: ProjectCardProps) {
-    const { title, description, image, width, height, imageAlt, url } = project;
+    const { title, description, image, width, height, imageAlt, url, mobileImage } = project;
     const cardRef = useRef<HTMLElement>(null);
     const frameRef = useRef<HTMLDivElement>(null);
 
@@ -44,18 +44,30 @@ export function ProjectCard({
             >
                 <div ref={frameRef} className={styles.frame}>
                     {image ? (
-                        <img
-                            className={styles.image}
-                            src={image}
-                            alt={imageAlt ?? `${title} — ${description}`}
-                            width={width}
-                            height={height}
-                            loading={priority ? "eager" : "lazy"}
-                            decoding="async"
-                            /* Native image dragging would steal the gesture from
-                               the carousel before the pointer handlers ever run. */
-                            draggable={false}
-                        />
+                        <picture>
+                            {mobileImage && (
+                                /* Phone-only crop, not just a resized copy — see
+                                   the field doc on Project.mobileImage. --bp-md
+                                   (48rem/768px) is the site's mobile/tablet line
+                                   (layout.css), so tablet gets the desktop image. */
+                                <source
+                                    media="(max-width: 47.999rem)"
+                                    srcSet={mobileImage}
+                                />
+                            )}
+                            <img
+                                className={styles.image}
+                                src={image}
+                                alt={imageAlt ?? `${title} — ${description}`}
+                                width={width}
+                                height={height}
+                                loading={priority ? "eager" : "lazy"}
+                                decoding="async"
+                                /* Native image dragging would steal the gesture from
+                                   the carousel before the pointer handlers ever run. */
+                                draggable={false}
+                            />
+                        </picture>
                     ) : (
                         <div className={styles.placeholder} aria-hidden="true" />
                     )}

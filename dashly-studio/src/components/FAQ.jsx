@@ -12,52 +12,54 @@ export default function FAQ() {
 
     return (
         <section
-            className="faq-container"
+            className="faq-section"
             id="faq"
             aria-labelledby="faq-title"
         >
-            <div className="faq-intro">
-                <h2 id="faq-title">FAQ</h2>
-                <p>Everything You Need to Know</p>
-            </div>
-            <div className="faq-list">
-                {faqItems.map((item, i) => {
-                    const isOpen = activeIndex === i;
-                    const answerId = `${idPrefix}-faq-answer-${i}`;
+            <div className="faq-container">
+                <div className="faq-intro">
+                    <h2 id="faq-title">FAQ</h2>
+                    <p>Everything You Need to Know</p>
+                </div>
+                <div className="faq-list">
+                    {faqItems.map((item, i) => {
+                        const isOpen = activeIndex === i;
+                        const answerId = `${idPrefix}-faq-answer-${i}`;
 
-                    return (
-                        <div
-                            key={item.question}
-                            className={`faq-item ${isOpen ? "active" : ""}`}
-                        >
-                            <button
-                                className="faq-question"
-                                onClick={() => toggleFAQ(i)}
-                                type="button"
-                                aria-expanded={isOpen}
-                                aria-controls={answerId}
-                            >
-                                <span className="faq-question-text">
-                                    {item.question}
-                                </span>
-                                <span className="faq-icon" aria-hidden="true">
-                                    <svg viewBox="0 0 16 10" focusable="false">
-                                        <path d="m1 1 7 7 7-7" />
-                                    </svg>
-                                </span>
-                            </button>
+                        return (
                             <div
-                                id={answerId}
-                                className="faq-answer"
-                                aria-hidden={!isOpen}
+                                key={item.question}
+                                className={`faq-item ${isOpen ? "active" : ""}`}
                             >
-                                <div className="faq-answer-inner">
-                                    <p>{item.answer}</p>
+                                <button
+                                    className="faq-question"
+                                    onClick={() => toggleFAQ(i)}
+                                    type="button"
+                                    aria-expanded={isOpen}
+                                    aria-controls={answerId}
+                                >
+                                    <span className="faq-question-text">
+                                        {item.question}
+                                    </span>
+                                    <span className="faq-icon" aria-hidden="true">
+                                        <svg viewBox="0 0 16 10" focusable="false">
+                                            <path d="m1 1 7 7 7-7" />
+                                        </svg>
+                                    </span>
+                                </button>
+                                <div
+                                    id={answerId}
+                                    className="faq-answer"
+                                    aria-hidden={!isOpen}
+                                >
+                                    <div className="faq-answer-inner">
+                                        <p>{item.answer}</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                    );
-                })}
+                        );
+                    })}
+                </div>
             </div>
         </section>
     );

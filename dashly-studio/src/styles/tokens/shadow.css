@@ -7,6 +7,11 @@
  */
 
 :root {
+    /* Shared glass treatment for small translucent controls. */
+    --backdrop-blur-subtle: blur(0.5rem);
+    /* Long, diffused colour bridges between major page surfaces. */
+    --surface-transition-height: calc(var(--space-section-lg) + var(--space-section-md));
+
     --shadow-none: none;
 
     --shadow-xs: 0 1px 2px rgb(var(--c-ink-800-rgb) / 0.06);

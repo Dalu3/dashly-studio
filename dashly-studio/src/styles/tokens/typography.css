@@ -36,8 +36,10 @@
     --font-size-4xl: clamp(1.8rem, 1.4rem + 2vw, 3.7rem);
     --font-size-5xl: clamp(2rem, 1.4rem + 3vw, 4.5rem);
 
-    /* Hero supporting copy: slightly stronger than body text while remaining
-       clearly secondary to the display headline. */
+    /* Hero headline below --bp-lg (64rem), where it hands off to the fixed
+       --font-size-h1. Hero supporting copy: slightly stronger than body
+       text while remaining clearly secondary to the display headline. */
+    --font-size-hero-heading: clamp(1.9rem, 3.8vw, 3.5rem);
     --font-size-hero-support: 1.25rem;
 
     /* Footer type scale — intentionally more compact than the Figma display
@@ -58,6 +60,17 @@
     --font-size-faq-subtitle: var(--font-size-md);
     --font-size-faq-question: var(--font-size-md);
     --font-size-faq-answer: var(--font-size-sm);
+
+    /* ---- Laptop/desktop type scale (the approved --bp-lg composition) ----
+       The six sizes the whole page's laptop layout is built from. Every
+       heading, paragraph, body and form/link size at --bp-lg and up should
+       resolve to one of these — no other desktop font-size should exist. */
+    --font-size-h1: 4.75rem; /* 76px */
+    --font-size-h2: 2.1875rem; /* 35px */
+    --font-size-h3: 1.25rem; /* 20px */
+    --font-size-p: 1.35rem; /* 21.6px */
+    --font-size-body: 1rem; /* 16px */
+    --font-size-small: 0.875rem; /* 14px — form controls and links */
 
     /* ---- Line heights ---------------------------------------------------- */
     --line-height-none: 1;

@@ -40,8 +40,16 @@ export default function Footer() {
                         </h3>
                         <div className={styles.touchBody}>
                             <p className={styles.touchBlurb}>
-                                Follow us on social media for updates, insights &amp;
-                                inspiration.
+                                {/* Figma's phone frame (node 609:91) uses shorter copy
+                                    than tablet/desktop — two real text nodes toggled by
+                                    CSS display so screen readers only ever see one. */}
+                                <span className={styles.touchBlurbShort}>
+                                    Follow us for updates and inspiration.
+                                </span>
+                                <span className={styles.touchBlurbLong}>
+                                    Follow us on social media for updates, insights &amp;
+                                    inspiration.
+                                </span>
                             </p>
                             <ul className={styles.linkList}>
                                 {FOOTER_SOCIAL_LINKS.map((social) => (

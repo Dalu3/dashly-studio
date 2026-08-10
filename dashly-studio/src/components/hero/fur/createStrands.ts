@@ -30,6 +30,8 @@ import { createStrandMaterial, type StrandMaterial } from "./createStrandMateria
  *  strand — cheap enough that instance count, not per-strand complexity, is
  *  the knob that matters for performance. */
 const SEGMENTS = 5;
+/** Additional root selection weight for explicitly rounded line terminals. */
+const EDGE_FUR_DENSITY_BOOST = 0.85;
 
 export interface StrandTemplate {
     geometry: BufferGeometry;
@@ -121,6 +123,7 @@ function sampleRoots(geometry: BufferGeometry, count: number): SampledRoots {
     const position = geometry.getAttribute("position");
     const normal = geometry.getAttribute("normal");
     const index = geometry.getIndex();
+    const furCoverage = geometry.getAttribute("furCoverage");
 
     if (!index) {
         throw new Error("sampleRoots requires an indexed geometry");
@@ -144,7 +147,14 @@ function sampleRoots(geometry: BufferGeometry, count: number): SampledRoots {
             .subVectors(b, a)
             .cross(edgeB.subVectors(c, a))
             .length() * 0.5;
-        total += area;
+        const edgeCoverage = furCoverage
+            ? (
+                furCoverage.getX(index.getX(i * 3)) +
+                furCoverage.getX(index.getX(i * 3 + 1)) +
+                furCoverage.getX(index.getX(i * 3 + 2))
+            ) / 3
+            : 0;
+        total += area * (1 + edgeCoverage * EDGE_FUR_DENSITY_BOOST);
         cumulativeArea[i] = total;
     }
 

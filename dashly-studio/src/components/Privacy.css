@@ -9,41 +9,30 @@
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
+/* Laptop type scale (--bp-lg/64rem and up): page title=H2, section
+   heading=H3, body copy=body. These are the unscoped defaults — every
+   media query below is capped at 63.999rem so none of it reaches into the
+   approved desktop range. */
 .privacy-container h1 {
-    font-size: 2.5rem;
+    font-size: var(--font-size-h2);
     margin-bottom: 20px;
 }
 
 .privacy-container h2 {
     margin-top: 30px;
-    font-size: 1.5rem;
+    font-size: var(--font-size-h3);
 }
 
 .privacy-container p,
 .privacy-container ul {
-    font-size: 1rem;
+    font-size: var(--font-size-body);
     line-height: 1.6;
 }
 
 .privacy-container ul {
     padding-left: 20px;
 }
-@media (min-width: 1060px) and (max-width: 1262px) {
-    .privacy-container h1 {
-        font-size: 2.5rem;
-    }
-    .privacy-container h2 {
-        margin-top: 30px;
-        font-size: 1.5rem;
-    }
-
-    .privacy-container p,
-    .privacy-container ul {
-        font-size: 1rem;
-        line-height: 1.6;
-    }
-}
-@media (min-width: 769px) and (max-width: 1060px) {
+@media (min-width: 769px) and (max-width: 63.999rem) {
     .privacy-container h1 {
         font-size: 2.2rem;
     }

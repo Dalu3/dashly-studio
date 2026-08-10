@@ -27,7 +27,22 @@
     --space-section-md: clamp(3.5rem, 2.4rem + 5.5vw, 6rem);
     --space-section-lg: clamp(4.5rem, 2.8rem + 8.5vw, 9rem);
 
+    /* Consistent distance between adjacent page sections. */
+    --space-section-gap: 4rem; /* 64px — mobile */
+
     /* ---- Component-level rhythm ------------------------------------------ */
     --space-stack: var(--space-md); /* default vertical gap in a stack */
     --space-inline: var(--space-sm); /* default horizontal gap in a row  */
+}
+
+@media (min-width: 48rem) {
+    :root {
+        --space-section-gap: 6rem; /* 96px — tablet */
+    }
+}
+
+@media (min-width: 64rem) {
+    :root {
+        --space-section-gap: 6rem; /* 96px — laptop and desktop */
+    }
 }

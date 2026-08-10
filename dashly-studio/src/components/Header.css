@@ -2,15 +2,50 @@
     position: absolute;
     z-index: var(--z-header);
     top: 0;
+    /* left/right (not width: 100%) size this box — on iOS Safari a
+       percentage width on an absolutely positioned element can resolve
+       against the layout viewport (which reserves space for the collapsing
+       toolbar) instead of the visible one, leaving a phantom gap on the
+       right and pushing the whole page into horizontal overflow. Inset
+       resolves against the actual containing-block width instead. */
     left: 0;
     right: 0;
     display: flex;
-    width: 100%;
     max-width: var(--container-wide);
+    box-sizing: border-box;
     align-items: center;
     justify-content: space-between;
     margin-inline: auto;
     padding: var(--space-lg) var(--container-gutter);
+    background-color: transparent;
+    transition:
+        background-color var(--duration-normal) var(--ease-standard),
+        backdrop-filter var(--duration-normal) var(--ease-standard),
+        box-shadow var(--duration-normal) var(--ease-standard),
+        border-radius var(--duration-normal) var(--ease-standard),
+        padding-block var(--duration-normal) var(--ease-standard),
+        top var(--duration-normal) var(--ease-standard);
+}
+
+/* During the first scroll the header moves into its future floating geometry,
+   but stays transparent. Crossing the next section then changes visuals only. */
+.glass-navbar--scrolling,
+.glass-navbar--floating {
+    position: fixed;
+    top: var(--space-lg);
+    left: 0;
+    right: 0;
+    padding-block: var(--space-2xs);
+    border-radius: var(--radius-pill);
+}
+
+/* Floating state is activated only after the first viewport has passed. */
+.glass-navbar--floating {
+    /* Reuses the former mobile glass treatment without changing geometry. */
+    background-color: rgb(255 255 255 / 0.3);
+    -webkit-backdrop-filter: var(--backdrop-blur-subtle);
+    backdrop-filter: var(--backdrop-blur-subtle);
+    box-shadow: var(--shadow-lg);
 }
 
 .logo,
@@ -32,7 +67,7 @@
 }
 
 .nav-links a {
-    font-size: var(--font-size-sm);
+    font-size: var(--font-size-md);
     transition: var(--transition-colors);
 }
 
@@ -56,6 +91,18 @@
 .menu-overlay,
 .hamburger {
     display: none;
+}
+
+/* Laptop type scale: the wordmark is an H3-level mark, nav links are the
+   "form & links" size. The approved desktop starts at 64rem. */
+@media (min-width: 64rem) {
+    .logo {
+        font-size: var(--font-size-h3);
+    }
+
+    .nav-links a {
+        font-size: var(--font-size-body);
+    }
 }
 
 @media (max-width: 63.999rem) {

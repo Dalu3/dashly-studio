@@ -5,8 +5,30 @@ import { navigateToHash } from "../utils/scrollToHash";
 
 function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [scrollPhase, setScrollPhase] = useState("top");
     const headerRef = useRef();
     const navRef = useRef();
+
+    useEffect(() => {
+        const updateScrolledState = () => {
+            setScrollPhase(
+                window.scrollY >= window.innerHeight
+                    ? "floating"
+                    : window.scrollY > 0
+                      ? "scrolling"
+                      : "top",
+            );
+        };
+
+        updateScrolledState();
+        window.addEventListener("scroll", updateScrolledState, { passive: true });
+        window.addEventListener("resize", updateScrolledState);
+
+        return () => {
+            window.removeEventListener("scroll", updateScrolledState);
+            window.removeEventListener("resize", updateScrolledState);
+        };
+    }, []);
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -50,7 +72,10 @@ function Header() {
                 />
             ) : null}
 
-            <header className="glass-navbar" ref={headerRef}>
+            <header
+                className={`glass-navbar glass-navbar--${scrollPhase}`}
+                ref={headerRef}
+            >
                 <a
                     href="/"
                     className="logo"
@@ -106,6 +131,12 @@ function Header() {
                         onClick={(event) => handleHashLinkClick(event, "#faq")}
                     >
                         FAQ
+                    </a>
+                    <a
+                        href="/#contact"
+                        onClick={(event) => handleHashLinkClick(event, "#contact")}
+                    >
+                        Price Estimate
                     </a>
                     <a
                         href="/#contact"

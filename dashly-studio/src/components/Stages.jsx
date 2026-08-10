@@ -2,12 +2,12 @@ import { useLayoutEffect, useRef } from "react";
 import styles from "./Stages.module.css";
 import arrowAsset from "../assets/process/arrow.svg";
 import routeAsset from "../assets/process/route.svg";
-import discoveryImage from "../assets/process/stage-1-discovery.jpg";
-import strategyImage from "../assets/process/stage-2-strategy.jpg";
-import wireframesImage from "../assets/process/stage-3-wireframes.jpg";
-import designImage from "../assets/process/stage-4-design.jpg";
-import developmentImage from "../assets/process/stage-5-development.jpg";
-import launchImage from "../assets/process/stage-6-launch.jpg";
+import discoveryImage from "../assets/process/stage-1-discovery.webp";
+import strategyImage from "../assets/process/stage-2-strategy.webp";
+import wireframesImage from "../assets/process/stage-3-wireframes.webp";
+import designImage from "../assets/process/stage-4-design.webp";
+import developmentImage from "../assets/process/stage-5-development.webp";
+import launchImage from "../assets/process/stage-6-launch.webp";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
 
 const DESKTOP_MEDIA_QUERY = "(min-width: 64rem)";

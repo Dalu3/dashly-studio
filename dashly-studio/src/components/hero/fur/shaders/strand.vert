@@ -104,7 +104,9 @@ void main() {
     // gently toward a shared, jittered centre. This makes neighbouring hairs
     // overlap in silky locks instead of every fibre standing independently,
     // while the low strength preserves the full coat volume.
-    float clumpSize = 0.014;
+    // Keep the grouping subtle: large shared cells made a visibly circular,
+    // dense tuft at the tight joins of the H instead of an even coat.
+    float clumpSize = 0.010;
     vec3 clumpCell = floor(aRoot / clumpSize);
     float clumpId = dot(clumpCell, vec3(1.0, 57.0, 113.0));
     vec3 clumpJitter = vec3(
@@ -117,7 +119,7 @@ void main() {
     vec3 clumpDir = clumpOffset - n * dot(clumpOffset, n);
     float clumpDistance = length(clumpDir);
     clumpDir = clumpDistance > 1e-5 ? clumpDir / clumpDistance : tiltDir;
-    float clumpStrength = mix(0.06, 0.16, hash1(clumpId + 19.3));
+    float clumpStrength = mix(0.02, 0.08, hash1(clumpId + 19.3));
 
     vec3 growDir = normalize(
         n + tiltDir * tiltAmount + clumpDir * clumpStrength
@@ -143,15 +145,9 @@ void main() {
     // of strands before any normalize(), distance(), pow() or ripple work.
     if (abs(uCursorStrength) > 0.001) {
         vec3 cursorOffset = aRoot - uCursor;
-        vec3 rippleOffset = aRoot - uRipplePoint;
         float cursorDistanceSq = dot(cursorOffset, cursorOffset);
-        float rippleRadius = uCursorRadius * 2.1;
-        float rippleDistanceSq = dot(rippleOffset, rippleOffset);
 
-        if (
-            cursorDistanceSq < uCursorRadius * uCursorRadius ||
-            rippleDistanceSq < rippleRadius * rippleRadius
-        ) {
+        if (cursorDistanceSq < uCursorRadius * uCursorRadius) {
             vec3 away = cursorOffset - n * dot(cursorOffset, n);
             float awayLength = length(away);
             vec3 awayDir = awayLength > 1e-5 ? away / awayLength : tangent;
@@ -168,19 +164,6 @@ void main() {
             vec3 brushDir = normalize(awayDir * 0.78 + travelDir * 0.22);
             float bendAmount = infl * mix(0.8, 1.25, hResp);
             bentGrowDir = normalize(growDir + brushDir * bendAmount);
-
-            vec3 rippleAway = rippleOffset - n * dot(rippleOffset, n);
-            float rippleDistance = length(rippleAway);
-            vec3 rippleAwayDir = rippleDistance > 1e-5
-                ? rippleAway / rippleDistance
-                : awayDir;
-            float rippleFalloff = smoothstep(
-                rippleRadius,
-                0.0,
-                sqrt(rippleDistanceSq)
-            );
-            float rippleAmount = pow(rippleFalloff, 2.0) * uCursorStrength * 0.32;
-            bentGrowDir = normalize(bentGrowDir + rippleAwayDir * rippleAmount);
         }
     }
 

@@ -18,7 +18,7 @@
 .hero-copy__message h1 {
     max-width: none;
     margin: 0;
-    font-size: clamp(1.9rem, 3.8vw, 3.5rem);
+    font-size: var(--font-size-hero-heading);
     font-weight: var(--font-weight-bold);
     line-height: 1.05;
     letter-spacing: var(--letter-spacing-tighter);
@@ -44,6 +44,11 @@
     font-weight: var(--font-weight-bold);
     letter-spacing: var(--letter-spacing-wide);
     text-transform: uppercase;
+}
+
+.hero-copy__meta > :first-child {
+    justify-self: start;
+    text-align: left;
 }
 
 .hero-copy__meta a {
@@ -74,6 +79,25 @@
     transform: rotate(135deg);
 }
 
+/* Laptop type scale, decoupled from the 80rem layout switch below: the rest
+   of the site's "approved desktop" starts at 64rem, and leaving Hero's text
+   on the mobile fluid clamp until 80rem left a 1024-1279px dead zone where
+   --font-size-2xs (capped at 12px) was still in play — a stray size outside
+   the six-value system. */
+@media (min-width: 64rem) {
+    .hero-copy__message h1 {
+        font-size: var(--font-size-h1);
+    }
+
+    .hero-copy__message p {
+        font-size: var(--font-size-p);
+    }
+
+    .hero-copy__meta {
+        font-size: var(--font-size-small);
+    }
+}
+
 @media (min-width: 80rem) {
     .hero-copy {
         padding-inline: var(--space-xs);
@@ -90,7 +114,7 @@
 
     .hero-copy__message h1 {
         display: contents;
-        font-size: clamp(3.8rem, 5vw, 6rem);
+        font-size: var(--font-size-h1);
         line-height: 0.98;
         white-space: nowrap;
     }
@@ -111,12 +135,13 @@
         align-self: end;
         max-width: none;
         margin-bottom: 0.45rem;
-        font-size: var(--font-size-hero-support);
+        font-size: var(--font-size-p);
         white-space: nowrap;
     }
 
     .hero-copy__meta {
         transform: translateY(-1.5rem);
+        font-size: var(--font-size-small);
     }
 
     .hero-copy__meta {

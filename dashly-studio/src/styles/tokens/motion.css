@@ -21,6 +21,10 @@
     --duration-slower: 650ms;
     --duration-deliberate: 900ms;
 
+    /* Viewport positions for copy that reveals as it is read. */
+    --scroll-reading-start: 0.8;
+    --scroll-reading-end: 0.25;
+
     /* ---- Easing curves ----------------------------------------------------- */
     --ease-linear: linear;
     --ease-standard: cubic-bezier(0.2, 0, 0, 1); /* general UI      */

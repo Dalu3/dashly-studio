@@ -35,7 +35,7 @@
     --carousel-gap: var(--work-card-gap);
 
     position: relative;
-    padding-block: var(--space-section-lg);
+    padding-block: var(--space-section-gap) var(--space-section-lg);
     background-color: var(--color-surface-page);
 
     /* The ticker track and the carousel track are both wider than the page by
@@ -85,4 +85,12 @@
 
 .carousel {
     margin-block-start: clamp(var(--space-lg), 1rem + 3vw, var(--space-2xl));
+}
+
+/* The ticker is a decorative marquee, not body copy — it uses the section's
+   H2 scale on laptop and desktop, keeping H1 exclusive to the Hero. */
+@media (min-width: 64rem) {
+    .tickerText {
+        font-size: var(--font-size-3xl);
+    }
 }

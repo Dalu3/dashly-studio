@@ -1,10 +1,15 @@
+.faq-section {
+    background: var(--color-surface-page);
+    padding-block: var(--space-section-md);
+}
+
 .faq-container {
     box-sizing: border-box;
     display: grid;
     width: min(100%, var(--container-wide));
     margin-inline: auto;
-    padding: var(--space-section-md) var(--container-gutter);
-    background: var(--color-surface-page);
+    padding-inline: var(--container-gutter);
+    background: transparent;
 }
 
 .faq-intro {
@@ -133,5 +138,30 @@
     .faq-intro {
         margin-bottom: var(--space-0);
         padding-top: var(--space-md);
+    }
+
+    /* Laptop type scale: title=H2, subtitle=p, question=H3, answer=body. */
+    .faq-intro h2 {
+        font-size: var(--font-size-h2);
+    }
+
+    .faq-intro p {
+        font-size: var(--font-size-p);
+    }
+
+    .faq-question {
+        font-size: var(--font-size-h3);
+    }
+
+    .faq-answer {
+        font-size: var(--font-size-body);
+    }
+}
+
+/* The approved desktop starts at 64rem. Keep every desktop declaration above
+   intact and constrain this touch/press feedback to tablet and phone widths. */
+@media (max-width: 63.999rem) {
+    .faq-question:active {
+        background: var(--color-surface-sunken);
     }
 }

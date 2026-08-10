@@ -109,12 +109,17 @@
     pointer-events: none;
     user-select: none;
 
-    /* NO background-color here, deliberately. An element's own background is
-     * not affected by the mask's shaping in the same way the layer content is,
-     * and an opaque colour here would sit under the fade and stop dead at the
-     * bottom edge, re-creating the hard line. The .base layer already paints a
-     * full-coverage gradient across an oversized box, so a
-     * background-color was redundant regardless. */
+    /* Fallback fill, normally invisible — .base already paints a
+     * full-coverage gradient across an oversized box, so this sits fully
+     * hidden behind it in ordinary rendering. It exists only for a known
+     * Chromium bug class: this element's heavy will-change/blur/mask
+     * layering (see the .depth and mask-image comments below) can lose a
+     * GPU tile on tab-hidden -> tab-visible and fail to re-rasterise it,
+     * which without this shows the page's white background through the
+     * gap. background-color is part of this same masked element, so it
+     * fades out at the bottom edge exactly like every .layer — no hard
+     * line reappears. */
+    background-color: var(--fabric-base);
 
     isolation: isolate;
     contain: layout paint style;

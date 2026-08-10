@@ -65,6 +65,8 @@ export interface RoundedStrokeOptions {
     radialSegments?: number;
     /** Rings used to round off each open stroke end into a dome. */
     capSegments?: number;
+    /** Slight axial stretch for soft, handwritten terminals. */
+    capLengthScale?: number;
 }
 
 interface Segment {
@@ -173,7 +175,10 @@ function splitStrokes(centres: Vector3[]): Segment[] {
     let start = 0;
 
     const push = (from: number, to: number) => {
-        if (to - from < 2) {
+        // Two centre rings are sufficient for `sweep` to build a short,
+        // capped stroke. The source model contains one such separate
+        // component; discarding it here removes real letter geometry.
+        if (to - from < 1) {
             return;
         }
 
@@ -213,6 +218,7 @@ function sweep(
     radius: number,
     radialSegments: number,
     capSegments: number,
+    capLengthScale: number,
     positions: number[],
     indices: number[],
 ): void {
@@ -277,11 +283,11 @@ function sweep(
         normals.push(carried.normalize());
     }
 
-    const baseVertex = positions.length / 3;
-    const ringCount: number[] = [];
+    const ringStarts: number[] = [];
 
     const emitRing = (centre: Vector3, t: Vector3, nrm: Vector3, r: number) => {
         const bin = t.clone().cross(nrm).normalize();
+        const ringStart = positions.length / 3;
 
         for (let j = 0; j < radialSegments; j += 1) {
             const a = (j / radialSegments) * Math.PI * 2;
@@ -295,17 +301,36 @@ function sweep(
             );
         }
 
-        ringCount.push(1);
+        ringStarts.push(ringStart);
     };
+
+    const emitPole = (centre: Vector3) => {
+        const pole = positions.length / 3;
+        positions.push(centre.x, centre.y, centre.z);
+        return pole;
+    };
+
+    let startPole: number | null = null;
+    let endPole: number | null = null;
 
     // Dome the open ends so a stroke finishes as a rounded tip rather than an
     // open pipe. cos/sin of the dome angle gives radius and how far the ring
     // sits beyond the endpoint, i.e. a hemisphere.
     if (!segment.closed) {
-        for (let c = capSegments; c >= 1; c -= 1) {
+        startPole = emitPole(
+            pts[0]!.clone().add(
+                tangents[0]!.clone().multiplyScalar(-radius * capLengthScale),
+            ),
+        );
+
+        for (let c = capSegments - 1; c >= 1; c -= 1) {
             const phi = (c / capSegments) * (Math.PI / 2);
             emitRing(
-                pts[0]!.clone().add(tangents[0]!.clone().multiplyScalar(-Math.sin(phi) * radius)),
+                pts[0]!.clone().add(
+                    tangents[0]!.clone().multiplyScalar(
+                        -Math.sin(phi) * radius * capLengthScale,
+                    ),
+                ),
                 tangents[0]!,
                 normals[0]!,
                 Math.cos(phi) * radius,
@@ -318,20 +343,28 @@ function sweep(
     }
 
     if (!segment.closed) {
-        for (let c = 1; c <= capSegments; c += 1) {
+        for (let c = 1; c < capSegments; c += 1) {
             const phi = (c / capSegments) * (Math.PI / 2);
             emitRing(
                 pts[n - 1]!.clone().add(
-                    tangents[n - 1]!.clone().multiplyScalar(Math.sin(phi) * radius),
+                    tangents[n - 1]!.clone().multiplyScalar(
+                        Math.sin(phi) * radius * capLengthScale,
+                    ),
                 ),
                 tangents[n - 1]!,
                 normals[n - 1]!,
                 Math.cos(phi) * radius,
             );
         }
+
+        endPole = emitPole(
+            pts[n - 1]!.clone().add(
+                tangents[n - 1]!.clone().multiplyScalar(radius * capLengthScale),
+            ),
+        );
     }
 
-    const rings = ringCount.length;
+    const rings = ringStarts.length;
 
     // Two triangles per quad. The radial index wraps with %, so the seam
     // shares vertices instead of duplicating them — no split normals, and so
@@ -352,14 +385,29 @@ function sweep(
     const lastRing = segment.closed ? rings : rings - 1;
 
     for (let i = 0; i < lastRing; i += 1) {
-        const a = baseVertex + i * radialSegments;
-        const b = baseVertex + ((i + 1) % rings) * radialSegments;
+        const a = ringStarts[i]!;
+        const b = ringStarts[(i + 1) % rings]!;
 
         for (let j = 0; j < radialSegments; j += 1) {
             const j2 = (j + 1) % radialSegments;
 
             indices.push(a + j, b + j2, b + j);
             indices.push(a + j, a + j2, b + j2);
+        }
+    }
+
+    if (!segment.closed && startPole !== null && endPole !== null) {
+        const firstRing = ringStarts[0]!;
+        const finalRing = ringStarts[rings - 1]!;
+
+        for (let j = 0; j < radialSegments; j += 1) {
+            const j2 = (j + 1) % radialSegments;
+
+            // Real poles avoid the degenerate zero-radius rings previously
+            // used here. Their faces give the endpoint a continuous normal,
+            // so fur grows around a rounded cap instead of a clipped edge.
+            indices.push(startPole, firstRing + j2, firstRing + j);
+            indices.push(finalRing + j, finalRing + j2, endPole);
         }
     }
 }
@@ -376,6 +424,7 @@ export function buildRoundedStrokeGeometry(
     const radius = options.radius ?? 0.007;
     const radialSegments = options.radialSegments ?? 24;
     const capSegments = options.capSegments ?? 4;
+    const capLengthScale = options.capLengthScale ?? 1;
 
     const position = source.getAttribute("position");
 
@@ -414,6 +463,7 @@ export function buildRoundedStrokeGeometry(
             radius,
             radialSegments,
             capSegments,
+            capLengthScale,
             positions,
             indices,
         );

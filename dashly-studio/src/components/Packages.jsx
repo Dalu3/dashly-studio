@@ -1,293 +1,184 @@
 import { useEffect, useRef, useState } from "react";
+
 import "./Packages.css";
 import arrowImage from "../assets/arrow.webp";
-import { VIEWPORT_CHECK_EVENT, navigateToHash } from "../utils/scrollToHash";
-
-const MOBILE_BREAKPOINT = "(max-width: 768px)";
+import { navigateToHash } from "../utils/scrollToHash";
 
 const packages = [
     {
         title: "Landing page",
-        price: "from £600",
         description:
-            "One-page website designed to convert visitors into taking a specific action: booking a service, signing up, or making a purchase etc.",
-    },
-    {
-        title: "Portfolio Web",
-        price: "from £600",
-        description:
-            "Showcase your work, style, or brand with a clean, responsive portfolio site built to impress, convert, and help you stand out in your industry.",
+            "A one-page website designed to turn visitors into customers with a clear message and strong call to action.",
     },
     {
         title: "Multi-Page Web",
-        price: "from £750",
         description:
-            "A full-featured website with multiple pages perfect for businesses needing separate sections for services, about, contact, and more.",
+            "A complete business website with dedicated pages for your services, company, portfolio, contact information and more.",
     },
     {
         title: "Catalogue Web",
-        price: "from £800",
         description:
-            "Display your products or services in a clean, organised online catalogue without a payment system. Great for browsing, menus, or list of products.",
+            "Display your products or services in a structured online catalogue without online payments. Perfect for browsing and enquiries.",
     },
     {
-        title: "E-commerce",
-        price: "from £1000",
+        title: "E-Commerce",
         description:
-            "A fast, secure online store built to sell, complete with product pages, cart, payment integration, and mobile optimization.",
+            "Sell products online with a secure store, product management, shopping cart and payment integration.",
     },
     {
-        title: "Redesign Web",
-        price: "from £600",
+        title: "Web Application",
         description:
-            "We’ll redesign your current site to look modern, load faster, and work better, enhancing both the user experience and your results.",
+            "A tailored digital product that brings your workflow, customers and business tools together in one place.",
     },
 ];
 
 export default function Packages() {
-    const cardRefs = useRef([]);
-    const gridRef = useRef(null);
-    const animatedCardsRef = useRef(packages.map(() => false));
-    const [isMobileViewport, setIsMobileViewport] = useState(() => {
-        if (typeof window === "undefined") return false;
-        return window.matchMedia(MOBILE_BREAKPOINT).matches;
-    });
-    const [shouldAnimateCards, setShouldAnimateCards] = useState(false);
-    const [visibleCards, setVisibleCards] = useState(() =>
-        packages.map(() => false),
-    );
+    const revealTargetRef = useRef(null);
+    const readingCopyRef = useRef(null);
+    const [isMotionReady, setIsMotionReady] = useState(false);
+    const [isRevealed, setIsRevealed] = useState(false);
 
     useEffect(() => {
-        if (typeof window === "undefined") return undefined;
+        const revealTarget = revealTargetRef.current;
 
-        const mediaQuery = window.matchMedia(MOBILE_BREAKPOINT);
-        const handleChange = (event) => {
-            setIsMobileViewport(event.matches);
-        };
-
-        setIsMobileViewport(mediaQuery.matches);
-
-        if (mediaQuery.addEventListener) {
-            mediaQuery.addEventListener("change", handleChange);
-            return () => mediaQuery.removeEventListener("change", handleChange);
-        }
-
-        mediaQuery.addListener(handleChange);
-        return () => mediaQuery.removeListener(handleChange);
-    }, []);
-
-    useEffect(() => {
-        if (typeof window === "undefined") {
+        if (!revealTarget) {
             return undefined;
         }
 
-        setShouldAnimateCards(isMobileViewport);
-        return undefined;
-    }, [isMobileViewport]);
-
-    useEffect(() => {
-        if (typeof window === "undefined" || !shouldAnimateCards) {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            setIsMotionReady(true);
+            setIsRevealed(true);
             return undefined;
         }
 
-        const cards = cardRefs.current.filter(Boolean);
-        if (!cards.length) return undefined;
-        let revealFrameId = 0;
-        let revealTimeoutId = 0;
+        if (!("IntersectionObserver" in window)) {
+            setIsMotionReady(true);
+            setIsRevealed(true);
+            return undefined;
+        }
 
-        const revealCard = (card) => {
-            const index = Number(card.dataset.packageIndex);
+        let firstFrame = 0;
+        let revealFrame = 0;
 
-            if (
-                Number.isNaN(index) ||
-                animatedCardsRef.current[index] ||
-                card.classList.contains("animated")
-            ) {
-                return;
-            }
-
-            animatedCardsRef.current[index] = true;
-
-            setVisibleCards((current) => {
-                if (current[index]) return current;
-
-                const next = [...current];
-                next[index] = true;
-                return next;
-            });
-        };
-
-        const revealVisibleCards = () => {
-            const viewportHeight =
-                window.innerHeight || document.documentElement.clientHeight;
-
-            cards.forEach((card) => {
-                if (
-                    card.classList.contains("animated") ||
-                    animatedCardsRef.current[
-                        Number(card.dataset.packageIndex)
-                    ]
-                ) {
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (!entry?.isIntersecting) {
                     return;
                 }
 
-                const rect = card.getBoundingClientRect();
-                const isVisible =
-                    rect.top <= viewportHeight * 0.92 &&
-                    rect.bottom >= viewportHeight * 0.08;
-
-                if (isVisible) {
-                    revealCard(card);
-                }
-            });
-        };
-
-        const scheduleRevealVisibleCards = () => {
-            if (revealFrameId) {
-                window.cancelAnimationFrame(revealFrameId);
-            }
-
-            revealFrameId = window.requestAnimationFrame(() => {
-                revealVisibleCards();
-            });
-        };
-
-        let observer;
-
-        if ("IntersectionObserver" in window) {
-            observer = new IntersectionObserver(
-                (entries) => {
-                    entries.forEach((entry) => {
-                        const isVisible =
-                            entry.isIntersecting ||
-                            entry.intersectionRatio > 0;
-
-                        if (
-                            !isVisible ||
-                            entry.target.classList.contains("animated")
-                        ) {
-                            return;
-                        }
-
-                        revealCard(entry.target);
-                        observer?.unobserve(entry.target);
+                // The prepared state is painted in its own frame. Without
+                // this separation, React can batch both states and the
+                // browser has no visible start point from which to animate.
+                setIsMotionReady(true);
+                firstFrame = window.requestAnimationFrame(() => {
+                    revealFrame = window.requestAnimationFrame(() => {
+                        setIsRevealed(true);
                     });
-                },
-                {
-                    threshold: 0.1,
-                },
-            );
-
-            window.requestAnimationFrame(() => {
-                cards.forEach((card) => {
-                    if (!card.classList.contains("animated")) {
-                        observer?.observe(card);
-                    }
                 });
-                scheduleRevealVisibleCards();
-                revealTimeoutId = window.setTimeout(
-                    scheduleRevealVisibleCards,
-                    120,
-                );
-            });
-        } else {
-            window.requestAnimationFrame(() => {
-                scheduleRevealVisibleCards();
-                revealTimeoutId = window.setTimeout(
-                    scheduleRevealVisibleCards,
-                    120,
-                );
-            });
+                observer.disconnect();
+            },
+            // Observe the section rather than the small intro. On mobile the
+            // intro can pass the viewport before 75% of it is visible, which
+            // left the reveal in its static state. This threshold starts the
+            // sequence only once a meaningful portion of the block is on
+            // screen, while remaining reliable at every viewport height.
+            { threshold: 0.12 },
+        );
+
+        observer.observe(revealTarget);
+        return () => {
+            observer.disconnect();
+            window.cancelAnimationFrame(firstFrame);
+            window.cancelAnimationFrame(revealFrame);
+        };
+    }, []);
+
+    useEffect(() => {
+        const copy = readingCopyRef.current;
+
+        if (!copy || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            return undefined;
         }
 
-        window.addEventListener("scroll", scheduleRevealVisibleCards, {
-            passive: true,
-        });
-        window.addEventListener("resize", scheduleRevealVisibleCards);
-        window.addEventListener("orientationchange", scheduleRevealVisibleCards);
-        window.addEventListener("load", scheduleRevealVisibleCards);
-        window.addEventListener("pageshow", scheduleRevealVisibleCards);
-        window.addEventListener("touchend", scheduleRevealVisibleCards, {
-            passive: true,
-        });
-        window.addEventListener(
-            VIEWPORT_CHECK_EVENT,
-            scheduleRevealVisibleCards,
+        const rootStyles = window.getComputedStyle(document.documentElement);
+        const readingStart = Number.parseFloat(
+            rootStyles.getPropertyValue("--scroll-reading-start"),
         );
-        document.fonts?.ready?.then(scheduleRevealVisibleCards);
+        const readingEnd = Number.parseFloat(
+            rootStyles.getPropertyValue("--scroll-reading-end"),
+        );
+        let frame = 0;
+
+        const updateProgress = () => {
+            frame = 0;
+            const viewportHeight = window.innerHeight;
+            const { top } = copy.getBoundingClientRect();
+            const start = viewportHeight * readingStart;
+            const end = viewportHeight * readingEnd;
+            const progress = Math.min(1, Math.max(0, (start - top) / (start - end)));
+
+            copy.style.setProperty("--reading-progress", `${progress * 100}%`);
+        };
+
+        const requestUpdate = () => {
+            if (!frame) {
+                frame = window.requestAnimationFrame(updateProgress);
+            }
+        };
+
+        updateProgress();
+        window.addEventListener("scroll", requestUpdate, { passive: true });
+        window.addEventListener("resize", requestUpdate);
 
         return () => {
-            observer?.disconnect();
-            window.clearTimeout(revealTimeoutId);
-            window.cancelAnimationFrame(revealFrameId);
-            window.removeEventListener("scroll", scheduleRevealVisibleCards);
-            window.removeEventListener("resize", scheduleRevealVisibleCards);
-            window.removeEventListener(
-                "orientationchange",
-                scheduleRevealVisibleCards,
-            );
-            window.removeEventListener("load", scheduleRevealVisibleCards);
-            window.removeEventListener("pageshow", scheduleRevealVisibleCards);
-            window.removeEventListener("touchend", scheduleRevealVisibleCards);
-            window.removeEventListener(
-                VIEWPORT_CHECK_EVENT,
-                scheduleRevealVisibleCards,
-            );
+            window.cancelAnimationFrame(frame);
+            window.removeEventListener("scroll", requestUpdate);
+            window.removeEventListener("resize", requestUpdate);
         };
-    }, [shouldAnimateCards]);
+    }, []);
 
     return (
-        <section className="packages-section" id="packages">
-            <h2 className="block-title" id="packages-title">
-                {isMobileViewport ? (
-                    "Choose Your Website Package"
-                ) : (
-                    <>
-                        Choose Your Perfect
-                        <br />
-                        Development Package
-                    </>
-                )}
-            </h2>
-            <div className="packages-grid" ref={gridRef}>
-                {packages.map((pkg, index) => (
-                    <article
-                        key={index}
-                        ref={(element) => {
-                            cardRefs.current[index] = element;
-                        }}
-                        data-package-index={index}
-                        className={`package-card${shouldAnimateCards ? " package-card--mobile" : ""}${visibleCards[index] ? " is-visible animated" : ""}`}
-                        style={
-                            shouldAnimateCards
-                                ? {
-                                      "--package-delay": `${Math.min(index, 2) * 0.12}s`,
-                                  }
-                                : undefined
-                        }
-                    >
-                        <div className="package-header">
+        <section
+            ref={revealTargetRef}
+            className={`packages-section${isMotionReady ? " packages-section--motion-ready" : ""}${isRevealed ? " packages-section--revealed" : ""}`}
+            id="packages"
+            aria-labelledby="packages-title"
+        >
+            <div className="packages-content">
+                <header className="packages-intro">
+                    <h2 id="packages-title">
+                        The websites <span>we build</span>
+                    </h2>
+                    <p ref={readingCopyRef} className="packages-intro__reading-copy">
+                        Choose the option closest to your idea, or answer five quick
+                        questions to receive a personalised project estimate.
+                    </p>
+                </header>
+
+                <div className="packages-list">
+                    {packages.map((pkg) => (
+                        <article className="package-row" key={pkg.title}>
                             <h3>{pkg.title}</h3>
-                            <span className="package-price">{pkg.price}</span>
-                        </div>
-                        <p className="package-description">{pkg.description}</p>
-                        <a
-                            href="#contact"
-                            className="package-cta"
-                            onClick={(event) =>
-                                navigateToHash(event, "#contact")
-                            }
-                        >
-                            Ask a question{" "}
-                            <img
-                                src={arrowImage}
-                                alt="Ask a question"
-                                className="arrow-icon"
-                                loading="lazy"
-                            />
-                        </a>
-                    </article>
-                ))}
+                            <p>{pkg.description}</p>
+                        </article>
+                    ))}
+                </div>
+
+                <div className="packages-estimate">
+                    <p>Five questions and you&rsquo;ll have a price.</p>
+                    <a
+                        href="#contact"
+                        onClick={(event) => navigateToHash(event, "#contact")}
+                    >
+                        Get My Estimate
+                        <img
+                            src={arrowImage}
+                            className="packages-estimate__icon"
+                            alt=""
+                            aria-hidden="true"
+                        />
+                    </a>
+                </div>
             </div>
         </section>
     );

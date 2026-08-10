@@ -84,30 +84,32 @@ const MAX_CURSOR_STRENGTH = 1.6;
 
 /**
  * The cursor's OWN effective position/direction trail behind the real
- * pointer with a gentle, slightly underdamped spring, rather than snapping
- * to it every frame. This is what produces a natural trailing "brushed"
- * feel and the brief secondary settle after the pointer stops — genuine
- * per-fibre inertia would need a physics simulation per strand; a damped
- * spring on the effective brush centre is the lightweight, responsive
- * approximation of the same idea, applied once instead of per fibre.
+ * pointer with a damped spring, rather than snapping to it every frame —
+ * this is what keeps the brush centre from teleporting on a fast flick. The
+ * stiffness/damping pair is tuned tight enough that the trail is no longer
+ * visible during ordinary pointer motion (raised from the original
+ * 360/28 and 420/30, which read as a lagging "shadow"), while keeping the
+ * damping ratio roughly constant so the response doesn't start overshooting.
  */
-const FOLLOW_STIFFNESS = 360;
-const FOLLOW_DAMPING = 28;
-const DIRECTION_STIFFNESS = 420;
-const DIRECTION_DAMPING = 30;
+const FOLLOW_STIFFNESS = 2600;
+const FOLLOW_DAMPING = 75;
+const DIRECTION_STIFFNESS = 2900;
+const DIRECTION_DAMPING = 80;
 
 /**
- * A SECOND position spring chasing the same raw target as `followPoint`,
- * but much softer and deliberately underdamped (damping well below the
- * critical value for this stiffness) — where `followPoint` is tuned to
- * settle promptly, this one visibly over-travels and oscillates its way to
- * a stop. That lag-plus-overshoot is what strand.vert's ripple term turns
- * into "a wave trailing the brush and settling after it passes": a real
- * cheap substitute for simulating propagation, built from a spring
- * constant choice rather than new physics.
+ * A SECOND position spring chasing the same raw target as `followPoint` —
+ * this is the one most likely to read as "a shadow lagging behind the
+ * cursor": at the original 42/5.8 it was an order of magnitude softer than
+ * followPoint even before followPoint itself got tightened above, so
+ * raising followPoint's responsiveness alone only made the gap between the
+ * two MORE visible, not less. Still deliberately softer than followPoint
+ * (damping is below critical for this stiffness, same as before) so a
+ * little wave/overshoot character survives strand.vert's ripple term, but
+ * now catches up fast enough that it no longer reads as a separate trailing
+ * shape.
  */
-const RIPPLE_STIFFNESS = 42;
-const RIPPLE_DAMPING = 5.8;
+const RIPPLE_STIFFNESS = 600;
+const RIPPLE_DAMPING = 22;
 
 /** Critically-damped-ish spring integrator for a single scalar, applied
  *  per-axis for a Vector3. Shared shape for strength/position/direction so

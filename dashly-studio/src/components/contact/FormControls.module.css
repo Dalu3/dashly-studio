@@ -182,3 +182,26 @@
     font-size: var(--font-size-xs);
     color: var(--color-feedback-error);
 }
+
+/* Laptop type scale: every form control, option and error string is the
+   same "form & links" size. */
+@media (min-width: 64rem) {
+    .label,
+    .control,
+    .option,
+    .error {
+        font-size: var(--font-size-small);
+    }
+}
+
+/* The approved desktop starts at 64rem. Keep every desktop declaration above
+   intact and constrain this touch/press feedback to tablet and phone widths. */
+@media (max-width: 63.999rem) {
+    .selectTrigger:active {
+        border-color: var(--color-focus-ring);
+    }
+
+    .option:active {
+        background: var(--color-surface-sunken);
+    }
+}

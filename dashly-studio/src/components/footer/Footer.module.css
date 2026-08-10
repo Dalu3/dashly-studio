@@ -15,6 +15,8 @@
  */
 
 .root {
+    margin-block-start: var(--space-0);
+
     background: var(--color-surface-inverse);
     color: var(--color-text-inverse);
     line-height: 1.1;
@@ -149,6 +151,51 @@
     font-weight: var(--font-weight-extralight);
     line-height: 1.265;
     letter-spacing: var(--letter-spacing-wide-plus);
+}
+
+/* Phone's Figma frame (node 609:91) shortens this blurb; tablet/desktop
+   keep the longer copy. Both nodes always exist for a11y — CSS display
+   toggling (not JS) so a screen reader only ever announces one. */
+.touchBlurbShort {
+    display: inline;
+}
+
+.touchBlurbLong {
+    display: none;
+}
+
+@media (min-width: 48rem) {
+    .touchBlurbShort {
+        display: none;
+    }
+
+    .touchBlurbLong {
+        display: inline;
+    }
+}
+
+/* Laptop type scale: tagline=p, wordmark=H2 (bumped up from H3 so "Dashly
+   Studio" reads as the brand mark, not a column label), column headings=H3,
+   every link and the meta row=small. The approved desktop starts at 64rem —
+   independent of the 72rem/108rem structural breakpoints below. */
+@media (min-width: 64rem) {
+    .tagline {
+        font-size: var(--font-size-p);
+    }
+
+    .wordmark {
+        font-size: var(--font-size-h2);
+    }
+
+    .columnHeading {
+        font-size: var(--font-size-h3);
+    }
+
+    .link,
+    .touchBlurb,
+    .bottom {
+        font-size: var(--font-size-small);
+    }
 }
 
 @media (min-width: 72rem) {
@@ -328,5 +375,144 @@
     .legal {
         position: static;
         gap: 4.25rem;
+    }
+}
+
+/* The approved desktop starts at 64rem. Keep every desktop declaration above
+   intact and constrain this responsive refinement to tablet and phone widths. */
+@media (max-width: 63.999rem) {
+    .root {
+        overflow-x: clip;
+    }
+
+    .top {
+        gap: var(--footer-responsive-top-gap);
+    }
+
+    .brand {
+        max-width: var(--footer-responsive-copy-width);
+    }
+
+    .tagline,
+    .wordmark {
+        line-height: var(--line-height-normal);
+    }
+
+    .columns {
+        gap: var(--footer-responsive-column-gap);
+    }
+
+    .nav .linkList,
+    .touch .linkList {
+        gap: var(--space-0);
+    }
+
+    .link {
+        display: inline-flex;
+        align-items: center;
+        min-block-size: var(--footer-responsive-link-hit-area);
+    }
+
+    .link:active {
+        opacity: 0.6;
+    }
+
+    .touchBlurb {
+        max-width: min(100%, var(--footer-responsive-copy-width));
+    }
+
+    .bottom {
+        padding-block: var(--footer-responsive-bottom-padding-start)
+            var(--footer-responsive-bottom-padding-end);
+        gap: var(--space-xs);
+    }
+
+    .legal {
+        flex-wrap: wrap;
+        column-gap: var(--footer-responsive-legal-column-gap);
+        row-gap: var(--footer-responsive-legal-row-gap);
+    }
+
+    .legalLink {
+        min-block-size: var(--footer-responsive-link-hit-area);
+        align-items: center;
+        display: inline-flex;
+    }
+}
+
+/* Navigation and "Let's stay in touch" sit side by side under the brand
+   block on every phone and tablet width, per the reference composition.
+   Phones get a tighter column-gap than tablet — --space-3xl reads as too
+   wide a gulf on a ~375-430px screen. */
+@media (max-width: 63.999rem) {
+    .columns {
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+        align-items: start;
+        column-gap: var(--space-lg);
+        row-gap: var(--space-2xl);
+    }
+
+    .touchBlurb {
+        max-width: 100%;
+    }
+}
+
+@media (min-width: 48rem) and (max-width: 63.999rem) {
+    .columns {
+        column-gap: var(--space-3xl);
+    }
+}
+
+/* Pixel match against Figma node 609:91 (iPhone 14/15 Pro frame, 393px).
+   Phone only — everything above (tablet's 2-column .columns, the approved
+   desktop composition) is untouched. */
+@media (max-width: 47.999rem) {
+    .root {
+        padding-inline: var(--space-md);
+    }
+
+    .top {
+        padding-block-start: 3.375rem;
+        gap: 4.05rem;
+    }
+
+    .brand {
+        gap: 0.45rem;
+    }
+
+    .tagline {
+        /* Matches the Figma text box (308.17px) so the line break lands on
+           "that" / "works" exactly like the frame, not wherever the
+           inherited --footer-responsive-copy-width happens to wrap it. */
+        max-width: 19.25rem;
+    }
+
+    .wordmark {
+        font-size: 1.5rem;
+    }
+
+    .nav .columnHeading,
+    .touch .columnHeading {
+        margin-bottom: 1rem;
+    }
+
+    .nav .linkList,
+    .touch .linkList {
+        gap: var(--space-2xs);
+    }
+
+    .link {
+        min-block-size: auto;
+        padding-block: 0.3rem;
+    }
+
+    .legalLink {
+        min-block-size: auto;
+        padding-block: var(--space-3xs);
+        opacity: 0.5;
+    }
+
+    .bottom {
+        gap: var(--space-md);
     }
 }

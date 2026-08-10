@@ -98,6 +98,15 @@
         align-self: start;
         margin-top: 11.8675rem;
     }
+
+    /* Laptop type scale: heading=H2, body=p. */
+    .heading {
+        font-size: var(--font-size-h2);
+    }
+
+    .body {
+        font-size: var(--font-size-p);
+    }
 }
 
 @media (min-width: 108rem) {
@@ -146,4 +155,39 @@
 .statusError {
     color: var(--color-feedback-error);
     font-weight: var(--font-weight-medium);
+}
+
+/* Laptop type scale: submit/status text is the "form & links" size. Placed
+   after the base .submit/.status rules so it wins the cascade at --bp-lg. */
+@media (min-width: 64rem) {
+    .submit,
+    .status {
+        font-size: var(--font-size-small);
+    }
+}
+
+/* The approved desktop starts at 64rem. Keep every desktop declaration above
+   intact and constrain this touch/press feedback to tablet and phone widths. */
+@media (max-width: 63.999rem) {
+    .submit:active:not(:disabled) {
+        background: #141414;
+    }
+}
+
+/* Tablet only: pair Name/Email and the two selects into two-column rows,
+   matching the reference composition; Timeline, Message and Send stay full
+   width. Phones keep the single-column stack (below 48rem), and the
+   approved desktop (64rem+) is untouched. */
+@media (min-width: 48rem) and (max-width: 63.999rem) {
+    .card {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .card > *:nth-child(5),
+    .card > *:nth-child(6),
+    .submit,
+    .status {
+        grid-column: 1 / -1;
+    }
 }

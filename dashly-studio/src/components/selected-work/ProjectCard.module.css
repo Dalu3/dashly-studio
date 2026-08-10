@@ -61,6 +61,12 @@
     overflow: clip;
 }
 
+/* The <picture> wrapper (mobile/desktop source switch) must not generate its
+   own box, or .image's 100%/100% would size against it instead of .frame. */
+.frame > picture {
+    display: contents;
+}
+
 .image,
 .placeholder {
     width: 100%;

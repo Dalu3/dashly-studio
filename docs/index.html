@@ -16,9 +16,48 @@
         <link rel="manifest" href="/site.webmanifest" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+        <!--
+            Weight 300 dropped: nothing in the codebase references
+            --font-weight-light (grepped across src/**/*.css|jsx|tsx), so it
+            was pure unused payload on every load.
+
+            Loaded as non-render-blocking: `media="print"` makes the browser
+            fetch it without waiting for it before first paint, then the
+            `onload` swap applies it once it has arrived. `<noscript>` keeps
+            the normal blocking behaviour for the rare case JS is disabled,
+            so the fonts still load either way.
+        -->
+        <link
+            rel="preload"
+            as="style"
+            href="https://fonts.googleapis.com/css2?family=Sora:wght@200;400;500;600;700&display=swap"
+        />
         <link
             rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Sora:wght@200;300;400;500;600;700&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Sora:wght@200;400;500;600;700&display=swap"
+            media="print"
+            onload="this.media='all'"
+        />
+        <noscript>
+            <link
+                rel="stylesheet"
+                href="https://fonts.googleapis.com/css2?family=Sora:wght@200;400;500;600;700&display=swap"
+            />
+        </noscript>
+        <!--
+            Starts the hello.glb fetch as soon as the browser parses <head>,
+            instead of waiting for the JS module chain (App.jsx's dynamic
+            import -> preloadHello.ts -> GLTFLoader.load) to kick it off.
+            `as="fetch"` + `crossorigin` match how GLTFLoader actually
+            requests it (via fetch), which is required for the preload to be
+            reused rather than triggering a second request.
+        -->
+        <link
+            rel="preload"
+            href="/models/hello.glb"
+            as="fetch"
+            type="model/gltf-binary"
+            crossorigin
         />
         <meta property="og:locale" content="en_GB" />
         <meta property="og:type" content="website" />
@@ -36,7 +75,7 @@
         <meta name="twitter:description" content="Web design and website development for small businesses in Aberdeen and across the UK. Fast, conversion-focused websites built to turn visitors into enquiries." />
         <meta name="twitter:image" content="https://dashly.studio/og-image.png" />
         <meta name="twitter:image:alt" content="Dashly Studio preview for web design and website development in Aberdeen and across the UK" />
-        <script type="application/ld+json" data-route-schema="true">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://dashly.studio/#website","url":"https://dashly.studio/","name":"Dashly Studio","inLanguage":"en-GB","description":"Web design and website development for small businesses in Aberdeen and across the UK. Fast, conversion-focused websites built to turn visitors into enquiries.","publisher":{"@id":"https://dashly.studio/#organization"}},{"@type":"Organization","@id":"https://dashly.studio/#organization","name":"Dashly Studio","url":"https://dashly.studio/","image":"https://dashly.studio/og-image.png","logo":"https://dashly.studio/favicon.png","email":"dashly.studio.webdev@gmail.com","sameAs":["https://www.instagram.com/dashly__studio?igsh=bDhteTk3cTNwbHZs&utm_source=qr","https://www.facebook.com/share/1GEhgHVJGC/?mibextid=wwXIfr","https://www.linkedin.com/company/dashly-studio/"],"address":{"@type":"PostalAddress","addressLocality":"Aberdeen","addressRegion":"Scotland","addressCountry":"GB"},"areaServed":[{"@type":"City","name":"Aberdeen"},{"@type":"AdministrativeArea","name":"Scotland"},{"@type":"Country","name":"United Kingdom"}]},{"@type":["ProfessionalService","LocalBusiness"],"@id":"https://dashly.studio/#professional-service","name":"Dashly Studio","url":"https://dashly.studio/","image":"https://dashly.studio/og-image.png","email":"dashly.studio.webdev@gmail.com","priceRange":"GBP 600+","areaServed":[{"@type":"City","name":"Aberdeen"},{"@type":"AdministrativeArea","name":"Scotland"},{"@type":"Country","name":"United Kingdom"}],"address":{"@type":"PostalAddress","addressLocality":"Aberdeen","addressRegion":"Scotland","addressCountry":"GB"},"serviceType":["Web Design","Website Development","Landing Page Design"],"description":"Dashly Studio is a web design and website development studio in Aberdeen creating responsive business websites for startups and small businesses across the UK.","sameAs":["https://www.instagram.com/dashly__studio?igsh=bDhteTk3cTNwbHZs&utm_source=qr","https://www.facebook.com/share/1GEhgHVJGC/?mibextid=wwXIfr","https://www.linkedin.com/company/dashly-studio/"]},{"@type":"FAQPage","@id":"https://dashly.studio/#faq","mainEntity":[{"@type":"Question","name":"How long does it take to build a website?","acceptedAnswer":{"@type":"Answer","text":"Most projects take 1–2 month, depending on the scope and response time. We’ll give you a timeline before we start."}},{"@type":"Question","name":"Will my website work on phones and tablets?","acceptedAnswer":{"@type":"Answer","text":"Absolutely. All our websites are fully responsive and look great on all screen sizes."}},{"@type":"Question","name":"What is your work and payment process?","acceptedAnswer":{"@type":"Answer","text":"We work in stages. First, we start with a free consultation. Once we agree on the scope, a 50% deposit is required to begin. The remaining 50% is paid after the website is completed and approved."}},{"@type":"Question","name":"What affects the cost of the website?","acceptedAnswer":{"@type":"Answer","text":"The price depends on the number of pages, design complexity, required features, and whether you need help with content. You’ll get a clear quote after our first call."}},{"@type":"Question","name":"Do you create custom websites from scratch?","acceptedAnswer":{"@type":"Answer","text":"Yes, we create fully custom websites using real code. This means your site will be faster, more secure, and tailored exactly to your needs."}},{"@type":"Question","name":"Will the website be SEO-friendly from launch?","acceptedAnswer":{"@type":"Answer","text":"Yes. We build websites with clear heading structure, metadata, mobile responsiveness, and technical foundations that support Google visibility."}},{"@type":"Question","name":"Do you build landing pages for ads or niche services?","acceptedAnswer":{"@type":"Answer","text":"Yes. Landing pages are perfect when you have one offer, one audience, and one goal — to turn visitors into clients."}}]}]}</script>
+        <script type="application/ld+json" data-route-schema="true">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://dashly.studio/#website","url":"https://dashly.studio/","name":"Dashly Studio","inLanguage":"en-GB","description":"Web design and website development for small businesses in Aberdeen and across the UK. Fast, conversion-focused websites built to turn visitors into enquiries.","publisher":{"@id":"https://dashly.studio/#organization"}},{"@type":"Organization","@id":"https://dashly.studio/#organization","name":"Dashly Studio","url":"https://dashly.studio/","image":"https://dashly.studio/og-image.png","logo":"https://dashly.studio/favicon.png","email":"dashly.studio.webdev@gmail.com","sameAs":["https://www.instagram.com/dashly__studio?igsh=bDhteTk3cTNwbHZs&utm_source=qr","https://www.facebook.com/share/1GEhgHVJGC/?mibextid=wwXIfr","https://www.linkedin.com/company/dashly-studio/"],"address":{"@type":"PostalAddress","addressLocality":"Aberdeen","addressRegion":"Scotland","addressCountry":"GB"},"areaServed":[{"@type":"City","name":"Aberdeen"},{"@type":"AdministrativeArea","name":"Scotland"},{"@type":"Country","name":"United Kingdom"}]},{"@type":["ProfessionalService","LocalBusiness"],"@id":"https://dashly.studio/#professional-service","name":"Dashly Studio","url":"https://dashly.studio/","image":"https://dashly.studio/og-image.png","email":"dashly.studio.webdev@gmail.com","priceRange":"GBP 600+","areaServed":[{"@type":"City","name":"Aberdeen"},{"@type":"AdministrativeArea","name":"Scotland"},{"@type":"Country","name":"United Kingdom"}],"address":{"@type":"PostalAddress","addressLocality":"Aberdeen","addressRegion":"Scotland","addressCountry":"GB"},"serviceType":["Web Design","Website Development","Landing Page Design"],"description":"Dashly Studio is a web design and website development studio in Aberdeen creating responsive business websites for startups and small businesses across the UK.","sameAs":["https://www.instagram.com/dashly__studio?igsh=bDhteTk3cTNwbHZs&utm_source=qr","https://www.facebook.com/share/1GEhgHVJGC/?mibextid=wwXIfr","https://www.linkedin.com/company/dashly-studio/"]},{"@type":"FAQPage","@id":"https://dashly.studio/#faq","mainEntity":[{"@type":"Question","name":"How long will my project take?","acceptedAnswer":{"@type":"Answer","text":"Most projects take one to two months, depending on the scope, complexity, and how quickly feedback and content are provided. We’ll confirm a clear timeline before work begins."}},{"@type":"Question","name":"How much should I budget for a website?","acceptedAnswer":{"@type":"Answer","text":"Budgets vary by project type and scope. After a free consultation, we’ll recommend the right approach and provide a clear quote with no hidden costs."}},{"@type":"Question","name":"What affects the cost of the website?","acceptedAnswer":{"@type":"Answer","text":"The price depends on the number of pages, design complexity, required features, and whether you need help with content. You’ll get a clear quote after our first call."}},{"@type":"Question","name":"Do you create custom websites from scratch?","acceptedAnswer":{"@type":"Answer","text":"Yes, we create fully custom websites using real code. This means your site will be faster, more secure, and tailored exactly to your needs."}},{"@type":"Question","name":"Will the website be SEO-friendly from launch?","acceptedAnswer":{"@type":"Answer","text":"Yes. We build websites with clear heading structure, metadata, mobile responsiveness, and technical foundations that support Google visibility."}},{"@type":"Question","name":"Can I update the website without a developer?","acceptedAnswer":{"@type":"Answer","text":"Yes. When content editing is part of your project, we’ll provide an easy way to manage routine updates and show you how to use it confidently."}}]}]}</script>
         <style>
             html,
             body {
@@ -45,8 +84,8 @@
                 padding: 0;
             }
         </style>
-      <script type="module" crossorigin src="/assets/index-DL6xhbDn.js"></script>
-      <link rel="stylesheet" crossorigin href="/assets/index-BKZrZzB2.css">
+      <script type="module" crossorigin src="/assets/index-COOiCcNZ.js"></script>
+      <link rel="stylesheet" crossorigin href="/assets/index-BxTehndq.css">
     </head>
 
     <body>

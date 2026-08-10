@@ -1,4 +1,4 @@
-import type { BufferGeometry } from "three";
+import { BufferAttribute, BufferGeometry, Vector3 } from "three";
 import { mergeVertices } from "three/examples/jsm/utils/BufferGeometryUtils.js";
 
 import { buildRoundedStrokeGeometry } from "./buildRoundedStroke";
@@ -55,6 +55,173 @@ const STROKE_RADIUS = 0.0085;
 const WELD_TOLERANCE = 1e-5;
 
 /**
+ * `hello.glb` keeps the X's lower stem as a separate end of
+ * its swept path. Its source mesh stops on a flat ring there, so fur has no
+ * convex support volume to grow around and the otherwise soft silhouette
+ * reads as clipped. These values describe that *one measured terminal* in
+ * model space; they are geometry repair data, not visual design tokens.
+ */
+const HELLO_RING_SIZE = 12;
+const TERMINAL_CAP_SEGMENTS = 4;
+const TERMINAL_STEM_LENGTH_SCALE = 1.5;
+const TERMINAL_CAP_LENGTH_SCALE = 1.15;
+
+/**
+ * Extends only the identified lower terminal of the first letter with a
+ * hemisphere. The base ring, tube direction and radius all come from the
+ * GLB itself, so the continuation keeps the original direction and stroke
+ * thickness rather than approximating a new shape by eye.
+ */
+function addLowerStemCap(source: BufferGeometry): BufferGeometry {
+    const position = source.getAttribute("position");
+
+    if (!position || position.count < HELLO_RING_SIZE * 2) {
+        return source;
+    }
+
+    const ringCount = Math.floor(position.count / HELLO_RING_SIZE);
+    const centres: Vector3[] = [];
+
+    for (let ring = 0; ring < ringCount; ring += 1) {
+        const centre = new Vector3();
+        const offset = ring * HELLO_RING_SIZE;
+
+        for (let vertex = 0; vertex < HELLO_RING_SIZE; vertex += 1) {
+            centre.add(new Vector3(
+                position.getX(offset + vertex),
+                position.getY(offset + vertex),
+                position.getZ(offset + vertex),
+            ));
+        }
+
+        centres.push(centre.multiplyScalar(1 / HELLO_RING_SIZE));
+    }
+
+    // The lower stem is identified from the model's own measured location
+    // and the discontinuity to the following pen stroke. This excludes the
+    // outer diagonal edge, which must retain its original GLB shape.
+    const terminalRing = centres.findIndex((centre, ring) => {
+        const next = centres[ring + 1];
+
+        return (
+            centre.x > 0.06 &&
+            centre.x < 0.07 &&
+            centre.z > -0.085 &&
+            centre.z < -0.075 &&
+            ring > 0 &&
+            next !== undefined &&
+            centre.distanceTo(next) > 0.02
+        );
+    });
+
+    if (terminalRing < 1) {
+        return source;
+    }
+
+    const terminalCentre = centres[terminalRing]!;
+    const tangent = terminalCentre.clone().sub(centres[terminalRing - 1]!).normalize();
+    const terminalOffset = terminalRing * HELLO_RING_SIZE;
+    const terminalVertices = Array.from({ length: HELLO_RING_SIZE }, (_, vertex) =>
+        new Vector3(
+            position.getX(terminalOffset + vertex),
+            position.getY(terminalOffset + vertex),
+            position.getZ(terminalOffset + vertex),
+        ),
+    );
+    const radius = terminalVertices.reduce(
+        (total, vertex) => total + vertex.distanceTo(terminalCentre),
+        0,
+    ) / HELLO_RING_SIZE;
+
+    if (!Number.isFinite(radius) || radius <= 0) {
+        return source;
+    }
+
+    const positions = Array.from(position.array);
+    const existingIndex = source.getIndex();
+    const indices = existingIndex
+        ? Array.from(existingIndex.array)
+        : Array.from({ length: position.count }, (_, index) => index);
+    // Extend the stroke first with its full original radius. A longer dome
+    // alone would turn the end into an oval; this straight continuation is
+    // what makes the lower-left arm genuinely longer while the hemisphere
+    // retains a natural, unchanged-thickness join.
+    const stemDistance = radius * TERMINAL_STEM_LENGTH_SCALE;
+    const stemCentre = terminalCentre.clone().addScaledVector(tangent, stemDistance);
+    let previousRingStart = positions.length / 3;
+
+    for (const vertex of terminalVertices) {
+        const point = stemCentre.clone().add(vertex.clone().sub(terminalCentre));
+        positions.push(point.x, point.y, point.z);
+    }
+
+    for (let vertex = 0; vertex < HELLO_RING_SIZE; vertex += 1) {
+        const nextVertex = (vertex + 1) % HELLO_RING_SIZE;
+        indices.push(
+            terminalOffset + vertex,
+            previousRingStart + nextVertex,
+            previousRingStart + vertex,
+            terminalOffset + vertex,
+            terminalOffset + nextVertex,
+            previousRingStart + nextVertex,
+        );
+    }
+
+    for (let ring = 1; ring < TERMINAL_CAP_SEGMENTS; ring += 1) {
+        const phi = (ring / TERMINAL_CAP_SEGMENTS) * (Math.PI / 2);
+        const radialScale = Math.cos(phi);
+        const axialDistance = Math.sin(phi) * radius * TERMINAL_CAP_LENGTH_SCALE;
+        const ringStart = positions.length / 3;
+
+        for (const vertex of terminalVertices) {
+            const radial = vertex.clone().sub(terminalCentre).multiplyScalar(radialScale);
+            const point = stemCentre.clone()
+                .add(radial)
+                .addScaledVector(tangent, axialDistance);
+            positions.push(point.x, point.y, point.z);
+        }
+
+        for (let vertex = 0; vertex < HELLO_RING_SIZE; vertex += 1) {
+            const nextVertex = (vertex + 1) % HELLO_RING_SIZE;
+            indices.push(
+                previousRingStart + vertex,
+                ringStart + nextVertex,
+                ringStart + vertex,
+                previousRingStart + vertex,
+                previousRingStart + nextVertex,
+                ringStart + nextVertex,
+            );
+        }
+
+        previousRingStart = ringStart;
+    }
+
+    const pole = positions.length / 3;
+    const polePosition = stemCentre.clone().addScaledVector(
+        tangent,
+        radius * TERMINAL_CAP_LENGTH_SCALE,
+    );
+    positions.push(polePosition.x, polePosition.y, polePosition.z);
+
+    for (let vertex = 0; vertex < HELLO_RING_SIZE; vertex += 1) {
+        const nextVertex = (vertex + 1) % HELLO_RING_SIZE;
+        indices.push(previousRingStart + vertex, previousRingStart + nextVertex, pole);
+    }
+
+    const geometry = new BufferGeometry();
+    geometry.setAttribute("position", new BufferAttribute(new Float32Array(positions), 3));
+    geometry.setIndex(new BufferAttribute(new Uint32Array(indices), 1));
+    // This marker lets strand placement give the newly rounded terminal a
+    // denser root distribution. It changes neither its material nor its fur
+    // length — only prevents the small cap area from reading sparse.
+    const furCoverage = new Float32Array(positions.length / 3);
+    furCoverage.fill(1, position.count);
+    geometry.setAttribute("furCoverage", new BufferAttribute(furCoverage, 1));
+
+    return geometry;
+}
+
+/**
  * Prepares the source geometry for fur generation.
  *
  * Preferred path: re-sweep the word as a genuinely round tube along its own
@@ -85,14 +252,17 @@ export function prepareGeometry(source: BufferGeometry): BufferGeometry {
         // and it keeps the rebuilt mesh (~11k vertices) and its derived fin
         // edges slightly cheaper than the original 13.7k-vertex ribbon.
         radialSegments: 20,
-        capSegments: 5,
+        capSegments: 7,
+        // A compact, near-spherical terminal reads as a rounded plush end.
+        // An elongated cap creates a pointed silhouette once fur is applied.
+        capLengthScale: 0.75,
     });
 
     if (rounded) {
         return rounded;
     }
 
-    let geometry = source.clone();
+    let geometry = addLowerStemCap(source);
 
     geometry.deleteAttribute("normal");
     if (geometry.getAttribute("uv")) {

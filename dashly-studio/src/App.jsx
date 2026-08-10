@@ -9,7 +9,6 @@ import Stages from "./components/Stages.jsx";
 import FAQ from "./components/FAQ.jsx";
 import Contact from "./components/contact/Contact";
 import Footer from "./components/footer/Footer";
-import { MouseFollower } from "./components/MouseFollower.jsx";
 import Loader from "./components/Loader.jsx";
 import Privacy from "./components/Privacy.jsx";
 import Terms from "./components/Terms.jsx";
@@ -23,6 +22,15 @@ import {
     homePage,
     normalizePathname,
 } from "./seo/siteMetadata.js";
+
+function SurfaceTransition({ variant }) {
+    return (
+        <div
+            className={`surface-transition surface-transition--${variant}`}
+            aria-hidden="true"
+        />
+    );
+}
 
 function isReloadNavigation() {
     if (typeof window === "undefined") {
@@ -61,9 +69,11 @@ function HomePage({ onHeroReady }) {
                 <MainPage />
             </Hero>
             <SelectedWork />
+            <SurfaceTransition variant="page-to-accent" />
             <Packages />
             <Stages />
             <FAQ />
+            <SurfaceTransition variant="page-to-accent" />
             <Contact />
         </main>
     );
@@ -96,7 +106,6 @@ function AppFrame({ pathname, onHeroReady }) {
     if (page.key === "privacy") {
         return (
             <>
-                <MouseFollower />
                 <Header />
                 <Privacy />
                 <Footer />
@@ -107,7 +116,6 @@ function AppFrame({ pathname, onHeroReady }) {
     if (page.key === "terms") {
         return (
             <>
-                <MouseFollower />
                 <Header />
                 <Terms />
                 <Footer />
@@ -117,9 +125,9 @@ function AppFrame({ pathname, onHeroReady }) {
 
     return (
         <>
-            <MouseFollower />
             <Header />
             <HomePage onHeroReady={onHeroReady} />
+            <SurfaceTransition variant="accent-to-inverse" />
             <Footer />
         </>
     );

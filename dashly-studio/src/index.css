@@ -7,6 +7,14 @@
 :root {
     --content-max-width: 1100px;
     --content-gutter: 2rem;
+
+    /* .block-title's legacy per-breakpoint scale (pre-dating the fluid
+       clamp() type system — see typography.css). Values unchanged; each just
+       has a name now instead of being a bare number repeated below. */
+    --block-title-size-sm: 2rem;
+    --block-title-size-md: 2.1rem;
+    --block-title-size-lg: 2.5rem;
+    --block-title-size-xl: 3rem;
 }
 
 body {
@@ -61,7 +69,7 @@ body {
 
 .block-title {
     text-align: left;
-    font-size: 3.7rem;
+    font-size: var(--font-size-h2);
     font-weight: 500;
     max-width: 1200px;
     padding: 0;
@@ -81,6 +89,17 @@ body {
     scroll-margin-top: 30px;
 }
 
+/* Each section owns its internal rhythm. External gaps would expose the page
+   surface between the intentional colour-bridge layers. */
+#main-content > * + * {
+    margin-block-start: var(--space-0);
+}
+
+/* Kept explicit so the Hero → Selected Work boundary remains self-documenting. */
+#main-content > :nth-child(2) {
+    margin-block-start: 0;
+}
+
 @media (min-width: 598px) and (max-width: 769px) {
     :root {
         --content-gutter: 3rem;
@@ -97,7 +116,7 @@ body {
     }
 
     .block-title {
-        font-size: 2.5rem;
+        font-size: var(--block-title-size-lg);
         text-align: center;
     }
 }
@@ -120,22 +139,25 @@ body {
     .block-title {
         padding: 0;
         text-align: center;
-        font-size: 2.1rem;
+        font-size: var(--block-title-size-md);
         max-width: 100%;
         white-space: normal;
         word-break: break-word;
     }
 }
 
-@media (min-width: 769px) and (max-width: 1060px) {
+/* Entirely under --bp-lg (64rem/1024px), so the approved desktop h2
+   (var(--font-size-h2), from the unscoped base rule above) is never
+   touched here. */
+@media (min-width: 769px) and (max-width: 63.999rem) {
     .block-title {
-        font-size: 3rem;
+        font-size: var(--block-title-size-xl);
     }
 }
 
 @media (min-width: 20px) and (max-width: 415px) {
     .block-title {
-        font-size: 2rem;
+        font-size: var(--block-title-size-sm);
         padding: 0 1rem;
     }
 }
