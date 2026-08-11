@@ -24,8 +24,10 @@
 .surface-transition--accent-to-process {
     background: linear-gradient(
         to bottom,
-        var(--color-surface-accent-subtle),
-        var(--color-surface-process)
+        var(--color-surface-accent-subtle) 0%,
+        var(--color-surface-accent-subtle) 50%,
+        var(--color-surface-process) 50%,
+        var(--color-surface-process) 100%
     );
 }
 

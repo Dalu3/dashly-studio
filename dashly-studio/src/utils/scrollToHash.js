@@ -3,10 +3,30 @@ export const VIEWPORT_CHECK_EVENT = "dashly:viewport-check";
 const DEFAULT_SCROLL_DURATION = 420;
 const DESKTOP_NATIVE_SCROLL_MEDIA_QUERY =
     "(min-width: 1061px) and (hover: hover) and (pointer: fine)";
+const TOUCH_SCROLL_MEDIA_QUERY = "(max-width: 63.999rem)";
 
 let activeScrollFrame = 0;
 let activeScrollToken = 0;
 let removeActiveScrollInterrupts = null;
+
+function getScrollDuration() {
+    if (typeof window === "undefined") {
+        return DEFAULT_SCROLL_DURATION;
+    }
+
+    const durationToken = window.matchMedia(TOUCH_SCROLL_MEDIA_QUERY).matches
+        ? "--duration-slower"
+        : "--duration-slow";
+    const duration = Number.parseFloat(
+        window
+            .getComputedStyle(document.documentElement)
+            .getPropertyValue(durationToken),
+    );
+
+    return Number.isFinite(duration) && duration > 0
+        ? duration
+        : DEFAULT_SCROLL_DURATION;
+}
 
 function normalizePathname(pathname = "/") {
     if (!pathname) {
@@ -31,19 +51,26 @@ function getHeaderOffset(element) {
         window.getComputedStyle(element).scrollMarginTop,
     );
 
-    if (!Number.isNaN(scrollMarginTop) && scrollMarginTop > 0) {
-        return scrollMarginTop;
-    }
-
     const header = document.querySelector(".glass-navbar");
 
     if (!header) {
-        return 0;
+        return !Number.isNaN(scrollMarginTop) && scrollMarginTop > 0
+            ? scrollMarginTop
+            : 0;
     }
 
     const headerBounds = header.getBoundingClientRect();
+    const headerBottom = Math.max(0, headerBounds.bottom);
 
-    return Math.max(0, headerBounds.height);
+    // Keep the target section below the floating navigation. A section's
+    // scroll margin still provides its intended breathing room, but it must
+    // never be smaller than the visible menu offset.
+    return Math.max(
+        headerBottom,
+        !Number.isNaN(scrollMarginTop) && scrollMarginTop > 0
+            ? scrollMarginTop
+            : 0,
+    );
 }
 
 function dispatchViewportCheck() {
@@ -110,7 +137,7 @@ function easeOutCubic(progress) {
     return 1 - Math.pow(1 - progress, 3);
 }
 
-function smoothScrollWindowTo(top, duration = DEFAULT_SCROLL_DURATION) {
+function smoothScrollWindowTo(top, duration = getScrollDuration()) {
     cancelActiveScroll();
     attachActiveScrollInterrupts();
 
@@ -180,6 +207,13 @@ function nativeSmoothScrollWindowTo(top) {
         behavior: "smooth",
     });
     dispatchViewportCheck();
+}
+
+export function scrollToTop() {
+    // The browser owns the return-to-top interpolation. Unlike a manual
+    // frame-by-frame scroll, this does not compete with the Hero's own
+    // scroll-driven rendering while it is coming back into view.
+    nativeSmoothScrollWindowTo(0);
 }
 
 export function scrollToElement(element, options = {}) {

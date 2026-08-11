@@ -3,6 +3,11 @@ import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, FocusEvent, FormEvent } from "react";
 
 import { cn } from "@/utils/cn";
+import {
+    PROJECT_TYPE_OPTIONS,
+    PROJECT_TYPE_SELECT_EVENT,
+    type ProjectType,
+} from "@/constants/projectTypes";
 
 import styles from "./Contact.module.css";
 import { FormField } from "./FormField";
@@ -10,15 +15,6 @@ import { FormSelect } from "./FormSelect";
 
 /** Mirrors the package names in `Packages.jsx` so a lead's "what do you need"
  *  answer lines up with the services actually offered. */
-const PROJECT_TYPE_OPTIONS = [
-    "Landing Page",
-    "Portfolio Web",
-    "Multi-Page Web",
-    "Catalogue Web",
-    "E-commerce",
-    "Redesign Web",
-] as const;
-
 const BUDGET_OPTIONS = [
     "Under £1,000",
     "£1,000 – £3,000",
@@ -26,7 +22,18 @@ const BUDGET_OPTIONS = [
     "£5,000+",
 ] as const;
 
-const INITIAL_FORM_VALUES = {
+type Budget = (typeof BUDGET_OPTIONS)[number];
+
+type FormValues = {
+    name: string;
+    email: string;
+    projectType: ProjectType;
+    budget: Budget;
+    timeline: string;
+    message: string;
+};
+
+const INITIAL_FORM_VALUES: FormValues = {
     name: "",
     email: "",
     projectType: PROJECT_TYPE_OPTIONS[0],
@@ -35,7 +42,6 @@ const INITIAL_FORM_VALUES = {
     message: "",
 };
 
-type FormValues = typeof INITIAL_FORM_VALUES;
 type FormErrors = Record<keyof FormValues, string>;
 
 const INITIAL_ERRORS: FormErrors = {
@@ -122,6 +128,33 @@ export function ContactForm() {
         const timer = setTimeout(() => setShowStatus(false), 4000);
         return () => clearTimeout(timer);
     }, [showStatus]);
+
+    useEffect(() => {
+        const handleProjectTypeSelect = (event: Event) => {
+            const requestedType = (event as CustomEvent<{ projectType?: string }>)
+                .detail?.projectType;
+
+            if (
+                !requestedType ||
+                !PROJECT_TYPE_OPTIONS.some((option) => option === requestedType)
+            ) {
+                return;
+            }
+
+            const projectType = requestedType as ProjectType;
+            setFormValues((current) => ({ ...current, projectType }));
+            setErrors((current) => ({ ...current, projectType: "" }));
+            setTouched((current) => ({ ...current, projectType: false }));
+        };
+
+        window.addEventListener(PROJECT_TYPE_SELECT_EVENT, handleProjectTypeSelect);
+        return () => {
+            window.removeEventListener(
+                PROJECT_TYPE_SELECT_EVENT,
+                handleProjectTypeSelect,
+            );
+        };
+    }, []);
 
     const handleChange = (
         event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,

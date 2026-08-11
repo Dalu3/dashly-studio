@@ -1,10 +1,10 @@
 .hero-copy {
     display: flex;
-    width: 100%;
+    width: auto;
     min-height: 100svh;
     flex-direction: column;
     justify-content: flex-end;
-    padding: 0 var(--space-sm) var(--space-md);
+    padding: 0 var(--space-sm) var(--space-0);
     color: var(--color-text-primary);
 }
 
@@ -18,7 +18,7 @@
 .hero-copy__message h1 {
     max-width: none;
     margin: 0;
-    font-size: var(--type-display);
+    font-size: var(--type-display-primary);
     font-weight: var(--font-weight-bold);
     line-height: var(--line-height-type-display);
     letter-spacing: var(--letter-spacing-tighter);
@@ -30,9 +30,9 @@
 }
 
 .hero-copy__message p {
-    max-width: 32rem;
+    max-width: calc(var(--measure-narrow) - var(--space-xl));
     margin: 0;
-    font-size: var(--type-body);
+    font-size: var(--type-lead);
     font-weight: var(--font-weight-semibold);
     line-height: var(--line-height-type-body);
 }
@@ -40,7 +40,7 @@
 .hero-copy__meta {
     display: grid;
     gap: var(--space-sm);
-    font-size: var(--type-label);
+    font-size: var(--type-metadata);
     font-weight: var(--font-weight-bold);
     line-height: var(--line-height-label);
     letter-spacing: var(--letter-spacing-wide);
@@ -85,8 +85,12 @@
 
     .hero-copy__message {
         position: absolute;
-        top: var(--hero-mobile-message-top);
+        top: auto;
         right: var(--hero-mobile-copy-inline);
+        bottom: calc(
+            env(safe-area-inset-bottom) + var(--space-2xl) + var(--space-xl) +
+                var(--space-sm)
+        );
         left: var(--hero-mobile-copy-inline);
         display: grid;
         gap: var(--hero-mobile-message-gap);
@@ -94,6 +98,7 @@
     }
 
     .hero-copy__message h1 {
+        font-size: var(--hero-mobile-display-size);
         font-weight: var(--font-weight-bold);
         letter-spacing: var(--letter-spacing-normal);
     }
@@ -107,12 +112,16 @@
     .hero-copy__meta {
         position: absolute;
         right: var(--hero-mobile-copy-inline);
-        bottom: var(--hero-mobile-meta-bottom);
+        bottom: max(
+            var(--hero-mobile-meta-bottom),
+            calc(env(safe-area-inset-bottom) + var(--space-sm))
+        );
         left: var(--hero-mobile-copy-inline);
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
         align-items: center;
         gap: var(--hero-mobile-meta-gap);
+        font-size: var(--hero-mobile-meta-size);
         letter-spacing: var(--letter-spacing-normal);
     }
 
@@ -149,15 +158,12 @@
     }
 }
 
-@media (min-width: 80rem) {
-    .hero-copy {
-        padding-inline: var(--space-xs);
-        padding-bottom: clamp(8rem, 18vh, 12rem);
-    }
-
+/* Laptop composition also applies to tablet widths. The fluid semantic type
+   scale keeps the same relationship while allowing the copy to contract. */
+@media (min-width: 48rem) {
     .hero-copy__message {
         grid-template-columns: max-content minmax(0, 1fr);
-        column-gap: var(--space-xl);
+        column-gap: var(--space-lg);
         row-gap: var(--space-0);
         margin-bottom: clamp(2rem, 5vh, 3.75rem);
         transform: translateY(-2.5rem);
@@ -182,9 +188,9 @@
         grid-column: 2;
         grid-row: 2;
         align-self: end;
-        max-width: none;
+        max-width: var(--measure-narrow);
         margin-bottom: 0.45rem;
-        white-space: nowrap;
+        white-space: normal;
     }
 
     .hero-copy__meta {
@@ -198,5 +204,111 @@
 
     .hero-copy__meta > :last-child {
         justify-self: end;
+    }
+}
+
+@media (min-width: 48rem) and (max-width: 79.999rem) {
+    .hero-copy__message p {
+        font-size: var(--type-body);
+    }
+}
+
+@media (min-width: 45rem) and (max-width: 47.999rem) {
+    .hero-copy__message p {
+        font-size: var(--font-size-sm);
+    }
+}
+
+@media (min-width: 64rem) and (max-width: 79.999rem) {
+    .hero-copy {
+        padding-inline: var(--space-0);
+    }
+
+    .hero-copy__message {
+        column-gap: var(--space-md);
+    }
+}
+
+@media (min-width: 80rem) {
+    .hero-copy {
+        max-width: var(--container-wide);
+        align-self: center;
+        padding-inline: var(--space-0);
+        padding-bottom: clamp(8rem, 18vh, 12rem);
+    }
+}
+
+/* Tablet uses the phone's stacked Hero language, while the semantic fluid
+   type scale supplies tablet-sized copy. Laptop composition begins at --bp-lg. */
+@media (min-width: 48rem) and (max-width: 63.999rem) {
+    .hero-copy {
+        position: relative;
+        display: block;
+        box-sizing: border-box;
+        min-height: inherit;
+        padding: var(--space-0);
+    }
+
+    .hero-copy__message {
+        position: absolute;
+        top: auto;
+        right: var(--space-0);
+        bottom: calc(
+            env(safe-area-inset-bottom) + var(--space-2xl) + var(--space-xl) +
+                var(--space-sm)
+        );
+        left: var(--space-0);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        grid-template-rows: auto;
+        align-items: normal;
+        gap: var(--space-md);
+        margin: 0;
+        transform: none;
+    }
+
+    .hero-copy__message h1 {
+        display: block;
+        font-size: var(--type-display-primary);
+        letter-spacing: var(--letter-spacing-normal);
+        white-space: normal;
+    }
+
+    .hero-copy__message p {
+        grid-column: auto;
+        grid-row: auto;
+        align-self: auto;
+        max-width: var(--measure-narrow);
+        margin-bottom: 0;
+        font-size: var(--type-lead);
+    }
+
+    .hero-copy__meta {
+        position: absolute;
+        right: var(--space-0);
+        bottom: var(--space-lg);
+        left: var(--space-0);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+        gap: var(--space-lg);
+        transform: none;
+    }
+
+    .hero-copy__meta > :last-child {
+        justify-self: end;
+        text-align: right;
+    }
+
+    .hero-copy__meta-break {
+        display: block;
+    }
+
+    .hero-copy__meta a {
+        justify-self: center;
+    }
+
+    .hero-copy__scroll-label {
+        display: none;
     }
 }

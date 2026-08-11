@@ -1,5 +1,7 @@
 .packages-section {
-    padding-block: var(--space-section-sm);
+    /* The page-to-accent transition directly before this section owns the
+       shared inter-section gap, so keep the heading flush with its blue end. */
+    padding-block: var(--space-0);
     background: var(--color-surface-accent-subtle);
     color: var(--color-text-primary);
 }
@@ -36,7 +38,7 @@
 }
 
 .packages-intro p {
-    max-width: var(--measure-default);
+    max-width: calc(var(--measure-narrow) + var(--space-lg));
     margin-block-start: var(--space-md);
     font-size: var(--type-body);
     font-weight: var(--font-weight-semibold);
@@ -44,13 +46,36 @@
 }
 
 .packages-intro .packages-intro__reading-copy {
-    --reading-progress: 0%;
+    position: relative;
+    color: var(--color-text-muted);
+}
 
+.packages-intro__reading-measure {
+    position: absolute;
+    inset: 0;
+    visibility: hidden;
+    display: block;
+    pointer-events: none;
+}
+
+.packages-intro__reading-output {
+    position: relative;
+    display: block;
+}
+
+.packages-intro__reading-output[data-reading-ready="true"] [data-reading-line] {
+    white-space: nowrap;
+}
+
+.packages-intro__reading-copy [data-reading-line] {
+    --line-progress: 0%;
+
+    display: block;
     color: transparent;
     background-image: linear-gradient(
         to right,
-        var(--color-text-primary) var(--reading-progress),
-        var(--color-text-secondary) var(--reading-progress)
+        var(--color-text-primary) var(--line-progress),
+        var(--color-text-muted) var(--line-progress)
     );
     background-clip: text;
     -webkit-background-clip: text;
@@ -64,30 +89,67 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-sm);
-    padding: var(--space-md) var(--space-sm);
+    padding: calc(var(--space-sm) + var(--space-3xs)) var(--space-xs);
+    cursor: pointer;
 }
 
 .package-row + .package-row {
     border-top: 1px solid var(--color-border-subtle);
 }
 
+.package-row:focus-visible {
+    outline: var(--space-3xs) solid var(--color-focus-ring);
+    outline-offset: var(--space-3xs);
+}
+
 .package-row h3 {
     font-size: var(--type-h3);
     font-weight: var(--font-weight-semibold);
     line-height: var(--line-height-type-h3);
+    transition: var(--transition-colors);
 }
 
 .package-row p {
     color: var(--color-text-secondary);
-    font-size: var(--type-body);
+    font-size: var(--font-size-md);
     line-height: var(--line-height-normal);
+    transition: var(--transition-colors);
+}
+
+@media (hover: hover) {
+    .package-row:hover h3 {
+        color: var(--color-text-accent);
+    }
+
+    .package-row:hover p {
+        color: var(--color-text-primary);
+        font-weight: var(--font-weight-semibold);
+    }
+}
+
+@media (max-width: 63.999rem) {
+    .package-row--active h3 {
+        color: var(--color-text-accent);
+    }
+
+    .package-row--active p {
+        color: var(--color-text-black);
+        font-weight: var(--font-weight-semibold);
+    }
+}
+
+@media (max-width: 47.999rem) {
+    .package-row--active p {
+        color: var(--color-text-black);
+        font-weight: var(--font-weight-regular);
+    }
 }
 
 .packages-estimate {
     display: flex;
     flex-direction: column;
     gap: var(--space-md);
-    padding: var(--space-xl) var(--space-sm) var(--space-0);
+    padding: var(--space-xl) var(--space-xs) var(--space-0);
 }
 
 .packages-estimate p,
@@ -97,12 +159,17 @@
     line-height: var(--line-height-type-h3);
 }
 
+.packages-estimate__mobile-caption {
+    display: none;
+}
+
 .packages-estimate a {
     display: inline-flex;
     align-items: center;
     gap: var(--space-xs);
     color: var(--color-text-primary);
     text-decoration: none;
+    transition: var(--transition-colors);
 }
 
 .packages-estimate__icon {
@@ -110,6 +177,63 @@
     width: var(--space-lg);
     height: var(--space-lg);
     object-fit: contain;
+    transition: var(--transition-transform);
+}
+
+@media (min-width: 48rem) and (max-width: 63.999rem) {
+    .packages-intro {
+        margin-block-end: var(--space-lg);
+    }
+
+    .package-row {
+        gap: var(--space-xs);
+        padding: var(--space-sm) var(--space-2xs);
+    }
+
+    .packages-estimate {
+        padding-block-start: var(--space-lg);
+    }
+}
+
+/* Compact CTA treatment for phones and tablets. */
+@media (max-width: 63.999rem) {
+    .packages-estimate {
+        align-items: flex-start;
+        gap: var(--space-2xs);
+    }
+
+    .packages-estimate__desktop-copy {
+        display: none;
+    }
+
+    .packages-estimate a {
+        gap: var(--space-2xs);
+    }
+
+    .packages-estimate__icon {
+        width: var(--space-md);
+        height: var(--space-md);
+    }
+
+    .packages-estimate .packages-estimate__mobile-caption {
+        display: block;
+        color: var(--color-text-secondary);
+        font-size: var(--font-size-sm);
+        font-weight: var(--font-weight-regular);
+        line-height: var(--line-height-snug);
+    }
+}
+
+@media (max-width: 47.999rem) {
+    .packages-estimate .packages-estimate__mobile-caption {
+        font-size: var(--font-size-small);
+    }
+}
+
+@media (hover: hover) {
+    .packages-estimate a:hover {
+        color: var(--color-text-accent);
+    }
 }
 
 /* Keep the option list compact on phones: all five choices remain visible
@@ -121,12 +245,28 @@
 
     .package-row {
         gap: var(--space-xs);
-        padding: var(--space-sm) var(--space-xs);
+        padding: var(--space-sm) var(--space-2xs);
     }
 
     .packages-estimate {
-        gap: var(--space-sm);
+        gap: var(--space-2xs);
         padding: var(--space-lg) var(--space-xs) var(--space-0);
+    }
+}
+
+/* Extra-small phone only: keep the title's brand phrase together and give the
+   reading copy enough control to avoid an awkward final-word wrap at 320px. */
+@media (max-width: 20rem) {
+    .packages-intro h2 {
+        max-width: calc(100% - var(--space-sm));
+    }
+
+    .packages-intro .packages-intro__reading-copy {
+        max-width: calc(100% - var(--space-xs));
+    }
+
+    .packages-intro__reading-measure {
+        text-wrap: pretty;
     }
 }
 
@@ -253,7 +393,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .packages-intro .packages-intro__reading-copy {
+    .packages-intro__reading-copy,
+    .packages-intro__reading-copy [data-reading-line] {
         color: var(--color-text-primary);
         background-image: none;
     }
@@ -284,11 +425,15 @@
 }
 
 @media (min-width: 64rem) {
+    .packages-intro h2 {
+        font-size: var(--font-size-4xl);
+    }
+
     .package-row {
         grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
         align-items: center;
         column-gap: var(--space-2xl);
-        padding-block: var(--space-md);
+        padding-block: calc(var(--space-sm) + var(--space-3xs));
     }
 
     .packages-estimate {

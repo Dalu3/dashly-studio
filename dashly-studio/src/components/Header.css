@@ -52,6 +52,7 @@
     display: flex;
     align-items: center;
     gap: clamp(1.75rem, 4vw, 4.5rem);
+    margin-left: auto;
 }
 
 .nav-links a {
@@ -67,7 +68,6 @@
     display: inline-flex;
     align-items: center;
     gap: var(--space-xs);
-    margin-left: clamp(1rem, 12vw, 15rem);
 }
 
 .arrow-icon {
@@ -81,6 +81,14 @@
     display: none;
 }
 
+/* Keep the desktop navigation language on tablet while tightening only its
+   layout rhythm; the full desktop gaps do not fit between 480px and 1024px. */
+@media (min-width: 30rem) and (max-width: 63.999rem) {
+    .nav-links {
+        gap: var(--space-sm);
+    }
+}
+
 @media (min-width: 64rem) {
     .logo {
         font-size: var(--font-size-h3);
@@ -91,10 +99,9 @@
     }
 }
 
-/* Tablet keeps the laptop navigation language. The hamburger and fullscreen
-   overlay are reserved for phone widths only, where the compact composition
-   needs a dedicated touch menu. */
-@media (max-width: 29.999rem) {
+/* The compact navigation is shared by phone and tablet. Laptop navigation
+   begins at the existing --bp-lg breakpoint. */
+@media (max-width: 63.999rem) {
     .glass-navbar {
         position: absolute;
         padding-block: var(--space-md);
@@ -281,6 +288,38 @@
     .mobile-menu--open .mobile-menu__links a:nth-child(6) { transition-delay: calc(var(--duration-normal) + var(--duration-fast)); }
 }
 
+@media (min-width: 48rem) and (max-width: 63.999rem) {
+    .glass-navbar,
+    .glass-navbar--scrolling,
+    .glass-navbar--floating {
+        position: fixed;
+        top: var(--space-lg);
+        right: var(--container-gutter);
+        left: var(--container-gutter);
+        min-height: calc(var(--space-lg) + var(--space-lg));
+        padding: 0 var(--space-lg);
+        border-radius: var(--radius-pill);
+        background-color: rgb(var(--c-white-rgb) / 0.3);
+        -webkit-backdrop-filter: var(--backdrop-blur-subtle);
+        backdrop-filter: var(--backdrop-blur-subtle);
+        box-shadow: var(--shadow-md);
+    }
+
+    .hamburger {
+        height: var(--space-sm);
+    }
+
+    .hamburger span {
+        height: 2px;
+    }
+
+    .mobile-menu__top {
+        min-height: calc(var(--space-lg) + var(--space-lg));
+        margin: var(--space-lg) var(--container-gutter) 0;
+        padding-inline: var(--space-lg);
+    }
+}
+
 @media (max-width: 29.999rem) {
     .glass-navbar,
     .glass-navbar--scrolling,
@@ -292,7 +331,9 @@
         min-height: var(--hero-mobile-header-height);
         padding: 0 var(--space-md);
         border-radius: var(--radius-pill);
-        background-color: var(--color-surface-raised);
+        background-color: rgb(var(--c-white-rgb) / 0.3);
+        -webkit-backdrop-filter: var(--backdrop-blur-subtle);
+        backdrop-filter: var(--backdrop-blur-subtle);
         box-shadow: var(--shadow-md);
     }
 
