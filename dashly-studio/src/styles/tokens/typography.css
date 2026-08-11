@@ -42,17 +42,33 @@
        migrated yet. Each role has one continuous clamp from phone to desktop
        rather than a breakpoint-specific replacement. */
     --type-label: clamp(
-        0.8125rem,
-        calc(0.585rem + 1.45vw),
+        0.875rem,
+        calc(0.852993rem + 0.093897vw),
         0.9375rem
     );
-    --type-small: clamp(0.75rem, calc(0.68rem + 0.55vw), 0.875rem);
-    --type-body: clamp(0.9375rem, calc(0.85rem + 0.7vw), 1.35rem);
-    --type-h3: clamp(1.125rem, calc(0.95rem + 0.55vw), 1.5rem);
-    --type-h2: clamp(1.5rem, calc(1.1875rem + 1.5625vw), 2.1875rem);
+    --type-small: clamp(
+        0.8125rem,
+        calc(0.790493rem + 0.093897vw),
+        0.875rem
+    );
+    --type-body: clamp(
+        1rem,
+        calc(0.911972rem + 0.375587vw),
+        1.25rem
+    );
+    --type-h3: clamp(
+        1.125rem,
+        calc(0.992958rem + 0.56338vw),
+        1.5rem
+    );
+    --type-h2: clamp(
+        1.5rem,
+        calc(1.257923rem + 1.032864vw),
+        2.1875rem
+    );
     --type-display: clamp(
-        1.75rem,
-        calc(0.893rem + 4.286vw),
+        1.875rem,
+        calc(0.862676rem + 4.319249vw),
         4.75rem
     );
     --type-number: clamp(3rem, calc(1.5rem + 6vw), 9.375rem);
