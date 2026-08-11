@@ -13,7 +13,7 @@
 
 .root {
     /* ---- Ticker ---------------------------------------------------------- */
-    --work-ticker-gap: clamp(var(--space-md), 1rem + 1.2vw, var(--space-xl));
+    --work-ticker-gap: var(--space-2xl);
     /* Keep the same marquee/keyframe logic at every viewport size, while
        giving the shorter mobile copy a longer cycle for calmer movement. */
     --work-ticker-speed-factor: 2;
@@ -36,16 +36,14 @@
     --carousel-gap: var(--work-card-gap);
 
     position: relative;
-    padding-block: var(--space-section-gap) var(--space-section-lg);
+    padding-block: var(--space-0);
     background-color: var(--color-surface-page);
 
-    /* The ticker track and the carousel track are both wider than the page by
-       design; this is what stops either creating horizontal page scroll.
-       X only — Y stays visible so the carousel's scroll-tilt (a few px of
-       perspective foreshortening past a card's flat layout box) never gets
-       vertically cropped by this ancestor either. */
-    overflow-x: clip;
-    overflow-y: visible;
+    /* Both moving tracks are wider than the viewport by design. Clip them at
+       the section boundary so their off-canvas geometry cannot widen the
+       document at the tablet breakpoint. Section padding already contains the
+       small vertical perspective movement of the cards. */
+    overflow: clip;
 }
 
 /* The heading is a decorative ticker, so the accessible name is carried by a
@@ -66,6 +64,18 @@
 .ticker {
     --marquee-gap: var(--work-ticker-gap);
     --marquee-speed-factor: var(--work-ticker-speed-factor);
+}
+
+@media (max-width: 47.999rem) {
+    .ticker {
+        --marquee-gap: var(--space-sm);
+    }
+}
+
+@media (min-width: 48rem) and (max-width: 63.999rem) {
+    .ticker {
+        --marquee-gap: var(--space-lg);
+    }
 }
 
 .tickerText {
@@ -89,10 +99,23 @@
     margin-block-start: clamp(var(--space-lg), 1rem + 3vw, var(--space-2xl));
 }
 
-/* The ticker is a decorative marquee, not body copy — it uses the semantic H2
-   scale at every viewport, keeping H1 exclusive to the Hero. */
+@media (max-width: 20rem) {
+    .tickerText {
+        font-size: var(--type-h3);
+    }
+}
+
+/* The ticker is decorative, so it uses the existing compact heading token
+   while the real h2 above carries the section's accessible heading. */
 @media (min-width: 64rem) {
     .ticker {
+        /* Match the Hero display scale while keeping the repeated words close
+           enough to read as a single continuous line. */
+        --marquee-gap: var(--space-lg);
         --marquee-speed-factor: 1;
+    }
+
+    .tickerText {
+        font-size: var(--font-size-4xl);
     }
 }

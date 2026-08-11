@@ -1,10 +1,16 @@
-import { useRef } from "react";
+import { useId, useRef } from "react";
+import { createPortal } from "react-dom";
 
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { cn } from "@/utils/cn";
 
 import type { Project } from "./projects";
 import styles from "./ProjectCard.module.css";
 import { useCardTilt } from "./useCardTilt";
+import { useProjectCardCursor } from "./useProjectCardCursor";
+
+const CURSOR_WORD_OFFSETS = ["0%", "33.333%", "66.667%"] as const;
 
 export interface ProjectCardProps {
     project: Project;
@@ -28,14 +34,69 @@ export function ProjectCard({
     priority = false,
     className,
 }: ProjectCardProps) {
-    const { title, description, image, width, height, imageAlt, url, mobileImage } = project;
+    const {
+        title,
+        description,
+        mobileDescription,
+        image,
+        width,
+        height,
+        imageAlt,
+        url,
+        mobileImage,
+    } = project;
     const cardRef = useRef<HTMLElement>(null);
     const frameRef = useRef<HTMLDivElement>(null);
+    const cursorRef = useRef<HTMLSpanElement>(null);
+    const cursorPathId = `project-card-cursor-${useId().replace(/:/g, "")}`;
+    const hasFineDesktopPointer = useMediaQuery(
+        "(min-width: 64rem) and (hover: hover) and (pointer: fine)",
+    );
+    const prefersReducedMotion = usePrefersReducedMotion();
+    const isCursorEnabled = hasFineDesktopPointer && !prefersReducedMotion;
 
     useCardTilt(cardRef, frameRef);
+    useProjectCardCursor(cardRef, cursorRef, isCursorEnabled);
+
+    const cursor = isCursorEnabled
+        ? createPortal(
+              <span
+                  ref={cursorRef}
+                  className={styles.cursor}
+                  data-active="false"
+                  aria-hidden="true"
+              >
+                  <svg viewBox="0 0 100 100" focusable="false">
+                      <circle className={styles.cursorCircle} cx="50" cy="50" r="50" />
+                      <g className={styles.cursorSpinner}>
+                          <defs>
+                              <path
+                                  id={cursorPathId}
+                                  d="M 50,50 m -30,0 a 30,30 0 1,1 60,0 a 30,30 0 1,1 -60,0"
+                              />
+                          </defs>
+                          {CURSOR_WORD_OFFSETS.map((startOffset) => (
+                              <text key={startOffset} className={styles.cursorText}>
+                                  <textPath
+                                      href={`#${cursorPathId}`}
+                                      startOffset={startOffset}
+                                  >
+                                      DISCOVER <tspan className={styles.cursorSeparator}>·</tspan>
+                                  </textPath>
+                              </text>
+                          ))}
+                      </g>
+                  </svg>
+              </span>,
+              document.body,
+          )
+        : null;
 
     return (
-        <article ref={cardRef} className={cn(styles.card, className)}>
+        <article
+            ref={cardRef}
+            className={cn(styles.card, isCursorEnabled && styles.cursorEnabled, className)}
+        >
             <a
                 className={styles.link}
                 href={url}
@@ -75,9 +136,24 @@ export function ProjectCard({
 
                 <div className={styles.meta}>
                     <h3 className={styles.title}>{title}</h3>
-                    <p className={styles.description}>{description}</p>
+                    <p className={styles.description}>
+                        <span
+                            className={cn(
+                                styles.desktopDescription,
+                                mobileDescription && styles.hasMobileDescription,
+                            )}
+                        >
+                            {description}
+                        </span>
+                        {mobileDescription && (
+                            <span className={styles.mobileDescription}>
+                                {mobileDescription}
+                            </span>
+                        )}
+                    </p>
                 </div>
             </a>
+            {cursor}
         </article>
     );
 }

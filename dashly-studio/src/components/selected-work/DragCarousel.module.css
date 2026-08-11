@@ -36,19 +36,32 @@
     cursor: grabbing;
 }
 
+@media (min-width: 64rem) and (hover: hover) and (pointer: fine) {
+    /* The custom DISCOVER cursor owns the whole carousel: cards and the
+       spaces between them. It deliberately stops at the carousel edge. */
+    .viewport,
+    .viewport * {
+        cursor: none;
+    }
+}
+
 .track {
     /* Establishes the offset parent, so the hook's offsetLeft measurements are
        relative to the track rather than to some ancestor. */
     position: relative;
 
     display: flex;
-    width: max-content;
+    box-sizing: border-box;
+    width: 100%;
+    min-width: max-content;
     flex-wrap: nowrap;
     align-items: flex-start;
+    justify-content: center;
     gap: var(--carousel-gap, var(--space-lg));
 
-    /* Cards rest on the page gutter; the last one can still travel fully into
-       view because the same gutter is repeated at the end. */
+    /* When the cards are narrower than the viewport, centre the complete row.
+       The intrinsic min-width restores the gutter-aligned overflow strip as
+       soon as the cards no longer fit. */
     padding-inline: var(--container-gutter);
 
     will-change: transform;

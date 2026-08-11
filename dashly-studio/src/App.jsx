@@ -68,10 +68,13 @@ function HomePage({ onHeroReady }) {
             <Hero onReady={onHeroReady}>
                 <MainPage />
             </Hero>
+            <SurfaceTransition variant="hero-to-page" />
             <SelectedWork />
             <SurfaceTransition variant="page-to-accent" />
             <Packages />
+            <SurfaceTransition variant="accent-to-process" />
             <Stages />
+            <SurfaceTransition variant="process-to-page" />
             <FAQ />
             <SurfaceTransition variant="page-to-accent" />
             <Contact />

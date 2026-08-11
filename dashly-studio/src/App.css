@@ -4,7 +4,13 @@
 }
 
 .surface-transition {
-    height: var(--surface-transition-height);
+    /* The only inter-section spacer. Sections must not add their own external
+       margin or compensating boundary padding. */
+    height: var(--space-section-gap);
+}
+
+.surface-transition--hero-to-page {
+    background: var(--color-surface-page);
 }
 
 .surface-transition--page-to-accent {
@@ -12,6 +18,22 @@
         to bottom,
         var(--color-surface-page),
         var(--color-surface-accent-subtle)
+    );
+}
+
+.surface-transition--accent-to-process {
+    background: linear-gradient(
+        to bottom,
+        var(--color-surface-accent-subtle),
+        var(--color-surface-process)
+    );
+}
+
+.surface-transition--process-to-page {
+    background: linear-gradient(
+        to bottom,
+        var(--color-surface-process),
+        var(--color-surface-page)
     );
 }
 

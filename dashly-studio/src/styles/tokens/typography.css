@@ -41,6 +41,38 @@
        Legacy --font-size-* tokens remain below for sections that have not
        migrated yet. Each role has one continuous clamp from phone to desktop
        rather than a breakpoint-specific replacement. */
+    --type-display-primary: clamp(
+        1.875rem,
+        calc(1.126761rem + 3.192488vw),
+        4rem
+    );
+    --type-display-marquee: clamp(
+        2.1875rem,
+        calc(1.549296rem + 2.723005vw),
+        4rem
+    );
+    --type-section-title: clamp(
+        2rem,
+        calc(1.295775rem + 3.004695vw),
+        4rem
+    );
+    --type-lead: clamp(
+        1rem,
+        calc(0.823944rem + 0.751174vw),
+        1.5rem
+    );
+    --type-metadata: clamp(
+        0.625rem,
+        calc(0.514965rem + 0.469484vw),
+        0.9375rem
+    );
+    --type-control: 1rem;
+    /* Selected Work card captions share one scale outside the intentionally
+       compact 320px layout override. */
+    --type-project-card-caption: 1rem;
+
+    /* Deprecated semantic aliases remain during the controlled component
+       migration. Remove them only after their active usages reach zero. */
     --type-label: clamp(
         0.875rem,
         calc(0.852993rem + 0.093897vw),
@@ -66,11 +98,7 @@
         calc(1.257923rem + 1.032864vw),
         2.1875rem
     );
-    --type-display: clamp(
-        1.875rem,
-        calc(0.862676rem + 4.319249vw),
-        4.75rem
-    );
+    --type-display: var(--type-display-primary);
     --type-number: clamp(3rem, calc(1.5rem + 6vw), 9.375rem);
 
     /* Footer type scale — intentionally more compact than the Figma display
@@ -136,4 +164,16 @@
     --measure-narrow: 45ch;
     --measure-default: 65ch;
     --measure-wide: 80ch;
+}
+
+@media (min-width: 48rem) {
+    :root {
+        --type-project-card-caption: 1.125rem;
+    }
+}
+
+@media (min-width: 64rem) {
+    :root {
+        --type-project-card-caption: 1.25rem;
+    }
 }

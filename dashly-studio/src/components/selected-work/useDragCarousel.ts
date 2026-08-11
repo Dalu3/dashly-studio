@@ -389,19 +389,6 @@ export function useDragCarousel(
             velocity = 0;
             raw = offset;
 
-            // Capture keeps the gesture alive when the pointer leaves the
-            // viewport mid-drag. It throws if the pointer is already gone by
-            // the time we get here, which must not take the drag down with it.
-            try {
-                viewport.setPointerCapture(event.pointerId);
-            } catch {
-                /* capture is an enhancement, not a requirement */
-            }
-
-            if (draggingClassName) {
-                viewport.classList.add(draggingClassName);
-            }
-
         };
 
         const onPointerMove = (event: PointerEvent) => {
@@ -415,8 +402,30 @@ export function useDragCarousel(
             lastX = event.clientX;
             lastTime = event.timeStamp;
 
-            if (Math.abs(event.clientX - startX) > DRAG_THRESHOLD) {
+            if (
+                !movedPastThreshold &&
+                Math.abs(event.clientX - startX) > DRAG_THRESHOLD
+            ) {
                 movedPastThreshold = true;
+
+                // Keep the card link hit-testable for a normal click. Only
+                // disable the track once the pointer has actually become a
+                // drag, so the pointerup can still produce a native link click.
+                if (draggingClassName) {
+                    viewport.classList.add(draggingClassName);
+                }
+
+                // Do not capture on pointerdown: capturing a simple click on
+                // a card retargets its native click away from the <a>, which
+                // prevents the external project URL from opening and makes
+                // the card cursor briefly lose hover. Once movement has
+                // cleared the click threshold this is a real drag, so capture
+                // safely keeps that gesture alive beyond the viewport.
+                try {
+                    viewport.setPointerCapture(event.pointerId);
+                } catch {
+                    /* capture is an enhancement, not a requirement */
+                }
             }
 
             velocity =

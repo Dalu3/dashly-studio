@@ -31,6 +31,8 @@ export interface Project {
     id: string;
     title: string;
     description: string;
+    /** Shorter description used only below the tablet breakpoint. */
+    mobileDescription?: string;
     /** External project URL opened from the complete card. */
     url?: string;
     /** Imported image module. Undefined renders the empty frame. */
@@ -60,6 +62,7 @@ export const PROJECTS: Project[] = [
         id: "for-people",
         title: "Healthcare Platform",
         description: "Custom-built website with a tailored CMS",
+        mobileDescription: "Custom website with tailored CMS",
         url: "https://forpeople.com.ua/",
         image: forPeopleWork,
         width: 630,
@@ -69,6 +72,7 @@ export const PROJECTS: Project[] = [
         id: "private-practice",
         title: "Private Practice",
         description: "Responsive website for a Ukrainian doctor",
+        mobileDescription: "Responsive website for a doctor",
         url: "https://anastasiiaponomarenko.com/",
         image: privateDocWork,
         width: 630,

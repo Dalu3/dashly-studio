@@ -23,9 +23,12 @@ export interface MarqueeProps {
     className?: string;
 }
 
-/** Copies rendered before the first measurement — enough to cover a wide
- *  desktop for the single frame before the ResizeObserver reports back. */
-const INITIAL_COPIES = 3;
+/**
+ * A safe static fill for an ultrawide first paint. Animation is held until the
+ * ResizeObserver has measured the real viewport, so this prevents an exposed
+ * edge while fonts and layout settle.
+ */
+const INITIAL_COPIES = 12;
 
 /**
  * Infinite horizontal ticker.
@@ -58,6 +61,7 @@ export function Marquee({
 
     const [copies, setCopies] = useState(INITIAL_COPIES);
     const [copyWidth, setCopyWidth] = useState(0);
+    const [hasMeasured, setHasMeasured] = useState(false);
 
     const prefersReducedMotion = usePrefersReducedMotion();
 
@@ -85,6 +89,7 @@ export function Marquee({
             // width, the far edge is still covered — that spare copy is what
             // guarantees no empty gap at any point in the cycle.
             setCopies(Math.max(2, Math.ceil(available / width) + 1));
+            setHasMeasured(true);
         };
 
         measure();
@@ -96,7 +101,7 @@ export function Marquee({
         return () => observer.disconnect();
     }, [children]);
 
-    const isRunning = copyWidth > 0 && !prefersReducedMotion;
+    const isRunning = hasMeasured && copyWidth > 0 && !prefersReducedMotion;
 
     return (
         <div
