@@ -21,7 +21,7 @@
 }
 
 .label {
-    font-size: var(--font-size-contact-form);
+    font-size: var(--type-control);
     font-weight: var(--font-weight-medium);
     color: #1e1e1e;
     margin-bottom: 0.5rem;
@@ -37,7 +37,7 @@
     box-sizing: border-box;
     width: 100%;
     font-family: var(--font-family-sans);
-    font-size: var(--font-size-contact-form);
+    font-size: var(--type-control);
     line-height: 1;
     color: #1e1e1e;
     background: #ffffff;
@@ -147,7 +147,7 @@
     padding: var(--form-select-option-padding-block) var(--form-select-option-padding-inline);
     color: var(--color-text-primary);
     font: inherit;
-    font-size: var(--font-size-contact-form);
+    font-size: var(--type-control);
     line-height: var(--line-height-body-compact);
     text-align: left;
     white-space: nowrap;
@@ -183,12 +183,9 @@
     color: var(--color-feedback-error);
 }
 
-/* Laptop type scale: every form control, option and error string is the
-   same "form & links" size. */
+/* Error text remains on the legacy small role until supporting typography is
+   migrated. Confirmed controls stay fixed at the semantic 16px role. */
 @media (min-width: 64rem) {
-    .label,
-    .control,
-    .option,
     .error {
         font-size: var(--font-size-small);
     }

@@ -6,7 +6,6 @@
 
 :root {
     --content-max-width: 1100px;
-    --content-gutter: 2rem;
 
     /* .block-title's legacy per-breakpoint scale (pre-dating the fluid
        clamp() type system — see typography.css). Values unchanged; each just
@@ -77,8 +76,9 @@ body {
 }
 
 #packages {
-    scroll-margin-top: 50px;
+    scroll-margin-top: var(--space-3xl);
 }
+
 #stages {
     scroll-margin-top: 53px;
 }
@@ -86,7 +86,7 @@ body {
     scroll-margin-top: 140px;
 }
 #contact {
-    scroll-margin-top: 30px;
+    scroll-margin-top: calc(var(--space-section-gap) + var(--space-sm));
 }
 
 /* Each section owns its internal rhythm. External gaps would expose the page
@@ -101,14 +101,9 @@ body {
 }
 
 @media (min-width: 598px) and (max-width: 769px) {
-    :root {
-        --content-gutter: 3rem;
-    }
-
     #packages,
-    #stages,
-    #contact {
-        scroll-margin-top: 84px;
+    #stages {
+        scroll-margin-top: calc(var(--space-3xl) + var(--space-sm));
     }
 
     #faq {
@@ -122,14 +117,9 @@ body {
 }
 
 @media (max-width: 598px) {
-    :root {
-        --content-gutter: 1rem;
-    }
-
     #packages,
-    #stages,
-    #contact {
-        scroll-margin-top: 84px;
+    #stages {
+        scroll-margin-top: calc(var(--space-3xl) - var(--space-xs));
     }
 
     #faq {

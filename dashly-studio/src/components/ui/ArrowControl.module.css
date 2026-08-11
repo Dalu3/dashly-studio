@@ -8,6 +8,10 @@
     background: var(--color-action-accent-bg-subtle);
 }
 
+.accent {
+    background: var(--color-action-accent-bg);
+}
+
 .root svg {
     width: var(--font-size-md);
     height: var(--font-size-md);

@@ -84,7 +84,7 @@ const LAYOUT = {
     // width and sits in the upper third, without affecting tablet/desktop.
     mobile: {
         width: 0.94,
-        offsetY: 0.2,
+        offsetY: 0.15,
         maxHeight: 0.54,
         sizeScale: 1,
         verticalScale: 1.08,

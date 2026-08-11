@@ -1,6 +1,6 @@
 .faq-section {
     background: var(--color-surface-page);
-    padding-block: var(--space-section-md);
+    padding-block: var(--space-0);
 }
 
 .faq-container {
@@ -21,19 +21,20 @@
     margin: var(--space-0);
     color: var(--color-text-primary);
     font-family: var(--font-family-sans);
-    font-size: var(--font-size-faq-title);
-    font-weight: var(--font-weight-semibold);
-    letter-spacing: var(--letter-spacing-tight);
-    line-height: var(--line-height-none);
+    font-size: var(--type-section-title);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-wide-plus);
+    line-height: var(--line-height-display);
 }
 
 .faq-intro p {
     margin: var(--space-2xs) var(--space-0) var(--space-0);
     color: var(--color-text-primary);
     font-family: var(--font-family-sans);
-    font-size: var(--font-size-faq-subtitle);
+    font-size: var(--type-body);
     font-weight: var(--font-weight-regular);
-    line-height: var(--line-height-normal);
+    letter-spacing: var(--letter-spacing-wide-plus);
+    line-height: var(--line-height-body-compact);
 }
 
 .faq-list,
@@ -56,10 +57,10 @@
     background: transparent;
     color: var(--color-text-primary);
     font-family: var(--font-family-sans);
-    font-size: var(--font-size-faq-question);
+    font-size: var(--type-body);
     font-weight: var(--font-weight-regular);
-    letter-spacing: var(--letter-spacing-normal);
-    line-height: var(--line-height-snug);
+    letter-spacing: var(--letter-spacing-wide-plus);
+    line-height: var(--line-height-body-compact);
     text-align: left;
     cursor: pointer;
 }
@@ -106,7 +107,7 @@
     visibility: hidden;
     color: var(--color-text-secondary);
     font-family: var(--font-family-sans);
-    font-size: var(--font-size-faq-answer);
+    font-size: var(--type-body);
     line-height: var(--line-height-relaxed);
     transition: var(--transition-faq-reveal);
 }
@@ -131,8 +132,9 @@
 /* --bp-lg: desktop/laptop two-column composition. */
 @media (min-width: 64rem) {
     .faq-container {
-        grid-template-columns: minmax(0, var(--faq-intro-width)) minmax(0, 1fr);
-        column-gap: var(--faq-column-gap);
+        max-width: var(--content-max-width-contact);
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: var(--space-xl);
     }
 
     .faq-intro {
@@ -140,22 +142,6 @@
         padding-top: var(--space-md);
     }
 
-    /* Laptop type scale: title=H2, subtitle=p, question=H3, answer=body. */
-    .faq-intro h2 {
-        font-size: var(--font-size-h2);
-    }
-
-    .faq-intro p {
-        font-size: var(--font-size-p);
-    }
-
-    .faq-question {
-        font-size: var(--font-size-h3);
-    }
-
-    .faq-answer {
-        font-size: var(--font-size-body);
-    }
 }
 
 /* The approved desktop starts at 64rem. Keep every desktop declaration above

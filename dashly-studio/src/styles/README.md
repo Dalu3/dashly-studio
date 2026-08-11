@@ -3,6 +3,10 @@
 The token layer is the contract for the whole redesign. **Components consume
 tokens; they never hardcode values.**
 
+The permanent typography architecture and approval workflow are documented in
+[`../../DEVELOPMENT.md`](../../DEVELOPMENT.md). That document is authoritative;
+do not infer typography roles from HTML heading levels or create local sizes.
+
 ## Rules
 
 1. **No raw values in component CSS.** No hex colours, no `px` spacing, no

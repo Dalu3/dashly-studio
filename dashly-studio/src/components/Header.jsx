@@ -2,14 +2,14 @@ import "./Header.css";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import arrowIcon from "../assets/arrow.webp";
-import { navigateToHash } from "../utils/scrollToHash";
+import { navigateToHash, scrollToTop } from "../utils/scrollToHash";
 
 const mobileLinks = [
     ["Work", "#work"],
     ["Services", "#packages"],
     ["Stages", "#stages"],
     ["FAQ", "#faq"],
-    ["Price Estimate", "#contact"],
+    ["Price Estimator", "#contact"],
 ];
 
 function Header() {
@@ -17,6 +17,7 @@ function Header() {
     const [isMenuClosing, setIsMenuClosing] = useState(false);
     const [scrollPhase, setScrollPhase] = useState("top");
     const scrollPositionRef = useRef({ x: 0, y: 0 });
+    const pendingLogoScrollRef = useRef(false);
 
     useLayoutEffect(() => {
         if (!isMenuOpen && !isMenuClosing) {
@@ -85,6 +86,25 @@ function Header() {
         navigateToHash(null, hash, "/");
     };
 
+    const handleLogoClick = (event) => {
+        event.preventDefault();
+
+        if (window.location.pathname !== "/") {
+            window.location.assign("/");
+            return;
+        }
+
+        window.history.replaceState({}, "", "/");
+
+        if (isMenuOpen) {
+            pendingLogoScrollRef.current = true;
+            closeMobileMenu();
+            return;
+        }
+
+        scrollToTop();
+    };
+
     const toggleMobileMenu = () => {
         if (isMenuOpen) {
             closeMobileMenu();
@@ -108,6 +128,11 @@ function Header() {
             !isMenuOpen
         ) {
             setIsMenuClosing(false);
+
+            if (pendingLogoScrollRef.current) {
+                pendingLogoScrollRef.current = false;
+                scrollToTop();
+            }
         }
     };
 
@@ -116,7 +141,12 @@ function Header() {
             <header
                 className={`glass-navbar glass-navbar--${scrollPhase} ${isMenuOpen || isMenuClosing ? "glass-navbar--menu-open" : ""}`}
             >
-                <a href="/" className="logo" aria-label="Dashly Studio home">
+                <a
+                    href="/"
+                    className="logo"
+                    aria-label="Dashly Studio home"
+                    onClick={handleLogoClick}
+                >
                     Dashly
                 </a>
 
@@ -167,7 +197,7 @@ function Header() {
                             href="/"
                             className="mobile-menu__logo"
                             aria-label="Dashly Studio home"
-                            onClick={closeMobileMenu}
+                            onClick={handleLogoClick}
                         >
                             Dashly
                         </a>

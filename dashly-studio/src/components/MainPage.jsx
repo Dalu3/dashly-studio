@@ -25,7 +25,10 @@ export function MainPage() {
                     onClick={(event) => navigateToHash(event, "#work")}
                 >
                     <span className="hero-copy__scroll-label">Scroll to explore</span>
-                    <ArrowControl className="hero-copy__scroll-icon" />
+                    <ArrowControl
+                        className="hero-copy__scroll-icon"
+                        variant="accent"
+                    />
                 </a>
                 <span>
                     Working <br className="hero-copy__meta-break" /> Worldwide

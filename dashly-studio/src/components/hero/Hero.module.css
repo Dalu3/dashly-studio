@@ -44,6 +44,10 @@
    applying the global content gutter a second time, which would shift all
    copy inwards by an extra 1rem. */
 @media (max-width: 29.999rem) {
+    .root {
+        min-height: 100dvh;
+    }
+
     .content {
         padding-inline: var(--space-0);
     }

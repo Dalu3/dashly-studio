@@ -28,7 +28,7 @@
        --content-max-width-wide in layout.css for why. */
     max-width: var(--content-max-width-footer);
     margin-inline: auto;
-    padding-block: clamp(2.5rem, 1.5rem + 4vw, 5.125rem) clamp(2.5rem, 1.5rem + 4vw, 4.25rem);
+    padding-block: var(--space-0) clamp(2.5rem, 1.5rem + 4vw, 4.25rem);
     display: grid;
     grid-template-columns: 1fr;
     gap: clamp(2rem, 1rem + 3vw, 3rem);
@@ -299,13 +299,9 @@
     letter-spacing: inherit;
 }
 
-/* Keep footer content aligned with the Contact composition instead of
-   allowing it to grow to the viewport edges. */
+/* The footer shares the page-wide responsive gutter. Its internal content
+   can still use the Contact composition width without changing the page edge. */
 @media (min-width: 64rem) {
-    .root {
-        padding-inline: max(0.5rem, calc((100vw - var(--content-max-width-contact)) / 2));
-    }
-
     .top,
     .divider,
     .bottom {
@@ -472,7 +468,7 @@
     }
 
     .top {
-        padding-block-start: 3.375rem;
+        padding-block-start: var(--space-0);
         gap: 4.05rem;
     }
 

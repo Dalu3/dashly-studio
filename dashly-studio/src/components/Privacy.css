@@ -1,7 +1,7 @@
 .privacy-container {
     max-width: var(--content-max-width);
     margin: 120px auto 20px auto;
-    padding: 20px var(--content-gutter);
+    padding: 20px var(--container-gutter);
     color: #000;
     border-radius: 12px;
     background-color: #f6f6f6;
