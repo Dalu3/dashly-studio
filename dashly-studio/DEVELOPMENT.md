@@ -31,3 +31,33 @@ Both of those wrap the text to more lines than the original fluid value at
 verified against real geometry, documented in-file. Fixing this for real
 means widening the vertical gap in `process.css` (a layout change), not
 picking a different type-scale token.
+
+## Strict typography development rules
+
+The semantic fluid typography system is the only source for production
+typography. The current semantic roles are defined in
+[`src/styles/tokens/typography.css`](src/styles/tokens/typography.css):
+`--type-label`, `--type-small`, `--type-body`, `--type-h3`, `--type-h2`,
+`--type-display`, and `--type-number`.
+
+- Do not hardcode `font-size`, `font-family`, `font-weight`, `line-height`, or
+  `letter-spacing` inside components.
+- All production typography must use the centralized typography tokens.
+- Do not create new typography tokens without explicit user approval.
+- Do not create component-specific font-size tokens when an existing semantic
+  token can represent the role.
+- Do not override font sizes in media queries unless explicitly approved.
+  Typography must scale through the existing fluid `clamp()` tokens; media
+  queries should primarily control layout.
+- Do not use arbitrary `px`, `rem`, `vw`, or `clamp()` font sizes directly in
+  component CSS.
+- Before adding any typography value, check the existing token system first.
+- Migrate legacy hardcoded values gradually; do not copy them into new
+  components.
+- Exceptions are allowed only for clearly documented technical or debug UI.
+
+Do not change, rename, delete, or add values to the existing typography tokens
+as part of documentation-only work. When migrating a section, work on one
+section at a time, compare computed typography at 375, 425, 768, 1024, and
+1440px, and verify that sizes do not shrink or jump across breakpoints before
+moving to the next section.

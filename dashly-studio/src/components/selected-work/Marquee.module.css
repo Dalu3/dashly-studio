@@ -28,7 +28,12 @@
 }
 
 .animated {
-    animation: marquee-shift var(--marquee-duration, 20s) linear infinite;
+    animation: marquee-shift
+        calc(
+            var(--marquee-duration, 20s) *
+                var(--marquee-speed-factor, 1)
+        )
+        linear infinite;
     animation-direction: var(--marquee-direction, normal);
 }
 

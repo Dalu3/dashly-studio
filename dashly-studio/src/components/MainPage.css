@@ -18,9 +18,9 @@
 .hero-copy__message h1 {
     max-width: none;
     margin: 0;
-    font-size: var(--font-size-hero-heading);
+    font-size: var(--type-display);
     font-weight: var(--font-weight-bold);
-    line-height: 1.05;
+    line-height: var(--line-height-type-display);
     letter-spacing: var(--letter-spacing-tighter);
     text-transform: uppercase;
 }
@@ -32,16 +32,17 @@
 .hero-copy__message p {
     max-width: 32rem;
     margin: 0;
-    font-size: var(--font-size-md);
+    font-size: var(--type-body);
     font-weight: var(--font-weight-semibold);
-    line-height: var(--line-height-snug);
+    line-height: var(--line-height-type-body);
 }
 
 .hero-copy__meta {
     display: grid;
     gap: var(--space-sm);
-    font-size: var(--font-size-2xs);
+    font-size: var(--type-label);
     font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-label);
     letter-spacing: var(--letter-spacing-wide);
     text-transform: uppercase;
 }
@@ -59,42 +60,92 @@
     text-decoration: none;
 }
 
-.hero-copy__scroll-icon {
-    display: inline-grid;
-    width: var(--space-lg);
-    height: var(--space-lg);
-    place-items: center;
-    border-radius: var(--radius-circle);
-    background: var(--color-action-accent-bg-subtle);
+.hero-copy__scroll-label {
+    display: inline;
+}
+
+.hero-copy__meta-break {
+    display: none;
 }
 
 .hero-copy__scroll-icon svg {
-    width: var(--font-size-md);
-    height: var(--font-size-md);
-    fill: none;
-    stroke: currentColor;
-    stroke-linecap: round;
-    stroke-linejoin: round;
-    stroke-width: 2.25;
     transform: rotate(135deg);
 }
 
-/* Laptop type scale, decoupled from the 80rem layout switch below: the rest
-   of the site's "approved desktop" starts at 64rem, and leaving Hero's text
-   on the mobile fluid clamp until 80rem left a 1024-1279px dead zone where
-   --font-size-2xs (capped at 12px) was still in play — a stray size outside
-   the six-value system. */
-@media (min-width: 64rem) {
+/* 375 × 812 Figma Hero composition. This range is intentionally isolated
+   from tablet and desktop so their existing layouts remain untouched. */
+@media (max-width: 29.999rem) {
+    .hero-copy {
+        position: relative;
+        display: block;
+        box-sizing: border-box;
+        min-height: inherit;
+        padding: 0 var(--hero-mobile-copy-inline);
+    }
+
+    .hero-copy__message {
+        position: absolute;
+        top: var(--hero-mobile-message-top);
+        right: var(--hero-mobile-copy-inline);
+        left: var(--hero-mobile-copy-inline);
+        display: grid;
+        gap: var(--hero-mobile-message-gap);
+        margin: 0;
+    }
+
     .hero-copy__message h1 {
-        font-size: var(--font-size-h1);
+        font-weight: var(--font-weight-bold);
+        letter-spacing: var(--letter-spacing-normal);
     }
 
     .hero-copy__message p {
-        font-size: var(--font-size-p);
+        max-width: none;
+        font-weight: var(--font-weight-bold);
+        letter-spacing: var(--letter-spacing-wide-plus);
     }
 
     .hero-copy__meta {
-        font-size: var(--font-size-small);
+        position: absolute;
+        right: var(--hero-mobile-copy-inline);
+        bottom: var(--hero-mobile-meta-bottom);
+        left: var(--hero-mobile-copy-inline);
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        align-items: center;
+        gap: var(--hero-mobile-meta-gap);
+        letter-spacing: var(--letter-spacing-normal);
+    }
+
+    .hero-copy__meta > :last-child {
+        justify-self: end;
+        text-align: right;
+    }
+
+    .hero-copy__meta > span {
+        white-space: normal;
+    }
+
+    .hero-copy__meta-break {
+        display: block;
+    }
+
+    .hero-copy__meta a {
+        justify-self: center;
+    }
+
+    .hero-copy__scroll-label {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+    }
+
+    .hero-copy__scroll-icon {
+        width: var(--hero-mobile-scroll-control-size);
+        height: var(--hero-mobile-scroll-control-size);
     }
 }
 
@@ -114,8 +165,6 @@
 
     .hero-copy__message h1 {
         display: contents;
-        font-size: var(--font-size-h1);
-        line-height: 0.98;
         white-space: nowrap;
     }
 
@@ -135,13 +184,11 @@
         align-self: end;
         max-width: none;
         margin-bottom: 0.45rem;
-        font-size: var(--font-size-p);
         white-space: nowrap;
     }
 
     .hero-copy__meta {
         transform: translateY(-1.5rem);
-        font-size: var(--font-size-small);
     }
 
     .hero-copy__meta {

@@ -10,7 +10,11 @@ export interface FurQualityPreset {
 export const FUR_QUALITY: Record<FurQualityName, FurQualityPreset> = {
     high: { name: "high", density: 4.6e6, maxDpr: 2, idleFps: 30 },
     balanced: { name: "balanced", density: 4.6e6, maxDpr: 2, idleFps: 30 },
-    mobile: { name: "mobile", density: 1.9e6, maxDpr: 1.25, idleFps: 20 },
+    // Fur consists of thin, sub-pixel strands. A 1.25 DPR canvas is visibly
+    // under-resolved on modern 2–3× mobile screens, especially when DevTools
+    // scales the device preview. Two is the practical sharpness ceiling while
+    // still avoiding a costly 3× render target.
+    mobile: { name: "mobile", density: 1.9e6, maxDpr: 2, idleFps: 20 },
 };
 
 export function resolveFurQuality(

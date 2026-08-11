@@ -24,9 +24,9 @@
 }
 
 .packages-intro h2 {
-    font-size: var(--font-size-4xl);
+    font-size: var(--type-h2);
     font-weight: var(--font-weight-bold);
-    line-height: var(--line-height-tight);
+    line-height: var(--line-height-type-h2);
     letter-spacing: var(--letter-spacing-wide);
     text-transform: uppercase;
 }
@@ -38,7 +38,7 @@
 .packages-intro p {
     max-width: var(--measure-default);
     margin-block-start: var(--space-md);
-    font-size: var(--font-size-md);
+    font-size: var(--type-body);
     font-weight: var(--font-weight-semibold);
     line-height: var(--line-height-normal);
 }
@@ -72,14 +72,14 @@
 }
 
 .package-row h3 {
-    font-size: var(--font-size-xl);
+    font-size: var(--type-h3);
     font-weight: var(--font-weight-semibold);
-    line-height: var(--line-height-snug);
+    line-height: var(--line-height-type-h3);
 }
 
 .package-row p {
     color: var(--color-text-secondary);
-    font-size: var(--font-size-md);
+    font-size: var(--type-body);
     line-height: var(--line-height-normal);
 }
 
@@ -92,9 +92,9 @@
 
 .packages-estimate p,
 .packages-estimate a {
-    font-size: var(--font-size-xl);
+    font-size: var(--type-h3);
     font-weight: var(--font-weight-semibold);
-    line-height: var(--line-height-snug);
+    line-height: var(--line-height-type-h3);
 }
 
 .packages-estimate a {
@@ -124,23 +124,9 @@
         padding: var(--space-sm) var(--space-xs);
     }
 
-    .package-row h3 {
-        font-size: var(--font-size-lg);
-    }
-
-    .package-row p {
-        font-size: var(--font-size-sm);
-        line-height: var(--line-height-snug);
-    }
-
     .packages-estimate {
         gap: var(--space-sm);
         padding: var(--space-lg) var(--space-xs) var(--space-0);
-    }
-
-    .packages-estimate p,
-    .packages-estimate a {
-        font-size: var(--font-size-lg);
     }
 }
 

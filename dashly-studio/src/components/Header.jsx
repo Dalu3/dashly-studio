@@ -1,13 +1,56 @@
 import "./Header.css";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import arrowIcon from "../assets/arrow.webp";
 import { navigateToHash } from "../utils/scrollToHash";
 
+const mobileLinks = [
+    ["Work", "#work"],
+    ["Services", "#packages"],
+    ["Stages", "#stages"],
+    ["FAQ", "#faq"],
+    ["Price Estimate", "#contact"],
+];
+
 function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
+    const [isMenuClosing, setIsMenuClosing] = useState(false);
     const [scrollPhase, setScrollPhase] = useState("top");
-    const headerRef = useRef();
-    const navRef = useRef();
+    const scrollPositionRef = useRef({ x: 0, y: 0 });
+
+    useLayoutEffect(() => {
+        if (!isMenuOpen && !isMenuClosing) {
+            return undefined;
+        }
+
+        const body = document.body;
+        const documentElement = document.documentElement;
+        const previousStyles = {
+            bodyOverflow: body.style.overflow,
+            htmlOverflow: documentElement.style.overflow,
+            htmlOverscrollBehavior: documentElement.style.overscrollBehavior,
+        };
+        const closeOnEscape = (event) => {
+            if (event.key === "Escape") {
+                setIsMenuOpen(false);
+                setIsMenuClosing(true);
+            }
+        };
+
+        body.style.overflow = "hidden";
+        documentElement.style.overflow = "hidden";
+        documentElement.style.overscrollBehavior = "none";
+        document.addEventListener("keydown", closeOnEscape);
+
+        return () => {
+            body.style.overflow = previousStyles.bodyOverflow;
+            documentElement.style.overflow = previousStyles.htmlOverflow;
+            documentElement.style.overscrollBehavior =
+                previousStyles.htmlOverscrollBehavior;
+            document.removeEventListener("keydown", closeOnEscape);
+            window.scrollTo(scrollPositionRef.current.x, scrollPositionRef.current.y);
+        };
+    }, [isMenuOpen, isMenuClosing]);
 
     useEffect(() => {
         const updateScrolledState = () => {
@@ -30,128 +73,141 @@ function Header() {
         };
     }, []);
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            if (
-                isMenuOpen &&
-                headerRef.current &&
-                !headerRef.current.contains(event.target)
-            ) {
-                setIsMenuOpen(false);
-            }
-        };
-
-        document.addEventListener("mousedown", handleClickOutside);
-        return () =>
-            document.removeEventListener("mousedown", handleClickOutside);
-    }, [isMenuOpen]);
-
     const handleHashLinkClick = (event, hash) => {
         event.preventDefault();
 
         if (isMenuOpen) {
-            setIsMenuOpen(false);
-            window.requestAnimationFrame(() => {
-                navigateToHash(null, hash, "/");
-            });
+            closeMobileMenu();
+            window.requestAnimationFrame(() => navigateToHash(null, hash, "/"));
             return;
         }
 
         navigateToHash(null, hash, "/");
     };
 
+    const toggleMobileMenu = () => {
+        if (isMenuOpen) {
+            closeMobileMenu();
+            return;
+        }
+
+        scrollPositionRef.current = { x: window.scrollX, y: window.scrollY };
+        setIsMenuClosing(false);
+        setIsMenuOpen(true);
+    };
+
+    const closeMobileMenu = () => {
+        setIsMenuOpen(false);
+        setIsMenuClosing(true);
+    };
+
+    const handleMenuTransitionEnd = (event) => {
+        if (
+            event.target === event.currentTarget &&
+            event.propertyName === "opacity" &&
+            !isMenuOpen
+        ) {
+            setIsMenuClosing(false);
+        }
+    };
+
     return (
         <>
-            {isMenuOpen ? (
-                <button
-                    type="button"
-                    className="menu-overlay open"
-                    aria-hidden="false"
-                    tabIndex={0}
-                    onClick={() => setIsMenuOpen(false)}
-                />
-            ) : null}
-
             <header
-                className={`glass-navbar glass-navbar--${scrollPhase}`}
-                ref={headerRef}
+                className={`glass-navbar glass-navbar--${scrollPhase} ${isMenuOpen || isMenuClosing ? "glass-navbar--menu-open" : ""}`}
             >
-                <a
-                    href="/"
-                    className="logo"
-                    aria-label="Dashly Studio home"
-                    onClick={() => setIsMenuOpen(false)}
-                >
+                <a href="/" className="logo" aria-label="Dashly Studio home">
                     Dashly
                 </a>
 
                 <button
                     type="button"
-                    className={`hamburger ${isMenuOpen ? "open" : ""}`}
-                    aria-label={
-                        isMenuOpen
-                            ? "Close navigation menu"
-                            : "Open navigation menu"
-                    }
+                    className={`hamburger ${isMenuOpen ? "hamburger--open" : ""}`}
+                    aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
                     aria-expanded={isMenuOpen}
-                    aria-controls="primary-navigation"
-                    onClick={() => setIsMenuOpen((prev) => !prev)}
+                    aria-controls="mobile-navigation"
+                    onClick={toggleMobileMenu}
                 >
-                    <span></span>
-                    <span></span>
-                    <span></span>
+                    <span />
+                    <span />
+                    <span />
                 </button>
 
-                <nav
-                    id="primary-navigation"
-                    aria-label="Primary"
-                    ref={navRef}
-                    className={`nav-links ${isMenuOpen ? "open" : ""}`}
-                >
-                    <a
-                        href="/#work"
-                        onClick={(event) => handleHashLinkClick(event, "#work")}
-                    >
-                        Work
-                    </a>
-                    <a
-                        href="/#packages"
-                        onClick={(event) => handleHashLinkClick(event, "#packages")}
-                    >
-                        Services
-                    </a>
-                    <a
-                        href="/#stages"
-                        onClick={(event) => handleHashLinkClick(event, "#stages")}
-                    >
-                        Stages
-                    </a>
-                    <a
-                        href="/#faq"
-                        onClick={(event) => handleHashLinkClick(event, "#faq")}
-                    >
-                        FAQ
-                    </a>
-                    <a
-                        href="/#contact"
-                        onClick={(event) => handleHashLinkClick(event, "#contact")}
-                    >
-                        Price Estimate
-                    </a>
+                <nav className="nav-links" aria-label="Primary">
+                    {mobileLinks.map(([label, hash]) => (
+                        <a
+                            key={hash}
+                            href={`/${hash}`}
+                            onClick={(event) => handleHashLinkClick(event, hash)}
+                        >
+                            {label}
+                        </a>
+                    ))}
                     <a
                         href="/#contact"
                         className="cta"
                         onClick={(event) => handleHashLinkClick(event, "#contact")}
                     >
                         Let’s Talk
-                        <img
-                            src={arrowIcon}
-                            alt="Contact Dashly Studio"
-                            className="arrow-icon"
-                        />
+                        <img src={arrowIcon} alt="" className="arrow-icon" />
                     </a>
                 </nav>
             </header>
+
+            {createPortal(
+                <aside
+                    id="mobile-navigation"
+                    className={`mobile-menu ${isMenuOpen ? "mobile-menu--open" : ""}`}
+                    aria-hidden={!isMenuOpen}
+                    inert={isMenuOpen ? undefined : ""}
+                    onTransitionEnd={handleMenuTransitionEnd}
+                >
+                    <div className="mobile-menu__top" aria-hidden="true">
+                        <a
+                            href="/"
+                            className="mobile-menu__logo"
+                            aria-label="Dashly Studio home"
+                            onClick={closeMobileMenu}
+                        >
+                            Dashly
+                        </a>
+                        <button
+                            type="button"
+                            className="mobile-menu__close"
+                            aria-label="Close navigation menu"
+                            onClick={closeMobileMenu}
+                        >
+                            ×
+                        </button>
+                    </div>
+
+                    <nav className="mobile-menu__links" aria-label="Mobile primary">
+                        {mobileLinks.map(([label, hash]) => (
+                            <a
+                                key={hash}
+                                href={`/${hash}`}
+                                onClick={(event) => handleHashLinkClick(event, hash)}
+                            >
+                                {label}
+                            </a>
+                        ))}
+                        <a
+                            href="/#contact"
+                            className="mobile-menu__cta"
+                            onClick={(event) => handleHashLinkClick(event, "#contact")}
+                        >
+                            <span>Let’s Talk</span>
+                            <img
+                                src={arrowIcon}
+                                alt=""
+                                aria-hidden="true"
+                                className="mobile-menu__cta-arrow"
+                            />
+                        </a>
+                    </nav>
+                </aside>,
+                document.body,
+            )}
         </>
     );
 }

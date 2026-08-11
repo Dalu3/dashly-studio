@@ -39,3 +39,12 @@
     justify-content: center;
     padding-inline: var(--container-gutter);
 }
+
+/* The mobile Hero owns its exact Figma side inset through .hero-copy. Avoid
+   applying the global content gutter a second time, which would shift all
+   copy inwards by an extra 1rem. */
+@media (max-width: 29.999rem) {
+    .content {
+        padding-inline: var(--space-0);
+    }
+}

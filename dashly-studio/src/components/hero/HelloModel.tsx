@@ -66,20 +66,30 @@ export interface HelloModelProps {
  * means re-checking this pair.
  */
 const LAYOUT = {
-    desktop: { width: 0.9, offsetY: 0.19, maxHeight: 0.54 },
-    tablet: { width: 0.88, offsetY: 0.18, maxHeight: 0.54 },
-    mobile: { width: 0.9, offsetY: 0.12, maxHeight: 0.46 },
+    desktop: {
+        width: 0.9,
+        offsetY: 0.19,
+        maxHeight: 0.54,
+        sizeScale: 0.8,
+        verticalScale: 1,
+    },
+    tablet: {
+        width: 0.88,
+        offsetY: 0.18,
+        maxHeight: 0.54,
+        sizeScale: 0.8,
+        verticalScale: 1,
+    },
+    // 375px Figma composition: the word occupies nearly the full visual
+    // width and sits in the upper third, without affecting tablet/desktop.
+    mobile: {
+        width: 0.94,
+        offsetY: 0.2,
+        maxHeight: 0.54,
+        sizeScale: 1,
+        verticalScale: 1.08,
+    },
 } as const;
-
-/**
- * Flat multiplier applied to the computed scale below, on top of the LAYOUT
- * fractions above — a ~13% reduction, in the middle of the requested 10-15%.
- * Kept as one separate knob rather than baked into every LAYOUT number so
- * the width/height/offset RATIOS above (which encode composition, not size)
- * stay exactly as tuned; this only makes the whole word smaller within that
- * same composition, still centred by the same Box3 + offsetY logic below.
- */
-const SIZE_SCALE = 0.8;
 
 const CAMERA_FOV = 20;
 const CAMERA_Z = 6.5;
@@ -185,6 +195,8 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
         const modelSize = new Vector3();
         let modelReady = false;
         let disposed = false;
+        let heroInViewport = true;
+        let documentVisible = !document.hidden;
 
         // Set by layout() the first time it sees a real (non-zero) host
         // width, and read once below when the fur system is actually built.
@@ -202,13 +214,42 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
 
         const furHandles: FurHandles[] = [];
 
+        const canRender = () =>
+            !disposed && heroInViewport && documentVisible;
+
         const render = () => {
-            if (!disposed) {
+            if (canRender()) {
                 renderer.render(scene, camera);
             }
         };
 
         const frameLoop = createFrameLoop(render);
+
+        // This is the final render gate for the entire WebGL scene. Fur
+        // subsystems already stop their own ticks when hidden/offscreen, but
+        // layout() can also request a direct draw after ResizeObserver events.
+        // Keeping the permission here makes it impossible for a resize or
+        // delayed tick to render an invisible Hero.
+        const viewportObserver = new IntersectionObserver(
+            ([entry]) => {
+                heroInViewport = Boolean(entry?.isIntersecting);
+
+                if (canRender()) {
+                    render();
+                }
+            },
+            { threshold: 0.01 },
+        );
+        viewportObserver.observe(host);
+
+        const handleDocumentVisibility = () => {
+            documentVisible = !document.hidden;
+
+            if (canRender()) {
+                render();
+            }
+        };
+        document.addEventListener("visibilitychange", handleDocumentVisibility);
 
         const layout = () => {
             const w = host.clientWidth;
@@ -240,15 +281,20 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
                       ? LAYOUT.tablet
                       : LAYOUT.desktop;
 
+            // The mobile composition keeps the contact shadow tight beneath
+            // the word. Desktop retains its existing deeper, more dramatic
+            // separation from the ground plane.
+            shadowPlane.position.z = aspect < 0.85 ? -0.065 : -0.24;
+
             const visibleH =
                 2 * Math.tan((CAMERA_FOV * Math.PI) / 360) * CAMERA_Z;
             const visibleW = visibleH * aspect;
 
             let scale = (preset.width * visibleW) / modelSize.x;
             scale = Math.min(scale, (preset.maxHeight * visibleH) / modelSize.y);
-            scale *= SIZE_SCALE;
+            scale *= preset.sizeScale;
 
-            holder.scale.setScalar(scale);
+            holder.scale.set(scale, scale * preset.verticalScale, scale);
             holder.position.set(0, preset.offsetY * visibleH, 0);
 
             renderer.shadowMap.needsUpdate = true;
@@ -389,8 +435,13 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
             cancelAnimationFrame(buildFrameId);
             cancelAnimationFrame(readyFrameId);
             observer.disconnect();
+            viewportObserver.disconnect();
             window.removeEventListener("resize", layout);
             window.removeEventListener("orientationchange", layout);
+            document.removeEventListener(
+                "visibilitychange",
+                handleDocumentVisibility,
+            );
 
             for (const fur of furHandles) {
                 fur.dispose();

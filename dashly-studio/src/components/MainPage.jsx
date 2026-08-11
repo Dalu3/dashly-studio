@@ -1,4 +1,5 @@
 import "./MainPage.css";
+import { ArrowControl } from "./ui/ArrowControl";
 import { navigateToHash } from "../utils/scrollToHash";
 
 export function MainPage() {
@@ -10,25 +11,25 @@ export function MainPage() {
                     <span>That perform</span>
                 </h1>
                 <p>
-                    Dashly Studio is a web design and development studio<br />
+                    Dashly Studio is a web design and development studio
                     helping businesses build a stronger online presence
                 </p>
             </div>
 
             <div className="hero-copy__meta" aria-label="Studio information">
-                <span>Based in Scotland</span>
+                <span>
+                    Based in <br className="hero-copy__meta-break" /> Scotland
+                </span>
                 <a
                     href="#work"
                     onClick={(event) => navigateToHash(event, "#work")}
                 >
-                    Scroll to explore
-                    <span className="hero-copy__scroll-icon" aria-hidden="true">
-                        <svg viewBox="0 0 24 24" focusable="false">
-                            <path d="M7 17 17 7M9 7h8v8" />
-                        </svg>
-                    </span>
+                    <span className="hero-copy__scroll-label">Scroll to explore</span>
+                    <ArrowControl className="hero-copy__scroll-icon" />
                 </a>
-                <span>Working worldwide</span>
+                <span>
+                    Working <br className="hero-copy__meta-break" /> Worldwide
+                </span>
             </div>
         </div>
     );

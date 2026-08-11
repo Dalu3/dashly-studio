@@ -181,6 +181,13 @@
     backface-visibility: hidden;
 }
 
+/* A hidden tab or an offscreen Hero has no pixels to animate. Pausing the
+   compositor animations prevents the large blurred layers from consuming GPU
+   time while preserving their exact phase for a seamless resume. */
+.root[data-motion-active="false"] .layer {
+    animation-play-state: paused;
+}
+
 /* -------------------------------------------------------------------------
  * Scroll parallax — on a SEPARATE wrapper element.
  *

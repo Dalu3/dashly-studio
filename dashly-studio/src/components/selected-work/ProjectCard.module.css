@@ -93,12 +93,20 @@
     margin-block-start: var(--work-card-meta-gap);
 }
 
-.title,
+.title {
+    margin: 0;
+    font-size: var(--type-h3);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-type-h3);
+    letter-spacing: var(--letter-spacing-tight);
+    color: var(--color-text-primary);
+}
+
 .description {
     margin: 0;
-    font-size: var(--work-card-text-size);
+    font-size: var(--type-body);
     font-weight: var(--font-weight-bold);
-    line-height: var(--line-height-snug);
+    line-height: var(--line-height-type-body);
     letter-spacing: var(--letter-spacing-tight);
     color: var(--color-text-primary);
 }

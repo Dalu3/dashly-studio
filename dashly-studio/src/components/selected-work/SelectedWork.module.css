@@ -13,8 +13,10 @@
 
 .root {
     /* ---- Ticker ---------------------------------------------------------- */
-    --work-ticker-size: clamp(1.25rem, 0.5rem + 3.4vw, 3rem);
     --work-ticker-gap: clamp(var(--space-md), 1rem + 1.2vw, var(--space-xl));
+    /* Keep the same marquee/keyframe logic at every viewport size, while
+       giving the shorter mobile copy a longer cycle for calmer movement. */
+    --work-ticker-speed-factor: 2;
 
     /* ---- Cards ------------------------------------------------------------ */
     /* 30.625rem = 490px, the card width in the reference. Below that the card
@@ -28,7 +30,6 @@
        card. */
     --work-card-gap: clamp(var(--space-sm), 0.4rem + 2vw, 2.25rem);
     --work-card-meta-gap: clamp(var(--space-sm), 0.7rem + 0.6vw, var(--space-md));
-    --work-card-text-size: var(--font-size-md);
     --work-card-perspective: 55rem;
 
     /* Consumed by DragCarousel.module.css. */
@@ -64,12 +65,13 @@
 
 .ticker {
     --marquee-gap: var(--work-ticker-gap);
+    --marquee-speed-factor: var(--work-ticker-speed-factor);
 }
 
 .tickerText {
     display: block;
     font-family: var(--font-family-sans);
-    font-size: var(--work-ticker-size);
+    font-size: var(--type-h2);
     font-weight: var(--font-weight-bold);
     line-height: var(--line-height-none);
     letter-spacing: var(--letter-spacing-tighter);
@@ -87,10 +89,10 @@
     margin-block-start: clamp(var(--space-lg), 1rem + 3vw, var(--space-2xl));
 }
 
-/* The ticker is a decorative marquee, not body copy — it uses the section's
-   H2 scale on laptop and desktop, keeping H1 exclusive to the Hero. */
+/* The ticker is a decorative marquee, not body copy — it uses the semantic H2
+   scale at every viewport, keeping H1 exclusive to the Hero. */
 @media (min-width: 64rem) {
-    .tickerText {
-        font-size: var(--font-size-3xl);
+    .ticker {
+        --marquee-speed-factor: 1;
     }
 }

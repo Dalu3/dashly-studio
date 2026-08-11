@@ -390,7 +390,7 @@ export function createCursorInteraction(
         frameLoop.request(tick);
     };
 
-    const handlePointerMove = (event: Event) => {
+    const queuePointerSample = (event: Event) => {
         if (
             !(event instanceof PointerEvent) ||
             document.hidden ||
@@ -406,6 +406,18 @@ export function createCursorInteraction(
         startLoop();
     };
 
+    // Touch devices do not emit a hover move before contact. Sampling the
+    // initial pointerdown lets a finger press bend the fur immediately, then
+    // pointermove continues the same interaction as a laptop mouse. These
+    // listeners stay passive: the page can still scroll normally.
+    const handlePointerDown = (event: Event) => {
+        queuePointerSample(event);
+    };
+
+    const handlePointerMove = (event: Event) => {
+        queuePointerSample(event);
+    };
+
     const handlePointerLeave = () => {
         hasPendingMove = false;
         targetStrength = 0;
@@ -414,6 +426,10 @@ export function createCursorInteraction(
         targetDir.set(0, 0, 0);
         hovering = false;
         startLoop();
+    };
+
+    const handlePointerEnd = () => {
+        handlePointerLeave();
     };
 
     // Pointer events are listened to on window because the canvas is
@@ -458,10 +474,19 @@ export function createCursorInteraction(
         }
     };
 
+    domElement.addEventListener("pointerdown", handlePointerDown, {
+        passive: true,
+    });
     domElement.addEventListener("pointermove", handlePointerMove, {
         passive: true,
     });
     domElement.addEventListener("pointerleave", handlePointerLeave, {
+        passive: true,
+    });
+    domElement.addEventListener("pointerup", handlePointerEnd, {
+        passive: true,
+    });
+    domElement.addEventListener("pointercancel", handlePointerEnd, {
         passive: true,
     });
     document.addEventListener("visibilitychange", handleVisibilityChange);
@@ -469,8 +494,11 @@ export function createCursorInteraction(
     return {
         dispose: () => {
             disposed = true;
+            domElement.removeEventListener("pointerdown", handlePointerDown);
             domElement.removeEventListener("pointermove", handlePointerMove);
             domElement.removeEventListener("pointerleave", handlePointerLeave);
+            domElement.removeEventListener("pointerup", handlePointerEnd);
+            domElement.removeEventListener("pointercancel", handlePointerEnd);
             document.removeEventListener(
                 "visibilitychange",
                 handleVisibilityChange,

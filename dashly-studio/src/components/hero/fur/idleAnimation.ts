@@ -44,10 +44,11 @@ export function createIdleAnimation(
 
     const { viewportElement, setTime, frameLoop } = options;
 
-    const start = performance.now();
     let visible = false;
     let disposed = false;
     let lastUpdate = 0;
+    let lastTime = 0;
+    let elapsedSeconds = 0;
 
     // The shared frame loop still wakes for cursor work at display cadence,
     // while this decorative breeze requests a render only at preset cadence.
@@ -64,13 +65,26 @@ export function createIdleAnimation(
             return { keepRunning: shouldRun(), needsRender: false };
         }
 
+        // Do not feed the shader the elapsed time while the tab was hidden.
+        // Browsers pause/throttle rAF there; using creation time would make
+        // uTime jump forward by minutes on return and force the animation to
+        // appear to catch up in one frame.
+        const deltaSeconds = lastTime
+            ? Math.min((now - lastTime) / 1000, 0.05)
+            : 0;
+        lastTime = now;
         lastUpdate = now;
-        setTime((now - start) / 1000);
+        elapsedSeconds += deltaSeconds;
+        setTime(elapsedSeconds);
         return { keepRunning: shouldRun(), needsRender: true };
     };
 
     const startLoop = () => {
         if (shouldRun()) {
+            // A fresh timestamp makes the first resumed frame a normal frame
+            // instead of integrating time spent offscreen or backgrounded.
+            lastTime = 0;
+            lastUpdate = 0;
             frameLoop.request(tick);
         }
     };

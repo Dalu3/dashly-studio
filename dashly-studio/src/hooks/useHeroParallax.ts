@@ -113,6 +113,7 @@ export function useHeroParallax(
         let frameId = 0;
         let looping = false;
         let onScreen = true;
+        let documentVisible = !document.hidden;
         let frames = 0;
         let lastFpsAt = performance.now();
         let framesAtLastFps = 0;
@@ -168,7 +169,7 @@ export function useHeroParallax(
                 scrollSource: getScrollSource().tagName.toLowerCase(),
             });
 
-            if (onScreen && !settled) {
+            if (onScreen && documentVisible && !settled) {
                 frameId = requestAnimationFrame(tick);
             } else {
                 looping = false;
@@ -176,7 +177,7 @@ export function useHeroParallax(
         };
 
         const startLoop = () => {
-            if (looping || !onScreen) {
+            if (looping || !onScreen || !documentVisible) {
                 return;
             }
 
@@ -211,6 +212,22 @@ export function useHeroParallax(
 
         observer.observe(container);
 
+        const handleVisibilityChange = () => {
+            documentVisible = !document.hidden;
+
+            if (documentVisible) {
+                // Re-measure on return instead of animating stale scroll
+                // progress accumulated while the page was backgrounded.
+                measure();
+                current = target;
+                paint();
+                startLoop();
+            } else {
+                cancelAnimationFrame(frameId);
+                looping = false;
+            }
+        };
+
         const scheduleFromViewportChange = () => {
             startLoop();
         };
@@ -226,6 +243,7 @@ export function useHeroParallax(
             scheduleFromViewportChange,
             { passive: true },
         );
+        document.addEventListener("visibilitychange", handleVisibilityChange);
 
         return () => {
             observer.disconnect();
@@ -236,6 +254,10 @@ export function useHeroParallax(
             window.removeEventListener(
                 "orientationchange",
                 scheduleFromViewportChange,
+            );
+            document.removeEventListener(
+                "visibilitychange",
+                handleVisibilityChange,
             );
         };
     }, [containerRef, enabled]);

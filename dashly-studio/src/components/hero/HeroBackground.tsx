@@ -1,4 +1,4 @@
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { useHeroParallax, type ParallaxDebug } from "@/hooks/useHeroParallax";
@@ -49,6 +49,36 @@ export function HeroBackground({
     const sheenRef = useRef<HTMLDivElement>(null);
 
     const prefersReducedMotion = usePrefersReducedMotion();
+    const [motionActive, setMotionActive] = useState(false);
+
+    useEffect(() => {
+        const root = rootRef.current;
+
+        if (!root || prefersReducedMotion) {
+            return;
+        }
+
+        let inViewport = false;
+        const syncMotionState = () => {
+            setMotionActive(inViewport && !document.hidden);
+        };
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                inViewport = Boolean(entry?.isIntersecting);
+                syncMotionState();
+            },
+            { threshold: 0.01 },
+        );
+        const handleVisibilityChange = () => syncMotionState();
+
+        observer.observe(root);
+        document.addEventListener("visibilitychange", handleVisibilityChange);
+
+        return () => {
+            observer.disconnect();
+            document.removeEventListener("visibilitychange", handleVisibilityChange);
+        };
+    }, [prefersReducedMotion]);
 
     // Travel at full scroll progress, as a % of the hero box. Back layers move
     // least and the soft foreground sheen most — that spread is the depth cue.
@@ -77,6 +107,7 @@ export function HeroBackground({
         <div
             ref={rootRef}
             className={cn(styles.root, className)}
+            data-motion-active={motionActive}
             aria-hidden="true"
         >
             <div ref={baseRef} className={styles.parallax}>

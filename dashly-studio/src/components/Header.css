@@ -2,14 +2,8 @@
     position: absolute;
     z-index: var(--z-header);
     top: 0;
-    /* left/right (not width: 100%) size this box — on iOS Safari a
-       percentage width on an absolutely positioned element can resolve
-       against the layout viewport (which reserves space for the collapsing
-       toolbar) instead of the visible one, leaving a phantom gap on the
-       right and pushing the whole page into horizontal overflow. Inset
-       resolves against the actual containing-block width instead. */
-    left: 0;
     right: 0;
+    left: 0;
     display: flex;
     max-width: var(--container-wide);
     box-sizing: border-box;
@@ -27,22 +21,16 @@
         top var(--duration-normal) var(--ease-standard);
 }
 
-/* During the first scroll the header moves into its future floating geometry,
-   but stays transparent. Crossing the next section then changes visuals only. */
 .glass-navbar--scrolling,
 .glass-navbar--floating {
     position: fixed;
     top: var(--space-lg);
-    left: 0;
-    right: 0;
     padding-block: var(--space-2xs);
     border-radius: var(--radius-pill);
 }
 
-/* Floating state is activated only after the first viewport has passed. */
 .glass-navbar--floating {
-    /* Reuses the former mobile glass treatment without changing geometry. */
-    background-color: rgb(255 255 255 / 0.3);
+    background-color: rgb(var(--c-white-rgb) / 0.3);
     -webkit-backdrop-filter: var(--backdrop-blur-subtle);
     backdrop-filter: var(--backdrop-blur-subtle);
     box-shadow: var(--shadow-lg);
@@ -88,13 +76,11 @@
     object-fit: contain;
 }
 
-.menu-overlay,
-.hamburger {
+.hamburger,
+.mobile-menu {
     display: none;
 }
 
-/* Laptop type scale: the wordmark is an H3-level mark, nav links are the
-   "form & links" size. The approved desktop starts at 64rem. */
 @media (min-width: 64rem) {
     .logo {
         font-size: var(--font-size-h3);
@@ -105,15 +91,21 @@
     }
 }
 
-@media (max-width: 63.999rem) {
+/* Tablet keeps the laptop navigation language. The hamburger and fullscreen
+   overlay are reserved for phone widths only, where the compact composition
+   needs a dedicated touch menu. */
+@media (max-width: 29.999rem) {
     .glass-navbar {
         position: absolute;
         padding-block: var(--space-md);
     }
 
+    .nav-links {
+        display: none;
+    }
+
     .hamburger {
         position: relative;
-        z-index: calc(var(--z-header) + 2);
         display: block;
         width: 1.5rem;
         height: 1.125rem;
@@ -129,41 +121,199 @@
         height: 1px;
         border-radius: var(--radius-pill);
         background: var(--color-text-primary);
-        transition: var(--transition-transform), var(--transition-opacity);
     }
 
     .hamburger span:nth-child(1) { top: 0; }
     .hamburger span:nth-child(2) { top: 50%; }
     .hamburger span:nth-child(3) { top: 100%; }
-    .hamburger.open span:nth-child(1) { transform: translateY(0.5625rem) rotate(45deg); }
-    .hamburger.open span:nth-child(2) { opacity: 0; }
-    .hamburger.open span:nth-child(3) { transform: translateY(-0.5625rem) rotate(-45deg); }
 
-    .menu-overlay {
+    .hamburger span {
+        transition:
+            top var(--duration-fast) var(--ease-standard),
+            transform var(--duration-fast) var(--ease-standard),
+            opacity var(--duration-fast) var(--ease-standard);
+    }
+
+    .hamburger--open span:nth-child(1) {
+        top: 50%;
+        transform: rotate(45deg);
+    }
+
+    .hamburger--open span:nth-child(2) {
+        opacity: 0;
+    }
+
+    .hamburger--open span:nth-child(3) {
+        top: 50%;
+        transform: rotate(-45deg);
+    }
+
+    .glass-navbar--menu-open {
         position: fixed;
-        z-index: calc(var(--z-header) - 1);
+        z-index: var(--z-max);
+    }
+
+    .mobile-menu {
+        position: fixed;
+        z-index: var(--z-drawer);
         inset: 0;
-        display: block;
-        border: 0;
-        background: rgb(16 27 36 / 18%);
-        backdrop-filter: blur(0.25rem);
+        display: grid;
+        width: 100%;
+        min-height: 100vh;
+        height: 100dvh;
+        max-width: none;
+        margin: 0;
+        grid-template-rows: auto minmax(0, 1fr);
+        box-sizing: border-box;
+        border-radius: var(--radius-none);
+        overflow: hidden;
+        /* Reuses the Hero/contact accent surface without mounting a second
+           animated background behind the navigation. */
+        background: var(--color-surface-accent-subtle);
+        opacity: 0;
+        pointer-events: none;
+        transition:
+            opacity var(--duration-normal) var(--ease-standard),
+            visibility 0s linear var(--duration-normal);
+        visibility: hidden;
     }
 
-    .nav-links {
-        position: absolute;
-        top: var(--space-sm);
-        right: var(--container-gutter);
-        display: none;
-        min-width: 14rem;
-        align-items: flex-start;
-        flex-direction: column;
-        gap: var(--space-md);
-        padding: 4rem var(--space-lg) var(--space-lg);
-        border-radius: var(--radius-xl);
+    .mobile-menu--open {
+        opacity: 1;
+        pointer-events: auto;
+        transition-delay: 0s;
+        visibility: visible;
+    }
+
+    .mobile-menu__top {
+        display: flex;
+        min-height: var(--hero-mobile-header-height);
+        box-sizing: border-box;
+        align-items: center;
+        justify-content: space-between;
+        margin: max(var(--space-md), env(safe-area-inset-top)) var(--container-gutter) 0;
+        padding: 0 var(--space-md);
+        border-radius: var(--radius-pill);
         background: var(--color-surface-raised);
-        box-shadow: var(--shadow-lg);
+        box-shadow: var(--shadow-md);
+        visibility: hidden;
     }
 
-    .nav-links.open { display: flex; }
-    .nav-links .cta { margin-left: 0; }
+    .mobile-menu__logo,
+    .mobile-menu__close,
+    .mobile-menu__links a,
+    .mobile-menu__cta {
+        color: var(--color-text-primary);
+        text-decoration: none;
+    }
+
+    .mobile-menu__logo {
+        font-size: var(--font-size-lg);
+        font-weight: var(--font-weight-semibold);
+    }
+
+    .mobile-menu__close {
+        display: inline-grid;
+        width: 2.75rem;
+        height: 2.75rem;
+        padding: 0;
+        place-items: center;
+        border: 0;
+        background: transparent;
+        font-family: var(--font-family-sans);
+        font-size: var(--font-size-3xl);
+        font-weight: var(--font-weight-regular);
+        line-height: var(--line-height-none);
+    }
+
+    .mobile-menu__links {
+        position: absolute;
+        top: 50%;
+        right: 0;
+        left: 0;
+        display: grid;
+        min-height: 0;
+        align-content: center;
+        gap: var(--space-md);
+        padding: 0 calc(var(--container-gutter) + var(--space-md));
+        overflow: hidden;
+        transform: translateY(-50%);
+    }
+
+    .mobile-menu__links > a {
+        display: flex;
+        min-height: var(--font-size-2xl);
+        align-items: center;
+        font-size: var(--font-size-2xl);
+        font-weight: var(--font-weight-semibold);
+        letter-spacing: var(--letter-spacing-tighter);
+        line-height: var(--line-height-tight);
+        opacity: 0;
+        text-transform: uppercase;
+        white-space: nowrap;
+        transform: translateY(var(--space-3xs));
+        transition:
+            opacity var(--duration-fast) var(--ease-entrance),
+            transform var(--duration-fast) var(--ease-standard);
+    }
+
+    .mobile-menu__cta {
+        gap: var(--space-xs);
+        justify-content: flex-start;
+    }
+
+    .mobile-menu__cta-arrow {
+        width: var(--space-lg);
+        height: var(--space-lg);
+        object-fit: contain;
+    }
+
+    .mobile-menu--open .mobile-menu__links > a {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .mobile-menu--open .mobile-menu__links a:nth-child(1) { transition-delay: var(--duration-instant); }
+    .mobile-menu--open .mobile-menu__links a:nth-child(2) { transition-delay: var(--duration-fast); }
+    .mobile-menu--open .mobile-menu__links a:nth-child(3) { transition-delay: calc(var(--duration-fast) + var(--duration-instant)); }
+    .mobile-menu--open .mobile-menu__links a:nth-child(4) { transition-delay: var(--duration-normal); }
+    .mobile-menu--open .mobile-menu__links a:nth-child(5) { transition-delay: calc(var(--duration-normal) + var(--duration-instant)); }
+    .mobile-menu--open .mobile-menu__links a:nth-child(6) { transition-delay: calc(var(--duration-normal) + var(--duration-fast)); }
+}
+
+@media (max-width: 29.999rem) {
+    .glass-navbar,
+    .glass-navbar--scrolling,
+    .glass-navbar--floating {
+        position: fixed;
+        top: var(--hero-mobile-header-top);
+        right: var(--hero-mobile-header-inset);
+        left: var(--hero-mobile-header-inset);
+        min-height: var(--hero-mobile-header-height);
+        padding: 0 var(--space-md);
+        border-radius: var(--radius-pill);
+        background-color: var(--color-surface-raised);
+        box-shadow: var(--shadow-md);
+    }
+
+    .hamburger {
+        height: 0.75rem;
+    }
+
+    .hamburger span {
+        height: 2px;
+    }
+
+    .mobile-menu__top {
+        margin: var(--hero-mobile-header-top) var(--hero-mobile-header-inset) 0;
+    }
+
+    .mobile-menu__links {
+        padding-inline: calc(var(--hero-mobile-header-inset) + var(--space-md));
+    }
+
+    .glass-navbar--menu-open {
+        position: fixed;
+        z-index: var(--z-max);
+    }
 }
