@@ -46,7 +46,9 @@
     /* ---- Semantic: surfaces -------------------------------------------- */
     --color-surface-page: var(--c-paper-050);
     --color-surface-raised: var(--c-paper-000);
-    --color-surface-glass: rgb(var(--c-white-rgb) / 0.395);
+    --color-surface-glass: rgb(var(--c-white-rgb) / 0.38);
+    --color-surface-glass-highlight: rgb(var(--c-white-rgb) / 0.58);
+    --color-surface-glass-shade: rgb(var(--c-white-rgb) / 0.28);
     --color-surface-sunken: var(--c-paper-100);
     /* Exact hex from Figma node 458:88 — a few shades cooler than
        --c-ink-800, which shadow.css also depends on. */
@@ -72,7 +74,7 @@
     --color-border-subtle: rgb(var(--c-ink-800-rgb) / 0.12);
     --color-border-default: rgb(var(--c-ink-800-rgb) / 0.22);
     --color-border-strong: var(--c-ink-800);
-    --color-border-glass: rgb(var(--c-white-rgb) / 0.2);
+    --color-border-glass: rgb(var(--c-white-rgb) / 0.46);
 
     /* ---- Semantic: interactive ------------------------------------------ */
     --color-action-primary-bg: var(--c-ink-800);

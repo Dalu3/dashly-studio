@@ -11,6 +11,7 @@
     justify-content: space-between;
     margin-inline: auto;
     padding: var(--space-lg) var(--container-gutter);
+    border: 1px solid transparent;
     background-color: transparent;
     transition:
         background-color var(--duration-normal) var(--ease-standard),
@@ -31,8 +32,14 @@
 }
 
 .glass-navbar--floating {
-    border: 1px solid var(--color-border-glass);
-    background-color: var(--color-surface-glass);
+    border-color: var(--color-border-glass);
+    background: linear-gradient(
+        180deg,
+        var(--color-surface-glass-highlight),
+        var(--color-surface-glass) 32%,
+        rgb(var(--c-white-rgb) / 0.32) 68%,
+        var(--color-surface-glass-shade)
+    );
     -webkit-backdrop-filter: var(--backdrop-blur-subtle);
     backdrop-filter: var(--backdrop-blur-subtle);
     box-shadow: var(--shadow-glass);
@@ -315,7 +322,13 @@
         padding: 0 var(--space-lg);
         border-radius: var(--radius-pill);
         border: 1px solid var(--color-border-glass);
-        background-color: var(--color-surface-glass);
+        background: linear-gradient(
+            180deg,
+            var(--color-surface-glass-highlight),
+            var(--color-surface-glass) 32%,
+            rgb(var(--c-white-rgb) / 0.32) 68%,
+            var(--color-surface-glass-shade)
+        );
         -webkit-backdrop-filter: var(--backdrop-blur-subtle);
         backdrop-filter: var(--backdrop-blur-subtle);
         box-shadow: var(--shadow-glass);
@@ -348,7 +361,13 @@
         padding: 0 var(--space-md);
         border-radius: var(--radius-pill);
         border: 1px solid var(--color-border-glass);
-        background-color: var(--color-surface-glass);
+        background: linear-gradient(
+            180deg,
+            var(--color-surface-glass-highlight),
+            var(--color-surface-glass) 32%,
+            rgb(var(--c-white-rgb) / 0.32) 68%,
+            var(--color-surface-glass-shade)
+        );
         -webkit-backdrop-filter: var(--backdrop-blur-subtle);
         backdrop-filter: var(--backdrop-blur-subtle);
         box-shadow: var(--shadow-glass);

@@ -8,7 +8,7 @@
 
 :root {
     /* Shared glass treatment for small translucent controls. */
-    --backdrop-blur-subtle: blur(0.5rem);
+    --backdrop-blur-subtle: blur(0.75rem) saturate(145%);
     /* Long, diffused colour bridges between major page surfaces. */
     --surface-transition-height: calc(var(--space-section-lg) + var(--space-section-md));
 
@@ -19,7 +19,10 @@
     --shadow-md: 0 6px 14px rgb(var(--c-ink-800-rgb) / 0.1);
     --shadow-lg: 0 14px 32px rgb(var(--c-ink-800-rgb) / 0.12);
     --shadow-xl: 0 20px 50px rgb(var(--c-ink-800-rgb) / 0.16);
-    --shadow-glass: 0 0.5rem 2rem rgb(var(--c-black-rgb) / 0.1);
+    --shadow-glass:
+        inset 0 0.125rem 0.25rem rgb(var(--c-white-rgb) / 0.34),
+        inset 0 -0.25rem 0.5rem rgb(var(--c-black-rgb) / 0.06),
+        0 0.75rem 2rem rgb(var(--c-black-rgb) / 0.14);
 
     /* Accent glow, used sparingly for hover on accent surfaces. */
     --shadow-accent: 0 10px 30px rgb(var(--c-accent-400-rgb) / 0.28);

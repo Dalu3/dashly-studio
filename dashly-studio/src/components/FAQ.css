@@ -4,9 +4,8 @@
 }
 
 .faq-container {
-    box-sizing: border-box;
     display: grid;
-    width: min(100%, var(--container-wide));
+    max-width: var(--content-max-width-wide);
     margin-inline: auto;
     padding-inline: var(--container-gutter);
     background: transparent;
@@ -52,7 +51,7 @@
     justify-content: space-between;
     width: 100%;
     min-height: var(--faq-control-min-height);
-    padding: var(--space-xs) var(--space-0);
+    padding: var(--space-sm) var(--space-0);
     border: 0;
     background: transparent;
     color: var(--color-text-primary);
@@ -75,6 +74,12 @@
     min-width: 0;
     padding-right: var(--space-md);
     overflow-wrap: anywhere;
+}
+
+@media (max-width: 20rem) {
+    .faq-question-text {
+        padding-right: var(--space-xs);
+    }
 }
 
 .faq-icon {
@@ -121,7 +126,7 @@
     max-width: var(--measure-default);
     margin: var(--space-0);
     padding: var(--space-0) calc(var(--faq-chevron-size) + var(--space-md))
-        var(--space-xs) var(--space-0);
+        var(--space-sm) var(--space-0);
 }
 
 .faq-item.active .faq-answer {
@@ -132,7 +137,6 @@
 /* --bp-lg: desktop/laptop two-column composition. */
 @media (min-width: 64rem) {
     .faq-container {
-        max-width: var(--content-max-width-contact);
         grid-template-columns:
             minmax(0, var(--faq-intro-width))
             minmax(0, var(--container-narrow));
@@ -143,6 +147,14 @@
     .faq-intro {
         margin-bottom: var(--space-0);
         padding-top: var(--space-sm);
+    }
+}
+
+/* Laptop composition: give the left-side heading a little more breathing
+   room without moving the accordion's shared right content edge. */
+@media (min-width: 64.0625rem) and (max-width: 107.999rem) {
+    .faq-container {
+        padding-left: var(--space-3xl);
     }
 }
 

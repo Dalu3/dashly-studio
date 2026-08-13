@@ -23,8 +23,8 @@
 .label {
     font-size: var(--type-control);
     font-weight: var(--font-weight-medium);
-    color: #1e1e1e;
-    margin-bottom: 0.5rem;
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-2xs);
 }
 
 /* Shared by <input>, <textarea> and the <select> trigger — one border/radius/
@@ -38,23 +38,21 @@
     width: 100%;
     font-family: var(--font-family-sans);
     font-size: var(--type-control);
-    line-height: 1;
-    color: #1e1e1e;
-    background: #ffffff;
-    border: 1px solid #d9d9d9;
-    border-radius: 0.5rem;
+    line-height: var(--line-height-body-compact);
+    color: var(--color-text-primary);
+    background: var(--color-surface-raised);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
     /* 9px block padding, not the 12px space-300 the design tokens suggest —
        text inputs get a ~20px intrinsic content box regardless of
        line-height (a UA quirk, confirmed by measuring in-browser), so 9px
        is what actually lands on the Figma's ~40px control height. */
-    padding: 0.48125rem 0.825rem;
-    transition:
-        border-color 0.2s ease,
-        box-shadow 0.2s ease;
+    padding: var(--space-xs);
+    transition: var(--transition-colors), var(--transition-shadow);
 }
 
 .control::placeholder {
-    color: #b3b3b3;
+    color: var(--color-text-muted);
 }
 
 .control:focus-visible {
@@ -74,7 +72,7 @@
 
 .textarea {
     resize: vertical;
-    min-height: 4.4rem;
+    min-height: var(--space-3xl);
 }
 
 /* Positions the chevron glyph inside the select's own box without a second
@@ -87,10 +85,10 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 0.75rem;
+    gap: var(--space-xs);
     text-align: left;
     cursor: pointer;
-    padding-right: 1rem;
+    padding-right: var(--space-sm);
 }
 
 .selectTriggerOpen {
@@ -100,20 +98,20 @@
 
 .select {
     appearance: none;
-    padding-right: 2.5rem;
+    padding-right: var(--space-xl);
     cursor: pointer;
 }
 
 .chevron {
     position: absolute;
     top: 50%;
-    right: 1rem;
+    right: var(--space-sm);
     transform: translateY(-50%);
-    width: 1rem;
-    height: 1rem;
-    color: #1e1e1e;
+    width: var(--space-sm);
+    height: var(--space-sm);
+    color: var(--color-text-primary);
     pointer-events: none;
-    transition: transform 0.2s ease;
+    transition: var(--transition-transform);
 }
 
 .chevronOpen {
@@ -178,7 +176,7 @@
 }
 
 .error {
-    margin-top: 0.25rem;
+    margin-top: var(--space-3xs);
     font-size: var(--font-size-xs);
     color: var(--color-feedback-error);
 }

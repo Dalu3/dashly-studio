@@ -17,19 +17,19 @@ export const SOCIAL_LINKS = [
 export const faqItems = [
     {
         question: "How long will my project take?",
-        answer: "Most projects take one to two months, depending on the scope, complexity, and how quickly feedback and content are provided. We’ll confirm a clear timeline before work begins.",
+        answer: "Most projects take one to three months, depending on the scope, complexity, and how quickly feedback and content are provided. We’ll confirm a clear timeline before work begins.",
     },
     {
-        question: "How much should I budget for a website?",
-        answer: "Budgets vary by project type and scope. After a free consultation, we’ll recommend the right approach and provide a clear quote with no hidden costs.",
+        question: "How much will my website cost?",
+        answer: "Website costs depend on the scope, number of pages and features you need. Use our Price Estimator to answer five quick questions and get an initial estimate for your project.",
     },
     {
-        question: "What affects the cost of the website?",
-        answer: "The price depends on the number of pages, design complexity, required features, and whether you need help with content. You’ll get a clear quote after our first call.",
+        question: "What’s included in the price?",
+        answer: "Your project can include strategy, custom UI/UX design, responsive development, mobile and tablet optimisation, animations and interactions, contact forms, CMS integration, SEO setup, performance optimisation, analytics, domain and hosting setup, testing, and launch support. The exact features depend on your project, and everything included will be clearly outlined in your quote before we start.",
     },
     {
         question: "Do you create custom websites from scratch?",
-        answer: "Yes, we create fully custom websites using real code. This means your site will be faster, more secure, and tailored exactly to your needs.",
+        answer: "Yes. We design and develop custom websites around your business, rather than relying on generic templates. This gives us more control over the design, performance and functionality of your site.",
     },
     {
         question: "Will the website be SEO-friendly from launch?",
