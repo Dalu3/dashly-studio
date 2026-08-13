@@ -7,6 +7,7 @@ import {
 } from "react";
 
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
+import { ANIMATION_PREWARM_ROOT_MARGIN } from "@/constants/performance";
 import { cn } from "@/utils/cn";
 
 import styles from "./Marquee.module.css";
@@ -62,6 +63,7 @@ export function Marquee({
     const [copies, setCopies] = useState(INITIAL_COPIES);
     const [copyWidth, setCopyWidth] = useState(0);
     const [hasMeasured, setHasMeasured] = useState(false);
+    const [isNearViewport, setIsNearViewport] = useState(false);
 
     const prefersReducedMotion = usePrefersReducedMotion();
 
@@ -101,6 +103,27 @@ export function Marquee({
         return () => observer.disconnect();
     }, [children]);
 
+    useEffect(() => {
+        const root = rootRef.current;
+
+        if (!root) {
+            return undefined;
+        }
+
+        if (!("IntersectionObserver" in window)) {
+            setIsNearViewport(true);
+            return undefined;
+        }
+
+        const observer = new IntersectionObserver(
+            ([entry]) => setIsNearViewport(Boolean(entry?.isIntersecting)),
+            { rootMargin: ANIMATION_PREWARM_ROOT_MARGIN, threshold: 0 },
+        );
+        observer.observe(root);
+
+        return () => observer.disconnect();
+    }, []);
+
     const isRunning = hasMeasured && copyWidth > 0 && !prefersReducedMotion;
 
     return (
@@ -110,7 +133,11 @@ export function Marquee({
             aria-hidden="true"
         >
             <div
-                className={cn(styles.track, isRunning && styles.animated)}
+                className={cn(
+                    styles.track,
+                    isRunning && styles.animated,
+                    isRunning && !isNearViewport && styles.paused,
+                )}
                 style={{
                     "--marquee-distance": `${copyWidth}px`,
                     "--marquee-duration": `${copyWidth / speed}s`,

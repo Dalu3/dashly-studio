@@ -4,6 +4,7 @@ import "./Packages.css";
 import arrowImage from "../assets/arrow.webp";
 import { PROJECT_TYPE_SELECT_EVENT } from "../constants/projectTypes";
 import { navigateToHash } from "../utils/scrollToHash";
+import { SECTION_PREWARM_ROOT_MARGIN } from "../constants/performance";
 
 const packages = [
     {
@@ -217,12 +218,17 @@ export default function Packages() {
     }, []);
 
     useEffect(() => {
+        const section = revealTargetRef.current;
         const copy = readingCopyRef.current;
+        const rows = packageRowsRef.current.filter(Boolean);
 
-        if (!copy || window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        if (!section || !copy) {
             return undefined;
         }
 
+        const readingEnabled = !window.matchMedia(
+            "(prefers-reduced-motion: reduce)",
+        ).matches;
         const rootStyles = window.getComputedStyle(document.documentElement);
         const readingStart = Number.parseFloat(
             rootStyles.getPropertyValue("--scroll-reading-start"),
@@ -231,100 +237,114 @@ export default function Packages() {
             rootStyles.getPropertyValue("--scroll-reading-end"),
         );
         let frame = 0;
+        let sectionActive = false;
 
-        const updateProgress = () => {
+        const updateScrollEffects = () => {
             frame = 0;
+            if (!sectionActive) return;
+
             const viewportHeight = window.innerHeight;
-            const { top } = copy.getBoundingClientRect();
-            const start = viewportHeight * readingStart;
-            const end = viewportHeight * readingEnd;
-            const progress = Math.min(1, Math.max(0, (start - top) / (start - end)));
 
-            const lines = copy.querySelectorAll("[data-reading-line]");
-            const lineCount = lines.length || 1;
-
-            lines.forEach((line, index) => {
-                const lineProgress = Math.min(
+            if (readingEnabled) {
+                const { top } = copy.getBoundingClientRect();
+                const start = viewportHeight * readingStart;
+                const end = viewportHeight * readingEnd;
+                const progress = Math.min(
                     1,
-                    Math.max(0, progress * lineCount - index),
+                    Math.max(0, (start - top) / (start - end)),
                 );
-                line.style.setProperty(
-                    "--line-progress",
-                    `${lineProgress * 100}%`,
-                );
-            });
-        };
+                const lines = copy.querySelectorAll("[data-reading-line]");
+                const lineCount = lines.length || 1;
 
-        const requestUpdate = () => {
-            if (!frame) {
-                frame = window.requestAnimationFrame(updateProgress);
+                lines.forEach((line, index) => {
+                    const lineProgress = Math.min(
+                        1,
+                        Math.max(0, progress * lineCount - index),
+                    );
+                    line.style.setProperty(
+                        "--line-progress",
+                        `${lineProgress * 100}%`,
+                    );
+                });
             }
-        };
 
-        updateProgress();
-        window.addEventListener("scroll", requestUpdate, { passive: true });
-        window.addEventListener("resize", requestUpdate);
-
-        return () => {
-            window.cancelAnimationFrame(frame);
-            window.removeEventListener("scroll", requestUpdate);
-            window.removeEventListener("resize", requestUpdate);
-        };
-    }, []);
-
-    useEffect(() => {
-        const rows = packageRowsRef.current.filter(Boolean);
-        let frame = 0;
-
-        const updateActiveRow = () => {
-            frame = 0;
-            const visibleRows = rows.filter((row) => {
-                const { bottom, top } = row.getBoundingClientRect();
-                return bottom > 0 && top < window.innerHeight;
-            });
+            // Read every row exactly once per frame. The previous reducer read
+            // the same rectangles repeatedly while comparing candidates.
+            const visibleRows = rows
+                .map((row) => ({ row, rect: row.getBoundingClientRect() }))
+                .filter(({ rect }) => rect.bottom > 0 && rect.top < viewportHeight);
 
             if (!visibleRows.length) {
                 setActivePackageIndex(-1);
                 return;
             }
 
-            const anchor = window.innerHeight * 0.45;
-            const closestRow = visibleRows.reduce((closest, row) => {
-                const rowCenter =
-                    row.getBoundingClientRect().top +
-                    row.getBoundingClientRect().height / 2;
-                const closestDistance = Math.abs(
-                    closest.getBoundingClientRect().top +
-                        closest.getBoundingClientRect().height / 2 -
-                        anchor,
+            const anchor = viewportHeight * 0.45;
+            const closest = visibleRows.reduce((current, candidate) => {
+                const currentDistance = Math.abs(
+                    current.rect.top + current.rect.height / 2 - anchor,
                 );
-                const rowDistance = Math.abs(rowCenter - anchor);
+                const candidateDistance = Math.abs(
+                    candidate.rect.top + candidate.rect.height / 2 - anchor,
+                );
 
-                return rowDistance < closestDistance ? row : closest;
+                return candidateDistance < currentDistance ? candidate : current;
             });
-            const nextIndex = Number(closestRow.dataset.packageIndex);
+            const nextIndex = Number(closest.row.dataset.packageIndex);
 
             setActivePackageIndex((currentIndex) =>
                 currentIndex === nextIndex ? currentIndex : nextIndex,
             );
         };
 
-        const requestActiveRowUpdate = () => {
+        const requestUpdate = () => {
             if (!frame) {
-                frame = window.requestAnimationFrame(updateActiveRow);
+                frame = window.requestAnimationFrame(updateScrollEffects);
             }
         };
 
-        updateActiveRow();
-        window.addEventListener("scroll", requestActiveRowUpdate, {
-            passive: true,
-        });
-        window.addEventListener("resize", requestActiveRowUpdate);
+        const activateSection = () => {
+            if (sectionActive) return;
+
+            sectionActive = true;
+            window.addEventListener("scroll", requestUpdate, { passive: true });
+            window.addEventListener("resize", requestUpdate);
+            requestUpdate();
+        };
+
+        const deactivateSection = () => {
+            if (!sectionActive) return;
+
+            sectionActive = false;
+            window.removeEventListener("scroll", requestUpdate);
+            window.removeEventListener("resize", requestUpdate);
+            window.cancelAnimationFrame(frame);
+            frame = 0;
+        };
+
+        const observer =
+            "IntersectionObserver" in window
+                ? new IntersectionObserver(
+                      ([entry]) => {
+                          if (entry?.isIntersecting) {
+                              activateSection();
+                          } else {
+                              deactivateSection();
+                          }
+                      },
+                      { rootMargin: SECTION_PREWARM_ROOT_MARGIN, threshold: 0 },
+                  )
+                : null;
+
+        if (observer) {
+            observer.observe(section);
+        } else {
+            activateSection();
+        }
 
         return () => {
-            window.cancelAnimationFrame(frame);
-            window.removeEventListener("scroll", requestActiveRowUpdate);
-            window.removeEventListener("resize", requestActiveRowUpdate);
+            deactivateSection();
+            observer?.disconnect();
         };
     }, []);
 

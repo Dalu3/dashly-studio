@@ -18,6 +18,7 @@ import { createIdleAnimation, type IdleAnimationHandle } from "./idleAnimation";
 import { prepareGeometry } from "./prepareGeometry";
 import type { FrameLoopHandle } from "./frameLoop";
 import type { FurQualityPreset } from "./quality";
+import type { PreparedFurData } from "./furDataWorker";
 
 /**
  * Public entry point for the fur system. Everything it needs is passed in —
@@ -47,6 +48,8 @@ export interface CreateFurOptions {
      *  cursor interaction elsewhere in this system is unaffected, since it
      *  only ever moves in direct response to the user's own pointer. */
     reducedMotion: boolean;
+    /** Geometry and strand attributes prepared off the main thread. */
+    prepared?: PreparedFurData;
 }
 
 export interface FurHandles {
@@ -99,7 +102,7 @@ export function createFur(
     sourceGeometry: BufferGeometry,
     options: CreateFurOptions,
 ): FurHandles {
-    const geometry = prepareGeometry(sourceGeometry);
+    const geometry = options.prepared?.geometry ?? prepareGeometry(sourceGeometry);
 
     const supportMaterial = createSupportMaterial({
         rootColor: options.rootColor,
@@ -109,13 +112,17 @@ export function createFur(
     // generated once and reused while only the fibres animate.
     baseMesh.castShadow = true;
 
-    const { mesh: strandMesh, material: strandMaterial } = createStrands(geometry, {
-        density: options.quality.density,
-        rootColor: options.rootColor,
-        tipColor: options.tipColor,
-        strandLength: STRAND_LENGTH,
-        strandWidth: STRAND_WIDTH,
-    });
+    const { mesh: strandMesh, material: strandMaterial } = createStrands(
+        geometry,
+        {
+            density: options.quality.density,
+            rootColor: options.rootColor,
+            tipColor: options.tipColor,
+            strandLength: STRAND_LENGTH,
+            strandWidth: STRAND_WIDTH,
+        },
+        options.prepared?.strands,
+    );
 
     if (options.lightDir) {
         strandMaterial.uniforms.uLightDir.value.copy(options.lightDir);
@@ -153,7 +160,7 @@ export function createFur(
 
         // `geometry` (the tube) is shared only with baseMesh. strandMesh has
         // its own, separate template geometry (see createStrands.ts) with
-        // the per-instance aRoot/aNormal/aSeed buffers baked in — neither
+        // the per-instance root/normal/static-shape buffers baked in — neither
         // dispose() call below touches the other's geometry or material,
         // InstancedMesh.dispose() itself only releases the instancing GPU
         // state, not the geometry/material objects.

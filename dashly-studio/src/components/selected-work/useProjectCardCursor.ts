@@ -109,6 +109,11 @@ export function useProjectCardCursor(
         const deactivate = () => {
             isHovering = false;
             cursor.dataset.active = "false";
+
+            if (frame) {
+                cancelAnimationFrame(frame);
+                frame = 0;
+            }
         };
 
         const onPointerLeave = (event: PointerEvent) => {
@@ -136,6 +141,17 @@ export function useProjectCardCursor(
         card.addEventListener("pointerleave", onPointerLeave);
         card.addEventListener("pointercancel", onPointerLeave);
         document.addEventListener("pointermove", onDocumentPointerMove);
+        document.addEventListener("visibilitychange", deactivate);
+
+        const visibilityObserver =
+            "IntersectionObserver" in window
+                ? new IntersectionObserver(([entry]) => {
+                      if (!entry?.isIntersecting) {
+                          deactivate();
+                      }
+                  })
+                : null;
+        visibilityObserver?.observe(card);
 
         return () => {
             card.removeEventListener("pointerenter", onPointerEnter);
@@ -143,6 +159,8 @@ export function useProjectCardCursor(
             card.removeEventListener("pointerleave", onPointerLeave);
             card.removeEventListener("pointercancel", onPointerLeave);
             document.removeEventListener("pointermove", onDocumentPointerMove);
+            document.removeEventListener("visibilitychange", deactivate);
+            visibilityObserver?.disconnect();
 
             if (frame) {
                 cancelAnimationFrame(frame);

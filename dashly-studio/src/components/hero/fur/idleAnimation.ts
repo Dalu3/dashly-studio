@@ -50,10 +50,6 @@ export function createIdleAnimation(
     let lastTime = 0;
     let elapsedSeconds = 0;
 
-    // The shared frame loop still wakes for cursor work at display cadence,
-    // while this decorative breeze requests a render only at preset cadence.
-    const MIN_FRAME_MS = 1000 / options.idleFps;
-
     const shouldRun = () => visible && !document.hidden && !disposed;
 
     const tick = (now: number): FrameTickResult => {
@@ -61,7 +57,10 @@ export function createIdleAnimation(
             return { keepRunning: false, needsRender: false };
         }
 
-        if (now - lastUpdate < MIN_FRAME_MS) {
+        const effectiveIdleFps = resolveHeroIdleFps(options.idleFps, now);
+        const minFrameMs = 1000 / effectiveIdleFps;
+
+        if (now - lastUpdate < minFrameMs) {
             return { keepRunning: shouldRun(), needsRender: false };
         }
 
@@ -90,6 +89,7 @@ export function createIdleAnimation(
     };
 
     const stopLoop = () => {
+        cancelHeroResume(startLoop);
         frameLoop.cancel(tick);
     };
 
@@ -98,7 +98,7 @@ export function createIdleAnimation(
             visible = entries.some((entry) => entry.isIntersecting);
 
             if (shouldRun()) {
-                startLoop();
+                scheduleHeroResume(startLoop);
             } else {
                 stopLoop();
             }
@@ -114,7 +114,7 @@ export function createIdleAnimation(
 
     const handleVisibilityChange = () => {
         if (shouldRun()) {
-            startLoop();
+            scheduleHeroResume(startLoop);
         } else {
             stopLoop();
         }
@@ -132,3 +132,8 @@ export function createIdleAnimation(
     };
 }
 import type { FrameLoopHandle, FrameTickResult } from "./frameLoop";
+import {
+    cancelHeroResume,
+    scheduleHeroResume,
+} from "../heroResumeScheduler";
+import { resolveHeroIdleFps } from "../heroFrameBudget";

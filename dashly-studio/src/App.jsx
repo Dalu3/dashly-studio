@@ -23,15 +23,6 @@ import {
     normalizePathname,
 } from "./seo/siteMetadata.js";
 
-function SurfaceTransition({ variant }) {
-    return (
-        <div
-            className={`surface-transition surface-transition--${variant}`}
-            aria-hidden="true"
-        />
-    );
-}
-
 function isReloadNavigation() {
     if (typeof window === "undefined") {
         return false;
@@ -68,15 +59,10 @@ function HomePage({ onHeroReady }) {
             <Hero onReady={onHeroReady}>
                 <MainPage />
             </Hero>
-            <SurfaceTransition variant="hero-to-page" />
             <SelectedWork />
-            <SurfaceTransition variant="page-to-accent" />
             <Packages />
-            <SurfaceTransition variant="accent-to-process" />
             <Stages />
-            <SurfaceTransition variant="process-to-page" />
             <FAQ />
-            <SurfaceTransition variant="page-to-accent" />
             <Contact />
         </main>
     );
@@ -130,7 +116,6 @@ function AppFrame({ pathname, onHeroReady }) {
         <>
             <Header />
             <HomePage onHeroReady={onHeroReady} />
-            <SurfaceTransition variant="accent-to-inverse" />
             <Footer />
         </>
     );

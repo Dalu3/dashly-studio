@@ -27,6 +27,9 @@
     --space-section-md: clamp(3.5rem, 2.4rem + 5.5vw, 6rem);
     --space-section-lg: clamp(4.5rem, 2.8rem + 8.5vw, 9rem);
 
+    /* Shared vertical padding for the site's primary content sections. */
+    --space-section-padding: 3.75rem; /* 60px — phone and tablet */
+
     /* Consistent distance between adjacent page sections. */
     --space-section-gap: 6.25rem; /* 100px — phone */
 
@@ -43,6 +46,7 @@
 
 @media (min-width: 64rem) {
     :root {
+        --space-section-padding: 6.25rem; /* 100px — laptop and desktop */
         --space-section-gap: 10rem; /* 160px — laptop and desktop */
     }
 }

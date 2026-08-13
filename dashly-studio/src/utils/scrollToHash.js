@@ -1,3 +1,5 @@
+import { markHeroScrollActivity } from "../components/hero/heroResumeScheduler";
+
 export const VIEWPORT_CHECK_EVENT = "dashly:viewport-check";
 
 const DEFAULT_SCROLL_DURATION = 420;
@@ -140,6 +142,7 @@ function easeOutCubic(progress) {
 function smoothScrollWindowTo(top, duration = getScrollDuration()) {
     cancelActiveScroll();
     attachActiveScrollInterrupts();
+    markHeroScrollActivity();
 
     const startY =
         window.pageYOffset ||
@@ -177,6 +180,7 @@ function smoothScrollWindowTo(top, duration = getScrollDuration()) {
         );
 
         window.scrollTo(0, currentY);
+        markHeroScrollActivity();
         dispatchViewportCheck();
 
         if (progress < 1) {
@@ -194,6 +198,10 @@ function smoothScrollWindowTo(top, duration = getScrollDuration()) {
 
 function nativeSmoothScrollWindowTo(top) {
     cancelActiveScroll();
+    // Logo navigation uses native smooth scrolling. Mark its first frame here
+    // as well as in Hero's scroll listener, so content resume cannot win a
+    // callback-order race before the first browser scroll event is delivered.
+    markHeroScrollActivity();
 
     const maxScrollTop = Math.max(
         0,

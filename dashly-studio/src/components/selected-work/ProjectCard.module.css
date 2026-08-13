@@ -82,6 +82,11 @@
     transform-origin: center;
     animation: project-card-cursor-rotate calc(var(--duration-deliberate) * 16)
         var(--ease-linear) infinite;
+    animation-play-state: paused;
+}
+
+.cursor[data-active="true"] .cursorSpinner {
+    animation-play-state: running;
 }
 
 .cursorText {

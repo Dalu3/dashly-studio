@@ -9,11 +9,14 @@ import designImage from "../assets/process/stage-4-design.webp";
 import developmentImage from "../assets/process/stage-5-development.webp";
 import launchImage from "../assets/process/stage-6-launch.webp";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
+import { SECTION_PREWARM_ROOT_MARGIN } from "../constants/performance";
 
 const DESKTOP_MEDIA_QUERY = "(min-width: 64rem)";
-const FIGMA_ROUTE_VIEW_BOX = "0 0 997.739 962.71";
-const FIGMA_ROUTE_PATH =
-    "M0.182781 1.48882C152.684 20.2112 509.781 55.2138 718.163 45.4455C926.546 35.6773 971.963 80.448 968.624 104.054C961.375 155.294 357.706 241.89 274.017 279.881L217.246 311.628L177.173 350.701C179.399 366.167 190.53 401.495 217.246 419.078C250.641 441.056 968.624 489.897 968.624 516.759C968.624 543.622 1105.54 541.18 781.614 646.188C457.687 751.195 274.017 712.123 127.081 817.131C9.53184 901.137 607.962 948.187 921.871 961.211";
+const ROUTE_VIEW_BOX = "0 0 1004 963";
+/* Mirrors the user-provided route.svg so the animated arrow follows the
+   exact same path that is visible on desktop. */
+const ROUTE_PATH =
+    "M0.183594 1.48877C152.684 20.2111 509.781 55.2137 718.164 45.4455C926.547 35.6772 957.443 79.8015 950.464 102.599C934.847 153.617 361.758 240.832 274.018 279.881C274.018 279.881 229.491 293.896 206.405 311.765C199.004 317.494 193.814 319.998 188.515 327.714C183.095 335.608 179.989 350.704 179.989 350.704C176.487 368.061 195.337 403.703 225.887 413.169C261.353 424.158 968.624 516.759 968.624 516.759C968.624 516.759 1118.65 567.157 781.615 646.188C444.579 725.218 381.671 723.207 162.605 817.13C82.8268 851.335 150.496 886.598 225.887 898.727C420.078 929.97 757.805 952.93 957.396 961.211";
 
 const stages = [
     {
@@ -98,15 +101,19 @@ export default function Stages() {
     const flowRef = useRef(null);
     const routeSvgRef = useRef(null);
     const routePathRef = useRef(null);
+    const routeStartMaskRef = useRef(null);
+    const routeEndMaskRef = useRef(null);
     const arrowRef = useRef(null);
     const stageRefs = useRef([]);
-    const thresholdsRef = useRef(stages.map((_, index) => index / 5));
+    const stageRouteProgressRef = useRef(stages.map((_, index) => index / 5));
 
     useLayoutEffect(() => {
         const section = sectionRef.current;
         const flow = flowRef.current;
         const routeSvg = routeSvgRef.current;
         const routePath = routePathRef.current;
+        const routeStartMask = routeStartMaskRef.current;
+        const routeEndMask = routeEndMaskRef.current;
         const arrow = arrowRef.current;
 
         if (!section || !flow || !routeSvg || !routePath || !arrow) {
@@ -114,6 +121,9 @@ export default function Stages() {
         }
 
         const desktopQuery = window.matchMedia(DESKTOP_MEDIA_QUERY);
+        const tabletQuery = window.matchMedia(
+            "(min-width: 48rem) and (max-width: 63.999rem)",
+        );
         let frameId = 0;
         let resizeFrameId = 0;
         let currentProgress = 0;
@@ -121,12 +131,43 @@ export default function Stages() {
         let scrollStart = 0;
         let scrollDistance = 1;
         let routeLength = 0;
+        let scrollStartViewportRatio = 0.68;
         let disposed = false;
+        let sectionActive = false;
+        let geometryReady = false;
+        let geometryDirty = true;
+        const arrowFadeStart = Number.parseFloat(
+            window
+                .getComputedStyle(document.documentElement)
+                .getPropertyValue("--process-arrow-fade-start"),
+        );
+        const arrowArrivalDuration = Number.parseFloat(
+            window
+                .getComputedStyle(document.documentElement)
+                .getPropertyValue("--process-arrow-arrival-duration"),
+        );
+        const imageArrivalDuration = Number.parseFloat(
+            window
+                .getComputedStyle(document.documentElement)
+                .getPropertyValue("--process-image-arrival-duration"),
+        );
+        const imageHoldDuration = Number.parseFloat(
+            window
+                .getComputedStyle(document.documentElement)
+                .getPropertyValue("--process-image-hold-duration"),
+        );
+        const imageExitDuration = Number.parseFloat(
+            window
+                .getComputedStyle(document.documentElement)
+                .getPropertyValue("--process-image-exit-duration"),
+        );
+        const finalStageRouteProgress = Number.parseFloat(
+            window
+                .getComputedStyle(document.documentElement)
+                .getPropertyValue("--process-final-stage-route-progress"),
+        );
 
-        const pointInFlow = (distance) => {
-            const matrix = routePath.getScreenCTM();
-            const flowRect = flow.getBoundingClientRect();
-
+        const pointInFlow = (distance, matrix, flowRect) => {
             if (!matrix) return { x: 0, y: 0 };
 
             const routePoint = routePath.getPointAtLength(distance);
@@ -144,13 +185,22 @@ export default function Stages() {
         const setArrowPosition = (progress) => {
             if (!routeLength) return;
 
-            const distance = clamp(progress) * routeLength;
+            const matrix = routePath.getScreenCTM();
+            const flowRect = flow.getBoundingClientRect();
+            const clampedProgress = clamp(progress);
+            const distance = clampedProgress * routeLength;
             const tangentOffset = Math.max(routeLength * 0.002, 0.5);
-            const before = pointInFlow(Math.max(0, distance - tangentOffset));
+            const before = pointInFlow(
+                Math.max(0, distance - tangentOffset),
+                matrix,
+                flowRect,
+            );
             const after = pointInFlow(
                 Math.min(routeLength, distance + tangentOffset),
+                matrix,
+                flowRect,
             );
-            const point = pointInFlow(distance);
+            const point = pointInFlow(distance, matrix, flowRect);
             const angle =
                 (Math.atan2(after.y - before.y, after.x - before.x) * 180) /
                 Math.PI;
@@ -158,38 +208,93 @@ export default function Stages() {
             arrow.style.setProperty("--arrow-x", `${point.x}px`);
             arrow.style.setProperty("--arrow-y", `${point.y}px`);
             arrow.style.setProperty("--arrow-rotation", `${angle + 90}deg`);
+            const arrowArrival = smoothstep(
+                clamp(clampedProgress / arrowArrivalDuration),
+            );
+            const arrowExit =
+                1 -
+                smoothstep(
+                    clamp(
+                        (clampedProgress - arrowFadeStart) /
+                            (1 - arrowFadeStart),
+                    ),
+                );
+
+            arrow.style.setProperty(
+                "--arrow-opacity",
+                (arrowArrival * arrowExit).toFixed(4),
+            );
         };
 
-        const setStageVisuals = (progress) => {
+        const setStageVisuals = (progress, showAll = false) => {
             stageRefs.current.forEach((stage, index) => {
                 if (!stage) return;
 
-                const threshold = thresholdsRef.current[index] ?? 0;
-                const reveal = smoothstep(
-                    clamp((progress - (threshold - 0.05)) / 0.1),
+                const isInitialResponsiveStage =
+                    !desktopQuery.matches && index === 0;
+                const routeProgress =
+                    index === stages.length - 1
+                        ? finalStageRouteProgress
+                        : (stageRouteProgressRef.current[index] ?? 0);
+                const nextRouteProgress =
+                    stageRouteProgressRef.current[index + 1];
+                const imageProgress = progress - routeProgress;
+                const imageArrival = smoothstep(
+                    clamp(imageProgress / imageArrivalDuration),
                 );
-                const numberReveal = smoothstep(
-                    clamp((reveal - 0.06) / 0.84),
+                const imageExit = smoothstep(
+                    clamp(
+                        (imageProgress -
+                            imageArrivalDuration -
+                            imageHoldDuration) /
+                            imageExitDuration,
+                    ),
                 );
-                const copyReveal = smoothstep(
-                    clamp((reveal - 0.16) / 0.84),
+                const imageExitBeforeNext = Number.isFinite(
+                    nextRouteProgress,
+                )
+                    ? smoothstep(
+                          clamp(
+                              (progress -
+                                  (nextRouteProgress - imageExitDuration)) /
+                                  imageExitDuration,
+                          ),
+                      )
+                    : imageExit;
+                const initialResponsiveImageExit = smoothstep(
+                    clamp(
+                        (progress - imageHoldDuration) /
+                            imageExitDuration,
+                    ),
                 );
-                const imageScale = 0.94 + reveal * 0.06;
-                const imageShift = (1 - reveal) * 1.5;
+                const imageReveal = showAll
+                    ? 1
+                    : isInitialResponsiveStage
+                      ? 1 - Math.max(
+                            initialResponsiveImageExit,
+                            imageExitBeforeNext,
+                        )
+                      : imageArrival * (1 - imageExitBeforeNext);
+                /* Copy is a permanent milestone: it arrives with the plane,
+                   then remains readable while only its accompanying image
+                   continues to the next step. */
+                const reveal = showAll || isInitialResponsiveStage ? 1 : imageArrival;
+                const numberReveal = reveal;
+                const copyReveal = reveal;
                 const numberShift = (1 - numberReveal) * 1;
                 const copyShift = (1 - copyReveal) * 1.25;
 
                 stage.style.setProperty(
                     "--stage-image-opacity",
-                    reveal.toFixed(4),
+                    imageReveal.toFixed(4),
                 );
                 stage.style.setProperty(
                     "--stage-image-scale",
-                    imageScale.toFixed(4),
+                    (0.94 + imageReveal * 0.06).toFixed(4),
                 );
                 stage.style.setProperty(
                     "--stage-image-shift",
-                    `${imageShift.toFixed(4)}rem`,
+                    `${((1 - imageReveal) * 1.5).toFixed(4)}rem`,
                 );
                 stage.style.setProperty(
                     "--stage-number-opacity",
@@ -210,63 +315,52 @@ export default function Stages() {
             });
         };
 
-        const findStageThresholds = () => {
+        const findStageRouteProgress = () => {
             if (!routeLength) return;
 
             const flowRect = flow.getBoundingClientRect();
-            const sampleCount = 360;
-            const samples = Array.from(
-                { length: sampleCount + 1 },
-                (_, index) => {
-                    const progress = index / sampleCount;
-                    return {
-                        progress,
-                        point: pointInFlow(progress * routeLength),
-                    };
-                },
-            );
+            const matrix = routePath.getScreenCTM();
+            const sampleCount = 480;
+            const samples = Array.from({ length: sampleCount + 1 }, (_, index) => {
+                const progress = index / sampleCount;
+                return {
+                    progress,
+                    point: pointInFlow(progress * routeLength, matrix, flowRect),
+                };
+            });
 
-            let previousThreshold = 0;
-            thresholdsRef.current = stageRefs.current.map((stage, index) => {
+            let previousProgress = 0;
+            stageRouteProgressRef.current = stageRefs.current.map((stage, index) => {
                 const anchor = stage?.querySelector("[data-process-anchor]");
                 if (!anchor) return index / Math.max(stages.length - 1, 1);
 
                 const rect = anchor.getBoundingClientRect();
-                const target = {
-                    x: rect.left + rect.width / 2 - flowRect.left,
-                    y: rect.top + rect.height / 2 - flowRect.top,
-                };
-                let closest = samples[0];
-                let closestDistance = Number.POSITIVE_INFINITY;
+                const targetX = rect.left + rect.width / 2 - flowRect.left;
+                const targetY = rect.top + rect.height / 2 - flowRect.top;
+                const closest = samples.reduce((candidate, sample) => {
+                    const candidateDistance =
+                        (candidate.point.x - targetX) ** 2 +
+                        (candidate.point.y - targetY) ** 2;
+                    const sampleDistance =
+                        (sample.point.x - targetX) ** 2 +
+                        (sample.point.y - targetY) ** 2;
 
-                samples.forEach((sample) => {
-                    const deltaX = sample.point.x - target.x;
-                    const deltaY = sample.point.y - target.y;
-                    const distance = deltaX * deltaX + deltaY * deltaY;
-
-                    if (distance < closestDistance) {
-                        closest = sample;
-                        closestDistance = distance;
-                    }
+                    return sampleDistance < candidateDistance ? sample : candidate;
                 });
+                const progress = Math.max(previousProgress, closest.progress);
 
-                const minimum = index === 0 ? 0.05 : previousThreshold + 0.03;
-                const threshold = clamp(
-                    Math.max(minimum, closest.progress),
-                    0,
-                    0.94,
-                );
-                previousThreshold = threshold;
-                return threshold;
+                previousProgress = progress;
+                return progress;
             });
         };
 
         const updateScrollMetrics = () => {
             const sectionRect = section.getBoundingClientRect();
             const sectionTop = sectionRect.top + window.scrollY;
-            scrollStart = sectionTop - window.innerHeight * 0.68;
+            scrollStart =
+                sectionTop - window.innerHeight * scrollStartViewportRatio;
             const scrollEnd =
-                sectionTop + sectionRect.height - window.innerHeight * 0.38;
+                sectionTop + sectionRect.height - window.innerHeight;
             scrollDistance = Math.max(scrollEnd - scrollStart, 1);
             targetProgress = clamp(
                 (window.scrollY - scrollStart) / scrollDistance,
@@ -274,12 +368,21 @@ export default function Stages() {
         };
 
         const updateGeometry = () => {
+            const configuredScrollStart = Number.parseFloat(
+                window
+                    .getComputedStyle(document.documentElement)
+                    .getPropertyValue("--process-scroll-start"),
+            );
+            scrollStartViewportRatio = Number.isFinite(configuredScrollStart)
+                ? configuredScrollStart
+                : 0.68;
+
             if (desktopQuery.matches) {
-                routeSvg.setAttribute("viewBox", FIGMA_ROUTE_VIEW_BOX);
-                routePath.setAttribute("d", FIGMA_ROUTE_PATH);
+                routeSvg.setAttribute("viewBox", ROUTE_VIEW_BOX);
+                routePath.setAttribute("d", ROUTE_PATH);
             } else {
                 const flowRect = flow.getBoundingClientRect();
-                const points = stageRefs.current
+                const stagePoints = stageRefs.current
                     .map((stage) =>
                         stage?.querySelector("[data-process-anchor]"),
                     )
@@ -291,26 +394,43 @@ export default function Stages() {
                             y: rect.top + rect.height / 2 - flowRect.top,
                         };
                     });
-
                 routeSvg.setAttribute(
                     "viewBox",
                     `0 0 ${Math.max(flowRect.width, 1)} ${Math.max(flowRect.height, 1)}`,
                 );
-                routePath.setAttribute("d", buildResponsivePath(points));
+                routePath.setAttribute("d", buildResponsivePath(stagePoints));
+
+                const routeStart = stagePoints[0];
+                const routeEnd = stagePoints.at(-1);
+
+                if (routeStart) {
+                    routeStartMask?.setAttribute("cx", `${routeStart.x}`);
+                    routeStartMask?.setAttribute("cy", `${routeStart.y}`);
+                }
+
+                if (routeEnd) {
+                    routeEndMask?.setAttribute("cx", `${routeEnd.x}`);
+                    routeEndMask?.setAttribute("cy", `${routeEnd.y}`);
+                }
             }
 
             routeLength = routePath.getTotalLength();
-            findStageThresholds();
+            findStageRouteProgress();
             updateScrollMetrics();
 
             const settledProgress = prefersReducedMotion ? 1 : targetProgress;
             currentProgress = settledProgress;
             setArrowPosition(settledProgress);
-            setStageVisuals(settledProgress);
+            setStageVisuals(settledProgress, prefersReducedMotion);
         };
 
         const render = () => {
             frameId = 0;
+
+            if (!sectionActive) {
+                return;
+            }
+
             const difference = targetProgress - currentProgress;
 
             if (Math.abs(difference) < 0.0005) {
@@ -328,12 +448,18 @@ export default function Stages() {
         };
 
         const requestRender = () => {
+            if (!sectionActive) return;
+
             updateScrollMetrics();
             if (!frameId) frameId = window.requestAnimationFrame(render);
         };
 
         const requestGeometryUpdate = () => {
             if (disposed) return;
+
+            geometryDirty = true;
+
+            if (!sectionActive) return;
 
             if (resizeFrameId) {
                 window.cancelAnimationFrame(resizeFrameId);
@@ -342,11 +468,43 @@ export default function Stages() {
             resizeFrameId = window.requestAnimationFrame(() => {
                 resizeFrameId = 0;
                 updateGeometry();
+                geometryReady = true;
+                geometryDirty = false;
             });
         };
 
+        const activateSection = () => {
+            if (sectionActive || disposed) return;
+
+            sectionActive = true;
+
+            if (geometryDirty || !geometryReady) {
+                updateGeometry();
+                geometryReady = true;
+                geometryDirty = false;
+            }
+
+            if (!prefersReducedMotion) {
+                window.addEventListener("scroll", requestRender, {
+                    passive: true,
+                });
+                requestRender();
+            }
+        };
+
+        const deactivateSection = () => {
+            if (!sectionActive) return;
+
+            sectionActive = false;
+            window.removeEventListener("scroll", requestRender);
+
+            if (frameId) {
+                window.cancelAnimationFrame(frameId);
+                frameId = 0;
+            }
+        };
+
         section.dataset.motionReady = "true";
-        updateGeometry();
 
         const resizeObserver = new ResizeObserver(requestGeometryUpdate);
         resizeObserver.observe(section);
@@ -354,26 +512,40 @@ export default function Stages() {
 
         window.addEventListener("resize", requestGeometryUpdate);
         desktopQuery.addEventListener("change", requestGeometryUpdate);
+        tabletQuery.addEventListener("change", requestGeometryUpdate);
         document.fonts?.ready?.then(() => {
             if (!disposed) requestGeometryUpdate();
         });
 
-        if (!prefersReducedMotion) {
-            window.addEventListener("scroll", requestRender, {
-                passive: true,
-            });
+        const viewportObserver =
+            "IntersectionObserver" in window
+                ? new IntersectionObserver(
+                      ([entry]) => {
+                          if (entry?.isIntersecting) {
+                              activateSection();
+                          } else {
+                              deactivateSection();
+                          }
+                      },
+                      { rootMargin: SECTION_PREWARM_ROOT_MARGIN, threshold: 0 },
+                  )
+                : null;
+
+        if (viewportObserver) {
+            viewportObserver.observe(section);
+        } else {
+            activateSection();
         }
 
         return () => {
             disposed = true;
             delete section.dataset.motionReady;
+            deactivateSection();
             resizeObserver.disconnect();
+            viewportObserver?.disconnect();
             window.removeEventListener("resize", requestGeometryUpdate);
             desktopQuery.removeEventListener("change", requestGeometryUpdate);
-
-            if (!prefersReducedMotion) {
-                window.removeEventListener("scroll", requestRender);
-            }
+            tabletQuery.removeEventListener("change", requestGeometryUpdate);
 
             if (frameId) window.cancelAnimationFrame(frameId);
             if (resizeFrameId) {
@@ -392,13 +564,10 @@ export default function Stages() {
             <div className={styles.canvas}>
                 <header className={styles.header}>
                     <h2 className={styles.heading} id="process-title">
-                        From First Idea To A Website That Works
+                                   HOW WE MAKE IT WORK
                     </h2>
                     <p className={styles.intro}>
-                        We guide every project through a clear, thoughtful
-                        process — combining strategy, design and development to
-                        create a website that looks great, works smoothly and
-                        supports your business goals.
+                                From strategy to development, every step is shaped around your business and its goals, ensuring the final website works exactly as it should.
                     </p>
                 </header>
 
@@ -412,11 +581,21 @@ export default function Stages() {
                     <svg
                         className={styles.routeGeometry}
                         ref={routeSvgRef}
-                        viewBox={FIGMA_ROUTE_VIEW_BOX}
+                        viewBox={ROUTE_VIEW_BOX}
                         preserveAspectRatio="none"
                         aria-hidden="true"
                     >
-                        <path ref={routePathRef} d={FIGMA_ROUTE_PATH} />
+                        <path ref={routePathRef} d={ROUTE_PATH} />
+                        <circle
+                            className={`${styles.routeEndpointMask} ${styles.routeStartMask}`}
+                            ref={routeStartMaskRef}
+                            aria-hidden="true"
+                        />
+                        <circle
+                            className={`${styles.routeEndpointMask} ${styles.routeEndMask}`}
+                            ref={routeEndMaskRef}
+                            aria-hidden="true"
+                        />
                     </svg>
 
                     <span

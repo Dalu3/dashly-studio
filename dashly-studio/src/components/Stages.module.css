@@ -5,6 +5,7 @@
     color: var(--color-text-inverse);
     background: var(--color-surface-process);
     font-family: var(--font-family-sans);
+    padding-block: var(--space-section-padding);
 }
 
 .canvas {
@@ -39,10 +40,14 @@
     left: var(--process-header-left);
     width: var(--process-header-width);
     color: var(--color-text-inverse);
-    font-size: var(--type-section-title);
-    line-height: var(--line-height-display);
-    text-align: left;
-    text-transform: capitalize;
+    /* Match the Packages section title so primary section headings share the
+       same type role, weight and tracking. */
+    font-size: var(--process-heading-size);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-type-h2);
+    letter-spacing: var(--letter-spacing-wide);
+    text-align: center;
+    text-transform: uppercase;
 }
 
 .intro {
@@ -70,14 +75,14 @@
     pointer-events: none;
 }
 
-.routeAsset {
-    z-index: var(--z-base);
-    display: block;
-}
-
 .routeGeometry {
     z-index: var(--z-base);
     opacity: 0;
+}
+
+.routeAsset {
+    z-index: var(--z-base);
+    display: block;
 }
 
 .routeGeometry path {
@@ -85,12 +90,20 @@
     stroke: var(--color-process-route);
     stroke-width: var(--process-route-stroke-width);
     stroke-dasharray: var(--process-route-dash) var(--process-route-dash);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+.routeEndpointMask {
+    display: none;
+    fill: var(--color-surface-process);
 }
 
 .arrow {
     --arrow-x: 0rem;
     --arrow-y: 0rem;
     --arrow-rotation: 90deg;
+    --arrow-opacity: 1;
 
     position: absolute;
     top: 0;
@@ -98,11 +111,12 @@
     z-index: var(--z-sticky);
     display: block;
     width: var(--process-arrow-width);
+    opacity: var(--arrow-opacity);
     pointer-events: none;
     transform: translate3d(var(--arrow-x), var(--arrow-y), 0)
         translate(-50%, -50%) rotate(var(--arrow-rotation));
     transform-origin: center;
-    will-change: transform;
+    will-change: transform, opacity;
 }
 
 .arrow img {
@@ -141,6 +155,7 @@
     line-height: var(--line-height-display);
     z-index: var(--z-raised);
     transform: translate3d(0, var(--stage-number-shift), 0);
+    transition: var(--transition-opacity), var(--transition-transform);
     will-change: transform, opacity;
 }
 
@@ -154,11 +169,12 @@
     max-width: var(--description-width);
     color: var(--color-text-inverse);
     font-size: var(--process-stage-title-size);
-    line-height: var(--line-height-body-compact);
+    line-height: var(--line-height-snug);
     z-index: var(--z-raised);
     text-transform: capitalize;
     white-space: nowrap;
     transform: translate3d(0, var(--stage-copy-shift), 0);
+    transition: var(--transition-opacity), var(--transition-transform);
     will-change: transform, opacity;
 }
 
@@ -171,6 +187,7 @@
     line-height: var(--process-copy-line-height);
     z-index: var(--z-raised);
     transform: translate3d(0, var(--stage-copy-shift), 0);
+    transition: var(--transition-opacity), var(--transition-transform);
     will-change: transform, opacity;
 }
 
@@ -186,6 +203,7 @@
         translate3d(0, var(--stage-image-shift), 0)
         scale(var(--stage-image-scale));
     transform-origin: center;
+    transition: var(--transition-opacity), var(--transition-transform);
     will-change: transform, opacity;
 }
 
@@ -244,14 +262,22 @@
 
 .stage1 {
     --number-left: var(--process-1-number-left);
-    --number-top: var(--process-1-number-top);
+    --number-top: calc(
+        var(--process-1-number-top) + var(--process-first-stage-offset-y)
+    );
     --title-left: var(--process-1-title-left);
-    --title-top: var(--process-1-title-top);
+    --title-top: calc(
+        var(--process-1-title-top) + var(--process-first-stage-offset-y)
+    );
     --description-left: var(--process-1-description-left);
-    --description-top: var(--process-1-description-top);
+    --description-top: calc(
+        var(--process-1-description-top) + var(--process-first-stage-offset-y)
+    );
     --description-width: var(--process-1-description-width);
     --image-left: var(--process-1-image-left);
-    --image-top: var(--process-1-image-top);
+    --image-top: calc(
+        var(--process-1-image-top) + var(--process-first-stage-offset-y)
+    );
     --image-rotation: var(--process-1-image-rotation);
     --media-left: var(--process-1-media-left);
     --media-top: var(--process-1-media-top);
@@ -371,8 +397,7 @@
 @media (max-width: 63.999rem) {
     .canvas {
         aspect-ratio: auto;
-        padding: var(--process-responsive-padding-block)
-            var(--process-responsive-padding-inline);
+        padding: var(--space-0) var(--process-responsive-padding-inline);
         box-sizing: border-box;
     }
 
@@ -392,6 +417,11 @@
         text-align: center;
     }
 
+    .heading {
+        max-width: var(--process-responsive-heading-width);
+        margin-inline: auto;
+    }
+
     .intro {
         max-width: var(--measure-wide);
         margin: var(--process-responsive-header-gap) auto 0;
@@ -406,10 +436,6 @@
         margin: var(--process-responsive-flow-margin) auto 0;
     }
 
-    .routeAsset {
-        display: none;
-    }
-
     .routeGeometry {
         inset: 0;
         width: 100%;
@@ -417,7 +443,25 @@
         opacity: 1;
     }
 
+    .routeEndpointMask {
+        display: block;
+    }
+
+    .routeStartMask {
+        r: var(--process-route-start-mask-radius);
+    }
+
+    .routeEndMask {
+        r: var(--process-route-end-mask-radius);
+    }
+
+    .routeAsset {
+        display: none;
+    }
+
     .stage {
+        --process-responsive-route-x: var(--process-mobile-route-left);
+
         position: relative;
         inset: auto;
         display: grid;
@@ -431,22 +475,47 @@
 
     .anchor {
         top: 50%;
-        left: var(--process-mobile-route-left);
+        right: auto;
+        left: var(--process-responsive-route-x);
         transform: translate(-50%, -50%);
     }
 
-    .stage2 .anchor,
-    .stage4 .anchor,
-    .stage6 .anchor {
-        right: var(--process-mobile-route-right);
-        left: auto;
+    .stage2,
+    .stage4,
+    .stage6 {
+        --process-responsive-route-x: var(--process-mobile-route-right);
     }
 
     .number {
-        top: var(--process-responsive-number-offset);
-        left: 0;
+        top: calc(50% - var(--process-responsive-number-center));
+        left: calc(
+            var(--process-responsive-route-x) -
+                var(--process-responsive-number-center)
+        );
+        display: grid;
+        width: var(--process-responsive-number-size);
+        isolation: isolate;
+        justify-items: center;
         font-size: var(--process-responsive-number-size);
         line-height: var(--line-height-none);
+    }
+
+    .number::before {
+        position: absolute;
+        z-index: -1;
+        inset: 0;
+        width: var(--process-responsive-number-mask-width);
+        height: 100%;
+        margin-inline: auto;
+        content: "";
+        background: var(--color-surface-process);
+    }
+
+    .stage4 .number {
+        left: calc(
+            var(--process-responsive-route-x) -
+                var(--process-responsive-number-center) - var(--space-3xs)
+        );
     }
 
     .copy {
@@ -464,8 +533,9 @@
     }
 
     .copy h3 {
-        font-size: var(--process-responsive-title-size);
-        line-height: var(--line-height-tight);
+        max-width: var(--process-responsive-title-width);
+        font-size: var(--process-stage-title-size);
+        line-height: var(--line-height-type-h3);
     }
 
     .copy p {
@@ -484,13 +554,31 @@
     }
 }
 
-@media (max-width: 47.999rem) {
-    .canvas {
-        padding-block: var(--space-section-sm);
-    }
-
+@media (min-width: 64rem) and (max-width: 79.999rem) {
     .flow {
-        gap: var(--space-3xl);
+        transform: translateY(
+            calc(
+                var(--space-0) - var(--process-header-top-base) -
+                    var(--process-laptop-flow-tightening)
+            )
+        );
+    }
+}
+
+@media (min-width: 80rem) {
+    .flow {
+        transform: translateY(
+            calc(
+                var(--space-0) - var(--process-header-top-base) -
+                    var(--process-desktop-flow-tightening)
+            )
+        );
+    }
+}
+
+@media (max-width: 47.999rem) {
+    .flow {
+        gap: var(--process-responsive-flow-gap);
         margin-top: var(--space-section-md);
     }
 
@@ -498,28 +586,41 @@
         grid-template-columns: minmax(0, 1fr);
         align-content: start;
         gap: var(--space-lg);
-        min-height: 24rem;
+        min-height: calc(
+            var(--process-responsive-stage-min-height) - var(--space-lg)
+        );
         padding-left: var(--process-responsive-stage-padding);
     }
 
-    .stage2 .anchor,
-    .stage4 .anchor,
-    .stage6 .anchor {
-        right: auto;
-        left: var(--process-mobile-route-right);
+    .stage6 {
+        min-height: var(--process-responsive-final-stage-min-height);
+    }
+
+    .anchor {
+        top: calc(
+            var(--process-responsive-number-offset) +
+                var(--process-responsive-number-center)
+        );
+    }
+
+    .number {
+        top: var(--process-responsive-number-offset);
     }
 
     .figure {
-        grid-column: 1;
+        position: absolute;
+        top: var(--process-responsive-mobile-image-top);
+        right: var(--process-responsive-mobile-image-inset);
+        grid-column: auto;
         width: min(65vw, var(--process-responsive-card-width));
-        margin-left: auto;
+        margin: 0;
     }
 
-    .stage2 .figure,
-    .stage4 .figure,
-    .stage6 .figure {
-        margin-right: var(--space-md);
-        margin-left: 0;
+}
+
+@media (width: 23.4375rem) {
+    .stage5 .copy h3 {
+        white-space: nowrap;
     }
 }
 

@@ -211,13 +211,6 @@ function addLowerStemCap(source: BufferGeometry): BufferGeometry {
     const geometry = new BufferGeometry();
     geometry.setAttribute("position", new BufferAttribute(new Float32Array(positions), 3));
     geometry.setIndex(new BufferAttribute(new Uint32Array(indices), 1));
-    // This marker lets strand placement give the newly rounded terminal a
-    // denser root distribution. It changes neither its material nor its fur
-    // length — only prevents the small cap area from reading sparse.
-    const furCoverage = new Float32Array(positions.length / 3);
-    furCoverage.fill(1, position.count);
-    geometry.setAttribute("furCoverage", new BufferAttribute(furCoverage, 1));
-
     return geometry;
 }
 

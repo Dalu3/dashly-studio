@@ -20,6 +20,7 @@
     background: var(--color-surface-inverse);
     color: var(--color-text-inverse);
     line-height: 1.1;
+    padding-block: var(--space-section-padding);
     padding-inline: var(--container-gutter);
 }
 
@@ -267,7 +268,7 @@
 .bottom {
     max-width: var(--content-max-width-footer);
     margin-inline: auto;
-    padding-block: 1.25rem 4.75rem;
+    padding-block: 1.25rem var(--space-0);
     display: flex;
     flex-direction: column;
     gap: var(--space-sm);
@@ -321,7 +322,7 @@
         display: grid;
         height: auto;
         max-width: none;
-        padding-block: 5.125rem 4.25rem;
+        padding-block: var(--space-0) 4.25rem;
         column-gap: var(--footer-column-gap-figma);
     }
 
@@ -364,7 +365,7 @@
         width: auto;
         max-width: none;
         margin: 0;
-        padding: 1.25rem 0 4.75rem;
+        padding: 1.25rem 0 var(--space-0);
         line-height: 1.25;
     }
 
@@ -419,7 +420,7 @@
 
     .bottom {
         padding-block: var(--footer-responsive-bottom-padding-start)
-            var(--footer-responsive-bottom-padding-end);
+            var(--space-0);
         gap: var(--space-xs);
     }
 

@@ -19,6 +19,7 @@
     --shadow-md: 0 6px 14px rgb(var(--c-ink-800-rgb) / 0.1);
     --shadow-lg: 0 14px 32px rgb(var(--c-ink-800-rgb) / 0.12);
     --shadow-xl: 0 20px 50px rgb(var(--c-ink-800-rgb) / 0.16);
+    --shadow-glass: 0 0.5rem 2rem rgb(var(--c-black-rgb) / 0.1);
 
     /* Accent glow, used sparingly for hover on accent surfaces. */
     --shadow-accent: 0 10px 30px rgb(var(--c-accent-400-rgb) / 0.28);

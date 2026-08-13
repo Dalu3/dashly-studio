@@ -20,9 +20,9 @@ import { createStrandMaterial, type StrandMaterial } from "./createStrandMateria
  * Deliberately NOT full per-strand physics (agreed scope: "middle ground").
  * Each strand still reacts to the one shared, CPU-spring-damped cursor brush
  * from cursorInteraction.ts, but every instance carries its own
- * hashed seed that desyncs its response curve, strength, tilt and curl, so
- * neighbouring strands visibly diverge under the same brush instead of
- * moving as one rigid patch. See strand.vert for exactly how.
+ * static response, growth and curl attributes derived once from a stable
+ * seed, so neighbouring strands visibly diverge under the same brush without
+ * repeating that seed math for every template vertex. See strand.vert.
  */
 
 /** Rings along a strand's length, root (t=0) to tip (t=1). 5 keeps a visible
@@ -30,8 +30,14 @@ import { createStrandMaterial, type StrandMaterial } from "./createStrandMateria
  *  strand — cheap enough that instance count, not per-strand complexity, is
  *  the knob that matters for performance. */
 const SEGMENTS = 5;
-/** Additional root selection weight for explicitly rounded line terminals. */
-const EDGE_FUR_DENSITY_BOOST = 0.85;
+/** Size of the subtle shared lean field in model-space units. */
+const SPATIAL_CLUMP_SIZE = 0.01;
+/**
+ * Keep clumping at one deliberately weak value. Randomly raising individual
+ * cells as high as 0.08 creates isolated dense tufts at tight stroke joins,
+ * even though root density and the underlying geometry are uniform.
+ */
+const SPATIAL_CLUMP_STRENGTH = 0.02;
 
 export interface StrandTemplate {
     geometry: BufferGeometry;
@@ -102,14 +108,46 @@ function mulberry32(seed: number): () => number {
     };
 }
 
-interface SampledRoots {
+export interface StrandAttributeData {
     /** vec3 per strand, object-space position on the tube surface. */
     roots: Float32Array;
     /** vec3 per strand, the surface's own (smooth, interpolated) normal at
      *  that point — each strand's un-tilted growth direction. */
     normals: Float32Array;
-    /** One stable seed per strand for shader-side variation. */
-    seeds: Float32Array;
+    /** Precomputed, static per-strand shader inputs. Each vec4 packs a
+     *  direction plus one related scalar to keep attribute count modest. */
+    growth: Float32Array;
+    curl: Float32Array;
+    idle: Float32Array;
+    params: Float32Array;
+    shade: Float32Array;
+}
+
+const fract = (value: number) => value - Math.floor(value);
+const hash1 = (value: number) => fract(Math.sin(value) * 43758.5453123);
+const smoothstep = (edge0: number, edge1: number, value: number) => {
+    const t = Math.min(1, Math.max(0, (value - edge0) / (edge1 - edge0)));
+    return t * t * (3 - 2 * t);
+};
+
+/** CPU equivalent of common.glsl's branchless basisFromNormal(). */
+function basisFromNormalComponents(
+    nx: number,
+    ny: number,
+    nz: number,
+): [number, number, number, number, number, number] {
+    const sign = nz >= 0 ? 1 : -1;
+    const a = -1 / (sign + nz);
+    const b = nx * ny * a;
+
+    return [
+        1 + sign * nx * nx * a,
+        sign * b,
+        -sign * nx,
+        b,
+        sign + ny * ny * a,
+        -ny,
+    ];
 }
 
 /**
@@ -119,11 +157,13 @@ interface SampledRoots {
  * strand density as the large ones along a straight run, reading as
  * uneven tufting instead of a uniform pile.
  */
-function sampleRoots(geometry: BufferGeometry, count: number): SampledRoots {
+export function generateStrandAttributes(
+    geometry: BufferGeometry,
+    count: number,
+): StrandAttributeData {
     const position = geometry.getAttribute("position");
     const normal = geometry.getAttribute("normal");
     const index = geometry.getIndex();
-    const furCoverage = geometry.getAttribute("furCoverage");
 
     if (!index) {
         throw new Error("sampleRoots requires an indexed geometry");
@@ -147,21 +187,22 @@ function sampleRoots(geometry: BufferGeometry, count: number): SampledRoots {
             .subVectors(b, a)
             .cross(edgeB.subVectors(c, a))
             .length() * 0.5;
-        const edgeCoverage = furCoverage
-            ? (
-                furCoverage.getX(index.getX(i * 3)) +
-                furCoverage.getX(index.getX(i * 3 + 1)) +
-                furCoverage.getX(index.getX(i * 3 + 2))
-            ) / 3
-            : 0;
-        total += area * (1 + edgeCoverage * EDGE_FUR_DENSITY_BOOST);
+        // Keep roots area-weighted across the whole tube. Biasing the visible
+        // hemisphere or repaired terminals concentrates an unchanged total
+        // number of strands at tight joins, where it reads as a clump rather
+        // than an even coat.
+        total += area;
         cumulativeArea[i] = total;
     }
 
     const random = mulberry32(0x5eed_1e57);
     const roots = new Float32Array(count * 3);
     const normals = new Float32Array(count * 3);
-    const seeds = new Float32Array(count);
+    const growth = new Float32Array(count * 4);
+    const curl = new Float32Array(count * 4);
+    const idle = new Float32Array(count * 4);
+    const params = new Float32Array(count * 4);
+    const shade = new Float32Array(count);
 
     const na = new Vector3();
     const nb = new Vector3();
@@ -216,10 +257,130 @@ function sampleRoots(geometry: BufferGeometry, count: number): SampledRoots {
         normals[s * 3 + 1] = ny / nLen;
         normals[s * 3 + 2] = nz / nLen;
 
-        seeds[s] = random() * 1000;
+        const seed = random() * 1000;
+        const hLen = hash1(seed * 12.9898);
+        const hWidth = hash1(seed * 29.7331);
+        const hCurlAmt = hash1(seed * 41.311);
+        const hCurlAng = hash1(seed * 53.913);
+        const hTiltAmt = hash1(seed * 7.719);
+        const hTiltAng = hash1(seed * 13.377);
+        const hResp = hash1(seed * 23.371);
+        const hStrMul = hash1(seed * 31.951);
+        const hShade = hash1(seed * 89.317);
+        const hIdlePh = hash1(seed * 101.667);
+        const hIdleFr = hash1(seed * 113.311);
+        const hIdleAng = hash1(seed * 127.211);
+
+        const guardHair = smoothstep(0.92, 1, hLen);
+        const lenScale = 0.64 + (1.32 - 0.64) * hLen + guardHair * 0.26;
+        const widthScale =
+            (0.68 + (1.48 - 0.68) * hWidth) *
+            (1.06 + (0.9 - 1.06) * guardHair);
+        const curlAmount = 0.04 + (0.32 - 0.04) * hCurlAmt;
+        const curlAngle = hCurlAng * Math.PI * 2;
+        const tiltAmount = 0.08 + (0.48 - 0.08) * hTiltAmt;
+        const tiltAngle = hTiltAng * Math.PI * 2;
+        const responseExp = 0.55 + (1.9 - 0.55) * hResp;
+        const strengthMul = 0.55 + (1.35 - 0.55) * hStrMul;
+        const idlePhase = hIdlePh * Math.PI * 2;
+        const idleFreq = 0.5 + (1.1 - 0.5) * hIdleFr;
+        const idleAngle = hIdleAng * Math.PI * 2;
+
+        const [tx, ty, tz, bx, by, bz] = basisFromNormalComponents(
+            nx / nLen,
+            ny / nLen,
+            nz / nLen,
+        );
+        const tiltCos = Math.cos(tiltAngle);
+        const tiltSin = Math.sin(tiltAngle);
+        const tiltX = tiltCos * tx + tiltSin * bx;
+        const tiltY = tiltCos * ty + tiltSin * by;
+        const tiltZ = tiltCos * tz + tiltSin * bz;
+
+        const rootX = roots[s * 3]!;
+        const rootY = roots[s * 3 + 1]!;
+        const rootZ = roots[s * 3 + 2]!;
+        const cellX = Math.floor(rootX / SPATIAL_CLUMP_SIZE);
+        const cellY = Math.floor(rootY / SPATIAL_CLUMP_SIZE);
+        const cellZ = Math.floor(rootZ / SPATIAL_CLUMP_SIZE);
+        const clumpId = cellX + cellY * 57 + cellZ * 113;
+        const centreX =
+            (cellX + 0.5 + (hash1(clumpId + 11.7) - 0.5) * 0.48) *
+            SPATIAL_CLUMP_SIZE;
+        const centreY =
+            (cellY + 0.5 + (hash1(clumpId + 37.1) - 0.5) * 0.48) *
+            SPATIAL_CLUMP_SIZE;
+        const centreZ =
+            (cellZ + 0.5 + (hash1(clumpId + 73.9) - 0.5) * 0.48) *
+            SPATIAL_CLUMP_SIZE;
+        const offsetX = centreX - rootX;
+        const offsetY = centreY - rootY;
+        const offsetZ = centreZ - rootZ;
+        const normalDot =
+            offsetX * (nx / nLen) +
+            offsetY * (ny / nLen) +
+            offsetZ * (nz / nLen);
+        let clumpX = offsetX - (nx / nLen) * normalDot;
+        let clumpY = offsetY - (ny / nLen) * normalDot;
+        let clumpZ = offsetZ - (nz / nLen) * normalDot;
+        const clumpLength = Math.hypot(clumpX, clumpY, clumpZ);
+        if (clumpLength > 1e-5) {
+            clumpX /= clumpLength;
+            clumpY /= clumpLength;
+            clumpZ /= clumpLength;
+        } else {
+            clumpX = tiltX;
+            clumpY = tiltY;
+            clumpZ = tiltZ;
+        }
+        let growX =
+            nx / nLen +
+            tiltX * tiltAmount +
+            clumpX * SPATIAL_CLUMP_STRENGTH;
+        let growY =
+            ny / nLen +
+            tiltY * tiltAmount +
+            clumpY * SPATIAL_CLUMP_STRENGTH;
+        let growZ =
+            nz / nLen +
+            tiltZ * tiltAmount +
+            clumpZ * SPATIAL_CLUMP_STRENGTH;
+        const growLength = Math.hypot(growX, growY, growZ) || 1;
+        growX /= growLength;
+        growY /= growLength;
+        growZ /= growLength;
+
+        const [ctx, cty, ctz, cbx, cby, cbz] = basisFromNormalComponents(
+            growX,
+            growY,
+            growZ,
+        );
+        const curlCos = Math.cos(curlAngle);
+        const curlSin = Math.sin(curlAngle);
+        const idleCos = Math.cos(idleAngle);
+        const idleSin = Math.sin(idleAngle);
+        const packed = s * 4;
+
+        growth[packed] = growX;
+        growth[packed + 1] = growY;
+        growth[packed + 2] = growZ;
+        growth[packed + 3] = lenScale;
+        curl[packed] = curlCos * ctx + curlSin * cbx;
+        curl[packed + 1] = curlCos * cty + curlSin * cby;
+        curl[packed + 2] = curlCos * ctz + curlSin * cbz;
+        curl[packed + 3] = curlAmount;
+        idle[packed] = idleCos * tx + idleSin * bx;
+        idle[packed + 1] = idleCos * ty + idleSin * by;
+        idle[packed + 2] = idleCos * tz + idleSin * bz;
+        idle[packed + 3] = idlePhase;
+        params[packed] = widthScale;
+        params[packed + 1] = idleFreq;
+        params[packed + 2] = responseExp;
+        params[packed + 3] = strengthMul;
+        shade[s] = hShade;
     }
 
-    return { roots, normals, seeds };
+    return { roots, normals, growth, curl, idle, params, shade };
 }
 
 /** Strands per unit of the tube's own surface area (object-space units
@@ -307,14 +468,22 @@ export interface StrandsResult {
 export function createStrands(
     geometry: BufferGeometry,
     options: CreateStrandsOptions,
+    prepared?: StrandAttributeData,
 ): StrandsResult {
-    const count = strandCountFor(geometry, options.density);
-    const { roots, normals, seeds } = sampleRoots(geometry, count);
+    const count = prepared
+        ? prepared.roots.length / 3
+        : strandCountFor(geometry, options.density);
+    const { roots, normals, growth, curl, idle, params, shade } =
+        prepared ?? generateStrandAttributes(geometry, count);
     const { geometry: template } = buildStrandTemplate();
 
     template.setAttribute("aRoot", new InstancedBufferAttribute(roots, 3));
     template.setAttribute("aNormal", new InstancedBufferAttribute(normals, 3));
-    template.setAttribute("aSeed", new InstancedBufferAttribute(seeds, 1));
+    template.setAttribute("aGrowth", new InstancedBufferAttribute(growth, 4));
+    template.setAttribute("aCurl", new InstancedBufferAttribute(curl, 4));
+    template.setAttribute("aIdle", new InstancedBufferAttribute(idle, 4));
+    template.setAttribute("aParams", new InstancedBufferAttribute(params, 4));
+    template.setAttribute("aShade", new InstancedBufferAttribute(shade, 1));
 
     const material = createStrandMaterial({
         rootColor: options.rootColor,

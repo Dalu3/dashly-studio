@@ -15,6 +15,7 @@
     transition:
         background-color var(--duration-normal) var(--ease-standard),
         backdrop-filter var(--duration-normal) var(--ease-standard),
+        border-color var(--duration-normal) var(--ease-standard),
         box-shadow var(--duration-normal) var(--ease-standard),
         border-radius var(--duration-normal) var(--ease-standard),
         padding-block var(--duration-normal) var(--ease-standard),
@@ -30,10 +31,11 @@
 }
 
 .glass-navbar--floating {
-    background-color: rgb(var(--c-white-rgb) / 0.3);
+    border: 1px solid var(--color-border-glass);
+    background-color: var(--color-surface-glass);
     -webkit-backdrop-filter: var(--backdrop-blur-subtle);
     backdrop-filter: var(--backdrop-blur-subtle);
-    box-shadow: var(--shadow-lg);
+    box-shadow: var(--shadow-glass);
 }
 
 .logo,
@@ -96,6 +98,19 @@
 
     .nav-links a {
         font-size: var(--font-size-body);
+    }
+
+    /* Match the Hero's outer gutter while keeping the same max-width content
+       boundary. The extra gutter is included in the box so both containers
+       resolve to the same left and right text edges. */
+    .glass-navbar,
+    .glass-navbar--scrolling,
+    .glass-navbar--floating {
+        max-width: calc(
+            var(--container-wide) + var(--container-gutter) +
+                var(--container-gutter)
+        );
+        padding-inline: var(--container-gutter);
     }
 }
 
@@ -299,10 +314,11 @@
         min-height: calc(var(--space-lg) + var(--space-lg));
         padding: 0 var(--space-lg);
         border-radius: var(--radius-pill);
-        background-color: rgb(var(--c-white-rgb) / 0.3);
+        border: 1px solid var(--color-border-glass);
+        background-color: var(--color-surface-glass);
         -webkit-backdrop-filter: var(--backdrop-blur-subtle);
         backdrop-filter: var(--backdrop-blur-subtle);
-        box-shadow: var(--shadow-md);
+        box-shadow: var(--shadow-glass);
     }
 
     .hamburger {
@@ -331,10 +347,11 @@
         min-height: var(--hero-mobile-header-height);
         padding: 0 var(--space-md);
         border-radius: var(--radius-pill);
-        background-color: rgb(var(--c-white-rgb) / 0.3);
+        border: 1px solid var(--color-border-glass);
+        background-color: var(--color-surface-glass);
         -webkit-backdrop-filter: var(--backdrop-blur-subtle);
         backdrop-filter: var(--backdrop-blur-subtle);
-        box-shadow: var(--shadow-md);
+        box-shadow: var(--shadow-glass);
     }
 
     .hamburger {

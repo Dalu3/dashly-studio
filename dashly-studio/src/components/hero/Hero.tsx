@@ -2,12 +2,8 @@ import {
     Suspense,
     lazy,
     useCallback,
-    useRef,
-    useState,
     type ReactNode,
 } from "react";
-
-import type { ParallaxDebug } from "@/hooks/useHeroParallax";
 
 import { HeroBackground } from "./HeroBackground";
 
@@ -17,19 +13,7 @@ import { HeroBackground } from "./HeroBackground";
  * word arrives afterwards, rather than blocking first render.
  */
 const HelloModel = lazy(() => import("./HelloModel"));
-import { HeroDebugPanel } from "./HeroDebugPanel";
 import styles from "./Hero.module.css";
-
-/**
- * Diagnostic overlay, off by default — append `?heroDebug` to the URL to show
- * it. Kept behind a flag rather than deleted so the runtime path (reduced
- * motion, scroll source, eased progress, live transforms) can be inspected on
- * any machine without a code change. Say the word and I will delete it and
- * HeroDebugPanel.tsx entirely.
- */
-const showDebugPanel = () =>
-    typeof window !== "undefined" &&
-    new URLSearchParams(window.location.search).has("heroDebug");
 
 export interface HeroProps {
     /** Hero content. Intentionally empty for now — text, buttons and the
@@ -52,22 +36,16 @@ export interface HeroProps {
  * decorative layers.
  */
 export function Hero({ children, onReady }: HeroProps) {
-    const sampleRef = useRef<ParallaxDebug | null>(null);
-    const [debug] = useState(showDebugPanel);
-    const handleSample = useCallback((sample: ParallaxDebug) => {
-        sampleRef.current = sample;
-    }, []);
+    const handleModelReady = useCallback(() => onReady?.(), [onReady]);
 
     return (
         <section className={styles.root} aria-label="Introduction">
-            <HeroBackground
-                onScrollSample={debug ? handleSample : undefined}
-            />
+            <HeroBackground />
             <Suspense fallback={null}>
-                <HelloModel onReady={onReady} />
+                <HelloModel onReady={handleModelReady} />
             </Suspense>
+            <div className={styles.dissolve} aria-hidden="true" />
             <div className={styles.content}>{children}</div>
-            {debug && <HeroDebugPanel sampleRef={sampleRef} />}
         </section>
     );
 }

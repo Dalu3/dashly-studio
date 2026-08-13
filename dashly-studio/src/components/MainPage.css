@@ -234,7 +234,9 @@
         max-width: var(--container-wide);
         align-self: center;
         padding-inline: var(--space-0);
-        padding-bottom: clamp(8rem, 18vh, 12rem);
+        /* The 10rem transition after Hero owns the entire desktop section
+           gap. Keeping extra bottom padding here would add 8–12rem before it. */
+        padding-bottom: var(--space-0);
     }
 }
 

@@ -40,6 +40,30 @@
     padding-inline: var(--container-gutter);
 }
 
+/* Composited over both video and fur but beneath the Hero copy. This creates
+   one shared dissolve without masking the WebGL canvas, which can make
+   Chromium intermittently blank that layer. */
+.dissolve {
+    position: absolute;
+    inset: 0;
+    z-index: var(--z-raised);
+    pointer-events: none;
+    background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        transparent calc(100% - 10rem),
+        rgb(var(--c-paper-050-rgb) / 0.14) calc(100% - 8.375rem),
+        rgb(var(--c-paper-050-rgb) / 0.34) calc(100% - 7rem),
+        rgb(var(--c-paper-050-rgb) / 0.52) calc(100% - 5.8125rem),
+        rgb(var(--c-paper-050-rgb) / 0.67) calc(100% - 4.75rem),
+        rgb(var(--c-paper-050-rgb) / 0.78) calc(100% - 3.8125rem),
+        rgb(var(--c-paper-050-rgb) / 0.86) calc(100% - 3rem),
+        rgb(var(--c-paper-050-rgb) / 0.92) calc(100% - 2.25rem),
+        rgb(var(--c-paper-050-rgb) / 0.96) calc(100% - 1.5625rem),
+        var(--color-surface-page) 100%
+    );
+}
+
 /* The mobile Hero owns its exact Figma side inset through .hero-copy. Avoid
    applying the global content gutter a second time, which would shift all
    copy inwards by an extra 1rem. */

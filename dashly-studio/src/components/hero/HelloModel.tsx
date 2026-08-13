@@ -17,8 +17,13 @@ import {
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 
 import { createFur, type FurHandles } from "./fur/createFur";
+import {
+    createFurDataWorker,
+    type PreparedFurData,
+} from "./fur/furDataWorker";
 import { createFrameLoop } from "./fur/frameLoop";
-import { resolveFurQuality } from "./fur/quality";
+import { resolveFurPixelRatio, resolveFurQuality } from "./fur/quality";
+import type { FurQualityPreset } from "./fur/quality";
 import type { StrandMaterial } from "./fur/createStrandMaterial";
 import type { SupportMaterial } from "./fur/createSupportMaterial";
 import {
@@ -26,6 +31,10 @@ import {
     type HelloMeshSource,
 } from "./fur/preloadHello";
 import styles from "./HelloModel.module.css";
+import {
+    cancelHeroResume,
+    scheduleHeroResume,
+} from "./heroResumeScheduler";
 
 export interface HelloModelHandles {
     scene: Scene;
@@ -36,11 +45,40 @@ export interface HelloModelHandles {
     renderer: WebGLRenderer;
     camera: PerspectiveCamera;
     requestRender: () => void;
+    debug?: HelloModelDebugHandle;
+}
+
+export interface HelloModelDebugSnapshot {
+    quality: FurQualityPreset | null;
+    strands: number;
+    strandVertices: number;
+    strandTriangles: number;
+    baseVertices: number;
+    baseTriangles: number;
+    drawCalls: number;
+    renderedTriangles: number;
+    cpuRenderMs: number;
+    gpuRenderMs: number | null;
+    gpuTimerSupported: boolean;
+    renders: number;
+    shadowUpdates: number;
+    canvasCssWidth: number;
+    canvasCssHeight: number;
+    canvasWidth: number;
+    canvasHeight: number;
+    pixelRatio: number;
+    heroInViewport: boolean;
+    documentVisible: boolean;
+}
+
+export interface HelloModelDebugHandle {
+    snapshot: () => HelloModelDebugSnapshot;
 }
 
 export interface HelloModelProps {
     className?: string;
     onReady?: (handles: HelloModelHandles) => void;
+    debug?: boolean;
 }
 
 /**
@@ -67,10 +105,12 @@ export interface HelloModelProps {
  */
 const LAYOUT = {
     desktop: {
-        width: 0.9,
-        offsetY: 0.19,
-        maxHeight: 0.54,
-        sizeScale: 0.8,
+        // Preserve the original wide-screen composition: the wordmark fills
+        // the upper Hero more confidently and sits closer to the navigation.
+        width: 0.93,
+        offsetY: 0.12,
+        maxHeight: 0.57,
+        sizeScale: 0.87,
         verticalScale: 1,
     },
     tablet: {
@@ -93,6 +133,8 @@ const LAYOUT = {
 
 const CAMERA_FOV = 20;
 const CAMERA_Z = 6.5;
+const LAYOUT_RESIZE_DEBOUNCE_MS = 120;
+const LAYOUT_EPSILON = 1e-7;
 
 /** -Z is the word's "up" in the file, so +90 deg about X stands it upright. */
 const STAND_UP_X = Math.PI / 2;
@@ -117,7 +159,7 @@ const FUR_ROOT_COLOR = "#159fdf";
  * lives in `fur/` — this component only calls `createFur()` and places the
  * result.
  */
-export function HelloModel({ className, onReady }: HelloModelProps) {
+export function HelloModel({ className, onReady, debug = false }: HelloModelProps) {
     const hostRef = useRef<HTMLDivElement>(null);
     const onReadyRef = useRef(onReady);
     onReadyRef.current = onReady;
@@ -130,6 +172,7 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
     const reducedMotion = usePrefersReducedMotion();
     const reducedMotionRef = useRef(reducedMotion);
     reducedMotionRef.current = reducedMotion;
+    const debugEnabled = import.meta.env.DEV && debug;
 
     useEffect(() => {
         const host = hostRef.current;
@@ -211,19 +254,97 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
         // zero-guard already exists for exactly this kind of race; reusing
         // its measurement here closes the same gap for shell count too.
         let lastMeasuredWidth = 0;
+        let lastCanvasWidth = 0;
+        let lastCanvasHeight = 0;
+        let lastPixelRatio = 0;
+        let layoutTimer = 0;
+        let layoutFrameId = 0;
 
         const furHandles: FurHandles[] = [];
+        let activeQuality: FurQualityPreset | null = null;
+        let rebuildSources: readonly HelloMeshSource[] | null = null;
+        let rebuildTimer = 0;
+        let rebuildGeneration = 0;
+        let pendingQuality: FurQualityPreset | null = null;
+        let publicHandles: HelloModelHandles | null = null;
+        let cpuRenderMs = 0;
+        let gpuRenderMs: number | null = null;
+        let renderCount = 0;
+        let shadowUpdateCount = 0;
+
+        const rendererContext = debugEnabled ? renderer.getContext() : null;
+        const gl =
+            rendererContext instanceof WebGL2RenderingContext
+                ? rendererContext
+                : null;
+        const gpuTimer = gl?.getExtension("EXT_disjoint_timer_query_webgl2") ?? null;
+        let activeGpuQuery: WebGLQuery | null = null;
+        const pendingGpuQueries: WebGLQuery[] = [];
+
+        const collectCompletedGpuQueries = () => {
+            if (!gl || !gpuTimer) {
+                return;
+            }
+
+            while (pendingGpuQueries.length > 0) {
+                const query = pendingGpuQueries[0]!;
+                const available = gl.getQueryParameter(
+                    query,
+                    gl.QUERY_RESULT_AVAILABLE,
+                ) as boolean;
+
+                if (!available) {
+                    break;
+                }
+
+                pendingGpuQueries.shift();
+                const disjoint = gl.getParameter(gpuTimer.GPU_DISJOINT_EXT) as boolean;
+
+                if (!disjoint) {
+                    const nanoseconds = gl.getQueryParameter(
+                        query,
+                        gl.QUERY_RESULT,
+                    ) as number;
+                    gpuRenderMs = nanoseconds / 1_000_000;
+                }
+
+                gl.deleteQuery(query);
+            }
+        };
 
         const canRender = () =>
             !disposed && heroInViewport && documentVisible;
 
         const render = () => {
             if (canRender()) {
+                const startedAt = debugEnabled ? performance.now() : 0;
+
+                if (debugEnabled && gl && gpuTimer && !activeGpuQuery) {
+                    collectCompletedGpuQueries();
+                    activeGpuQuery = gl.createQuery();
+
+                    if (activeGpuQuery) {
+                        gl.beginQuery(gpuTimer.TIME_ELAPSED_EXT, activeGpuQuery);
+                    }
+                }
+
                 renderer.render(scene, camera);
+
+                if (debugEnabled) {
+                    cpuRenderMs = performance.now() - startedAt;
+                    renderCount += 1;
+
+                    if (gl && gpuTimer && activeGpuQuery) {
+                        gl.endQuery(gpuTimer.TIME_ELAPSED_EXT);
+                        pendingGpuQueries.push(activeGpuQuery);
+                        activeGpuQuery = null;
+                    }
+                }
             }
         };
 
         const frameLoop = createFrameLoop(render);
+        const furDataWorker = createFurDataWorker();
 
         // This is the final render gate for the entire WebGL scene. Fur
         // subsystems already stop their own ticks when hidden/offscreen, but
@@ -235,7 +356,13 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
                 heroInViewport = Boolean(entry?.isIntersecting);
 
                 if (canRender()) {
+                    // Keep the already-created canvas visually correct on the
+                    // first re-entry frame. The scheduler below still holds
+                    // the continuous idle loop until scrolling is quiet.
                     render();
+                    scheduleHeroResume(render);
+                } else {
+                    cancelHeroResume(render);
                 }
             },
             { threshold: 0.01 },
@@ -246,12 +373,162 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
             documentVisible = !document.hidden;
 
             if (canRender()) {
-                render();
+                scheduleHeroResume(render);
+            } else {
+                cancelHeroResume(render);
             }
         };
         document.addEventListener("visibilitychange", handleDocumentVisibility);
 
-        const layout = () => {
+        const createFurSet = async (
+            sources: readonly HelloMeshSource[],
+            quality: FurQualityPreset,
+        ): Promise<FurHandles[]> => {
+            const created: FurHandles[] = [];
+            let prepared: PreparedFurData[] | undefined;
+
+            try {
+                prepared = await furDataWorker.generate(sources, quality.density);
+            } catch (error) {
+                if (disposed) {
+                    return created;
+                }
+                // Worker support/failure must never make the Hero disappear.
+                // This exceptional path preserves the former synchronous
+                // generation and reports why the optimisation was bypassed.
+                console.warn(
+                    "[HelloModel] worker generation unavailable; using main-thread fallback",
+                    error,
+                );
+            }
+
+            if (disposed) {
+                for (const data of prepared ?? []) {
+                    data.geometry.dispose();
+                }
+                return created;
+            }
+
+            try {
+                for (let index = 0; index < sources.length; index += 1) {
+                    const source = sources[index]!;
+                    const fur = createFur(source.geometry, {
+                        camera,
+                        viewportElement: renderer.domElement,
+                        pointerTarget: window,
+                        quality,
+                        rootColor: FUR_ROOT_COLOR,
+                        lightDir,
+                        frameLoop,
+                        reducedMotion: reducedMotionRef.current,
+                        prepared: prepared?.[index],
+                    });
+
+                    fur.group.position.copy(source.position);
+                    fur.group.quaternion.copy(source.quaternion);
+                    fur.group.scale.copy(source.scale);
+                    created.push(fur);
+                }
+            } catch (error) {
+                for (const fur of created) {
+                    fur.dispose();
+                }
+
+                throw error;
+            }
+
+            return created;
+        };
+
+        const scheduleQualityRebuild = (quality: FurQualityPreset) => {
+            pendingQuality = quality;
+            const requestedGeneration = ++rebuildGeneration;
+            window.clearTimeout(rebuildTimer);
+            rebuildTimer = window.setTimeout(async () => {
+                const nextQuality = pendingQuality;
+                pendingQuality = null;
+
+                if (
+                    disposed ||
+                    !modelReady ||
+                    !rebuildSources ||
+                    !nextQuality ||
+                    activeQuality?.name === nextQuality.name
+                ) {
+                    return;
+                }
+
+                let replacement: FurHandles[];
+
+                try {
+                    // Build completely before touching the visible set. This
+                    // briefly holds both buffers, but prevents a blank frame
+                    // or half-built coat during orientation changes.
+                    replacement = await createFurSet(rebuildSources, nextQuality);
+                } catch (error) {
+                    console.error("[HelloModel] failed to rebuild fur quality", error);
+                    return;
+                }
+
+                if (disposed) {
+                    for (const fur of replacement) {
+                        fur.dispose();
+                    }
+                    return;
+                }
+
+                if (requestedGeneration !== rebuildGeneration) {
+                    for (const fur of replacement) {
+                        fur.dispose();
+                    }
+                    return;
+                }
+
+                const previous = furHandles.slice();
+                for (const fur of replacement) {
+                    pivot.add(fur.group);
+                }
+                for (const fur of previous) {
+                    pivot.remove(fur.group);
+                }
+                furHandles.splice(0, furHandles.length, ...replacement);
+                activeQuality = nextQuality;
+
+                if (publicHandles) {
+                    publicHandles.strandMaterials.splice(
+                        0,
+                        publicHandles.strandMaterials.length,
+                        ...replacement.map((fur) => fur.materials.strand),
+                    );
+                    publicHandles.supportMaterials.splice(
+                        0,
+                        publicHandles.supportMaterials.length,
+                        ...replacement.map((fur) => fur.materials.support),
+                    );
+                }
+
+                render();
+
+                // Dispose only after the replacement has been rendered once;
+                // no frame can observe missing geometry between the two sets.
+                for (const fur of previous) {
+                    fur.dispose();
+                }
+
+                // A second resize may have landed while the synchronous build
+                // was running. Re-check the bucket once, then debounce again
+                // only when it genuinely changed.
+                const latest = resolveFurQuality(
+                    host.clientWidth,
+                    reducedMotionRef.current,
+                );
+                if (latest.name !== activeQuality.name) {
+                    scheduleQualityRebuild(latest);
+                }
+            }, 180);
+        };
+
+        const applyLayout = () => {
             const w = host.clientWidth;
             const h = host.clientHeight;
 
@@ -262,16 +539,42 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
             lastMeasuredWidth = w;
 
             const aspect = w / h;
-            camera.aspect = aspect;
-            camera.updateProjectionMatrix();
+            const projectionChanged =
+                Math.abs(camera.aspect - aspect) > LAYOUT_EPSILON;
+            if (projectionChanged) {
+                camera.aspect = aspect;
+                camera.updateProjectionMatrix();
+            }
+
             const quality = resolveFurQuality(w, reducedMotionRef.current);
-            renderer.setPixelRatio(
-                Math.min(window.devicePixelRatio, quality.maxDpr),
+            const pixelRatio = resolveFurPixelRatio(
+                w,
+                h,
+                window.devicePixelRatio,
+                quality,
             );
-            renderer.setSize(w, h, false);
+            const drawingBufferChanged =
+                w !== lastCanvasWidth ||
+                h !== lastCanvasHeight ||
+                Math.abs(pixelRatio - lastPixelRatio) > LAYOUT_EPSILON;
+
+            if (drawingBufferChanged) {
+                // Updates logical drawing-buffer dimensions and DPR in one
+                // renderer operation (CSS sizing remains the host's 100%).
+                // Calling setPixelRatio() followed by setSize() can allocate
+                // two framebuffers when both values changed during a resize.
+                renderer.setDrawingBufferSize(w, h, pixelRatio);
+                lastCanvasWidth = w;
+                lastCanvasHeight = h;
+                lastPixelRatio = pixelRatio;
+            }
 
             if (!modelReady) {
                 return;
+            }
+
+            if (activeQuality?.name !== quality.name) {
+                scheduleQualityRebuild(quality);
             }
 
             const preset =
@@ -284,7 +587,7 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
             // The mobile composition keeps the contact shadow tight beneath
             // the word. Desktop retains its existing deeper, more dramatic
             // separation from the ground plane.
-            shadowPlane.position.z = aspect < 0.85 ? -0.065 : -0.24;
+            const shadowZ = aspect < 0.85 ? -0.065 : -0.24;
 
             const visibleH =
                 2 * Math.tan((CAMERA_FOV * Math.PI) / 360) * CAMERA_Z;
@@ -294,11 +597,51 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
             scale = Math.min(scale, (preset.maxHeight * visibleH) / modelSize.y);
             scale *= preset.sizeScale;
 
-            holder.scale.set(scale, scale * preset.verticalScale, scale);
-            holder.position.set(0, preset.offsetY * visibleH, 0);
+            const scaleY = scale * preset.verticalScale;
+            const positionY = preset.offsetY * visibleH;
+            const holderTransformChanged =
+                Math.abs(holder.scale.x - scale) > LAYOUT_EPSILON ||
+                Math.abs(holder.scale.y - scaleY) > LAYOUT_EPSILON ||
+                Math.abs(holder.scale.z - scale) > LAYOUT_EPSILON ||
+                Math.abs(holder.position.y - positionY) > LAYOUT_EPSILON;
+            const shadowReceiverChanged =
+                Math.abs(shadowPlane.position.z - shadowZ) > LAYOUT_EPSILON;
+            const compositionChanged =
+                holderTransformChanged || shadowReceiverChanged;
 
-            renderer.shadowMap.needsUpdate = true;
-            render();
+            if (holderTransformChanged) {
+                holder.scale.set(scale, scaleY, scale);
+                holder.position.set(0, positionY, 0);
+            }
+
+            if (shadowReceiverChanged) {
+                shadowPlane.position.z = shadowZ;
+            }
+
+            // The shadow texture is rendered from the directional light's
+            // camera, so changing the main camera projection or moving only
+            // the receiving plane cannot change it. Re-render solely when the
+            // actual static caster transform changes.
+            if (holderTransformChanged) {
+                renderer.shadowMap.needsUpdate = true;
+                shadowUpdateCount += 1;
+            }
+
+            if (drawingBufferChanged || projectionChanged || compositionChanged) {
+                render();
+            }
+        };
+
+        const scheduleLayout = () => {
+            window.clearTimeout(layoutTimer);
+            window.cancelAnimationFrame(layoutFrameId);
+            layoutTimer = window.setTimeout(() => {
+                layoutTimer = 0;
+                layoutFrameId = window.requestAnimationFrame(() => {
+                    layoutFrameId = 0;
+                    applyLayout();
+                });
+            }, LAYOUT_RESIZE_DEBOUNCE_MS);
         };
 
         let buildFrameId = 0;
@@ -315,7 +658,7 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
          *  back-to-back with mounting, before the browser had painted
          *  anything. Callers below defer this one real frame via
          *  requestAnimationFrame specifically to fix that. */
-        const buildScene = (sources: readonly HelloMeshSource[]) => {
+        const buildScene = async (sources: readonly HelloMeshSource[]) => {
             if (disposed) {
                 return;
             }
@@ -324,31 +667,19 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
                 lastMeasuredWidth,
                 reducedMotionRef.current,
             );
-            const rootColor = FUR_ROOT_COLOR;
-
-            // Every mesh actually inside the GLB gets its own, fully
-            // independent fur system. There is exactly one mesh in this
-            // file today, but nothing here assumes that.
-            for (const source of sources) {
-                if (disposed) {
-                    break;
+            const initialFur = await createFurSet(sources, quality);
+            if (disposed) {
+                for (const fur of initialFur) {
+                    fur.dispose();
                 }
+                return;
+            }
+            rebuildSources = sources;
+            activeQuality = quality;
 
-                const fur = createFur(source.geometry, {
-                    camera,
-                    viewportElement: renderer.domElement,
-                    pointerTarget: window,
-                    quality,
-                    rootColor,
-                    lightDir,
-                    frameLoop,
-                    reducedMotion: reducedMotionRef.current,
-                });
-
-                fur.group.position.copy(source.position);
-                fur.group.quaternion.copy(source.quaternion);
-                fur.group.scale.copy(source.scale);
-
+            // Every mesh actually inside the GLB gets its own independent fur
+            // system. There is one mesh today, but this remains multi-mesh safe.
+            for (const fur of initialFur) {
                 pivot.add(fur.group);
                 furHandles.push(fur);
             }
@@ -369,7 +700,7 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
 
             // Computes final scale/position for the now-measured model and
             // performs the actual first render.
-            layout();
+            applyLayout();
 
             const handles: HelloModelHandles = {
                 scene,
@@ -378,7 +709,64 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
                 renderer,
                 camera,
                 requestRender: render,
+                debug: debugEnabled
+                    ? {
+                          snapshot: () => {
+                              collectCompletedGpuQueries();
+
+                              let strands = 0;
+                              let strandVertices = 0;
+                              let strandTriangles = 0;
+                              let baseVertices = 0;
+                              let baseTriangles = 0;
+
+                              for (const fur of furHandles) {
+                                  const strandCount = fur.strandMesh.count;
+                                  const templateVertices =
+                                      fur.strandMesh.geometry.getAttribute("position")
+                                          .count;
+                                  const templateIndices =
+                                      fur.strandMesh.geometry.getIndex()?.count ?? 0;
+                                  const baseIndexCount =
+                                      fur.baseMesh.geometry.getIndex()?.count ?? 0;
+
+                                  strands += strandCount;
+                                  strandVertices += strandCount * templateVertices;
+                                  strandTriangles +=
+                                      strandCount * (templateIndices / 3);
+                                  baseVertices +=
+                                      fur.baseMesh.geometry.getAttribute("position")
+                                          .count;
+                                  baseTriangles += baseIndexCount / 3;
+                              }
+
+                              return {
+                                  quality: activeQuality,
+                                  strands,
+                                  strandVertices,
+                                  strandTriangles,
+                                  baseVertices,
+                                  baseTriangles,
+                                  drawCalls: renderer.info.render.calls,
+                                  renderedTriangles: renderer.info.render.triangles,
+                                  cpuRenderMs,
+                                  gpuRenderMs,
+                                  gpuTimerSupported: Boolean(gpuTimer),
+                                  renders: renderCount,
+                                  shadowUpdates: shadowUpdateCount,
+                                  canvasCssWidth: renderer.domElement.clientWidth,
+                                  canvasCssHeight: renderer.domElement.clientHeight,
+                                  canvasWidth: renderer.domElement.width,
+                                  canvasHeight: renderer.domElement.height,
+                                  pixelRatio: renderer.getPixelRatio(),
+                                  heroInViewport,
+                                  documentVisible,
+                              };
+                          },
+                      }
+                    : undefined,
             };
+            publicHandles = handles;
 
             if (import.meta.env.DEV) {
                 // Dev-only handle for tuning the fur from the console.
@@ -424,24 +812,31 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
             },
         );
 
-        const observer = new ResizeObserver(layout);
+        const observer = new ResizeObserver(scheduleLayout);
         observer.observe(host);
-        window.addEventListener("resize", layout, { passive: true });
-        window.addEventListener("orientationchange", layout, { passive: true });
-        layout();
+        window.addEventListener("resize", scheduleLayout, { passive: true });
+        window.addEventListener("orientationchange", scheduleLayout, {
+            passive: true,
+        });
+        applyLayout();
 
         return () => {
             disposed = true;
+            rebuildGeneration += 1;
             cancelAnimationFrame(buildFrameId);
             cancelAnimationFrame(readyFrameId);
+            cancelAnimationFrame(layoutFrameId);
+            window.clearTimeout(rebuildTimer);
+            window.clearTimeout(layoutTimer);
             observer.disconnect();
             viewportObserver.disconnect();
-            window.removeEventListener("resize", layout);
-            window.removeEventListener("orientationchange", layout);
+            window.removeEventListener("resize", scheduleLayout);
+            window.removeEventListener("orientationchange", scheduleLayout);
             document.removeEventListener(
                 "visibilitychange",
                 handleDocumentVisibility,
             );
+            cancelHeroResume(render);
 
             for (const fur of furHandles) {
                 fur.dispose();
@@ -449,6 +844,18 @@ export function HelloModel({ className, onReady }: HelloModelProps) {
             shadowPlane.geometry.dispose();
             (shadowPlane.material as ShadowMaterial).dispose();
             frameLoop.dispose();
+            furDataWorker.dispose();
+
+            if (gl) {
+                if (activeGpuQuery) {
+                    gl.deleteQuery(activeGpuQuery);
+                }
+
+                for (const query of pendingGpuQueries) {
+                    gl.deleteQuery(query);
+                }
+            }
+
             renderer.dispose();
             renderer.domElement.remove();
         };

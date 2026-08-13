@@ -48,7 +48,10 @@ export function createStrandMaterial(options: StrandMaterialOptions): StrandMate
         uTime: { value: 0 },
         uCursor: { value: new Vector3(1e6, 1e6, 1e6) },
         uCursorDir: { value: new Vector3(0, 0, 0) },
-        uCursorRadius: { value: 0.052 },
+        // Keep the brush local to the stroke under the pointer. The later
+        // 0.052 radius covered roughly twice the surface area and could bend
+        // neighbouring letter strokes that the cursor never touched.
+        uCursorRadius: { value: 0.036 },
         uCursorStrength: { value: 0 },
         uRipplePoint: { value: new Vector3(1e6, 1e6, 1e6) },
     };

@@ -18,9 +18,9 @@ export default function Contact() {
             <div className={styles.container}>
                 <div className={styles.intro}>
                     <h2 id="contact-heading" className={styles.heading}>
-                        <span className={styles.headingLine}>Have A Project</span>
+                        <span className={styles.headingLine}>HAVE A PROJECT</span>
                         <span className={cn(styles.headingLine, styles.headingAccent)}>
-                            In Mind?
+                         IM MIND?
                         </span>
                     </h2>
                     <p className={styles.body}>

@@ -41,10 +41,12 @@
     --c-error-500-rgb: 217 45 32;
     --c-black-rgb: 0 0 0;
     --c-white-rgb: 255 255 255;
+    --c-paper-050-rgb: 246 246 246;
 
     /* ---- Semantic: surfaces -------------------------------------------- */
     --color-surface-page: var(--c-paper-050);
     --color-surface-raised: var(--c-paper-000);
+    --color-surface-glass: rgb(var(--c-white-rgb) / 0.395);
     --color-surface-sunken: var(--c-paper-100);
     /* Exact hex from Figma node 458:88 — a few shades cooler than
        --c-ink-800, which shadow.css also depends on. */
@@ -63,13 +65,14 @@
        that frame, at every weight, uses this one solid colour. */
     --color-text-inverse: #d6edf8;
     --color-text-process-muted: rgb(214 237 248 / 0.6);
-    --color-text-process-number: rgb(var(--c-white-rgb) / 0.18);
+    --color-text-process-number: var(--c-ink-600);
     --color-text-accent: var(--c-accent-500);
 
     /* ---- Semantic: borders ---------------------------------------------- */
     --color-border-subtle: rgb(var(--c-ink-800-rgb) / 0.12);
     --color-border-default: rgb(var(--c-ink-800-rgb) / 0.22);
     --color-border-strong: var(--c-ink-800);
+    --color-border-glass: rgb(var(--c-white-rgb) / 0.2);
 
     /* ---- Semantic: interactive ------------------------------------------ */
     --color-action-primary-bg: var(--c-ink-800);

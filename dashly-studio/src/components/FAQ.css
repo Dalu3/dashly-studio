@@ -1,6 +1,6 @@
 .faq-section {
     background: var(--color-surface-page);
-    padding-block: var(--space-0);
+    padding-block: var(--space-section-padding);
 }
 
 .faq-container {

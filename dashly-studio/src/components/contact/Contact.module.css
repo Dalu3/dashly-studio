@@ -10,8 +10,14 @@
  */
 
 .root {
-    background: var(--color-surface-accent-subtle);
-    padding-block: var(--space-0);
+    background:
+        linear-gradient(
+            to bottom,
+            var(--color-surface-page),
+            var(--color-surface-accent-subtle)
+        ) top / 100% var(--space-section-padding) no-repeat,
+        var(--color-surface-accent-subtle);
+    padding-block: var(--space-section-padding);
 }
 
 .container {

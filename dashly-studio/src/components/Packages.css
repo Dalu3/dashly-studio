@@ -1,8 +1,12 @@
 .packages-section {
-    /* The page-to-accent transition directly before this section owns the
-       shared inter-section gap, so keep the heading flush with its blue end. */
-    padding-block: var(--space-0);
-    background: var(--color-surface-accent-subtle);
+    padding-block: var(--space-section-padding);
+    background:
+        linear-gradient(
+            to bottom,
+            var(--color-surface-page),
+            var(--color-surface-accent-subtle)
+        ) top / 100% var(--space-section-padding) no-repeat,
+        var(--color-surface-accent-subtle);
     color: var(--color-text-primary);
 }
 

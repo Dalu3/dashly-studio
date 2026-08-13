@@ -36,7 +36,7 @@
     --carousel-gap: var(--work-card-gap);
 
     position: relative;
-    padding-block: var(--space-0);
+    padding-block: var(--space-section-padding);
     background-color: var(--color-surface-page);
 
     /* Both moving tracks are wider than the viewport by design. Clip them at

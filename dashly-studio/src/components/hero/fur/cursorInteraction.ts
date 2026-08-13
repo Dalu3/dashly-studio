@@ -7,6 +7,10 @@ import {
     type Object3D,
     type PerspectiveCamera,
 } from "three";
+import {
+    cancelHeroResume,
+    scheduleHeroResume,
+} from "../heroResumeScheduler";
 
 import type { FrameLoopHandle, FrameTickResult } from "./frameLoop";
 
@@ -390,6 +394,18 @@ export function createCursorInteraction(
         frameLoop.request(tick);
     };
 
+    const interactionNeedsResume = () =>
+        hasPendingMove ||
+        hovering ||
+        Math.abs(targetStrength - strength) >= 0.0015 ||
+        Math.abs(strengthVelocity) >= 0.0015 ||
+        followPointVelocity.lengthSq() >= 1e-9 ||
+        followPoint.distanceToSquared(targetPoint) >= 1e-11 ||
+        followDirVelocity.lengthSq() >= 1e-9 ||
+        followDir.distanceToSquared(targetDir) >= 1e-9 ||
+        ripplePointVelocity.lengthSq() >= 1e-9 ||
+        ripplePoint.distanceToSquared(targetPoint) >= 1e-11;
+
     const queuePointerSample = (event: Event) => {
         if (
             !(event instanceof PointerEvent) ||
@@ -442,6 +458,7 @@ export function createCursorInteraction(
                       visible = Boolean(entry?.isIntersecting);
 
                       if (!visible) {
+                          cancelHeroResume(startLoop);
                           hasPendingMove = false;
                           targetStrength = 0;
                           strength = 0;
@@ -464,13 +481,14 @@ export function createCursorInteraction(
     // throttling alone.
     const handleVisibilityChange = () => {
         if (document.hidden) {
+            cancelHeroResume(startLoop);
             loopActive = false;
             frameLoop.cancel(tick);
-        } else {
+        } else if (interactionNeedsResume()) {
             // If a spring hadn't finished settling before the tab was
             // hidden, this picks it back up; if everything was already at
-            // rest, tick() notices on its very next frame and stops again.
-            startLoop();
+            // rest, no WebGL frame is requested at all.
+            scheduleHeroResume(startLoop);
         }
     };
 
@@ -504,6 +522,7 @@ export function createCursorInteraction(
                 handleVisibilityChange,
             );
             visibilityObserver?.disconnect();
+            cancelHeroResume(startLoop);
             loopActive = false;
             frameLoop.cancel(tick);
         },

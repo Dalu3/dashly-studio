@@ -16,6 +16,7 @@ function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isMenuClosing, setIsMenuClosing] = useState(false);
     const [scrollPhase, setScrollPhase] = useState("top");
+    const scrollPhaseRef = useRef("top");
     const scrollPositionRef = useRef({ x: 0, y: 0 });
     const pendingLogoScrollRef = useRef(false);
 
@@ -54,23 +55,37 @@ function Header() {
     }, [isMenuOpen, isMenuClosing]);
 
     useEffect(() => {
-        const updateScrolledState = () => {
-            setScrollPhase(
+        let frameId = 0;
+
+        const commitScrolledState = () => {
+            frameId = 0;
+            const nextPhase =
                 window.scrollY >= window.innerHeight
                     ? "floating"
                     : window.scrollY > 0
                       ? "scrolling"
-                      : "top",
-            );
+                      : "top";
+
+            if (nextPhase !== scrollPhaseRef.current) {
+                scrollPhaseRef.current = nextPhase;
+                setScrollPhase(nextPhase);
+            }
         };
 
-        updateScrolledState();
-        window.addEventListener("scroll", updateScrolledState, { passive: true });
-        window.addEventListener("resize", updateScrolledState);
+        const scheduleScrolledState = () => {
+            if (!frameId) {
+                frameId = window.requestAnimationFrame(commitScrolledState);
+            }
+        };
+
+        commitScrolledState();
+        window.addEventListener("scroll", scheduleScrolledState, { passive: true });
+        window.addEventListener("resize", scheduleScrolledState);
 
         return () => {
-            window.removeEventListener("scroll", updateScrolledState);
-            window.removeEventListener("resize", updateScrolledState);
+            window.removeEventListener("scroll", scheduleScrolledState);
+            window.removeEventListener("resize", scheduleScrolledState);
+            if (frameId) window.cancelAnimationFrame(frameId);
         };
     }, []);
 

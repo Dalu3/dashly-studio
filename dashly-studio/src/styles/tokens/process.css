@@ -11,19 +11,22 @@
     --process-canvas-max-width: 109.922rem;
     --process-canvas-aspect-ratio: 1758.752 / 1730;
     --process-header-left: 13.646%;
-    --process-header-top: 7.2399%;
+    --process-header-top-base: 7.2399%;
+    --process-header-top: var(--process-header-top-base);
     --process-header-width: 75.9844%;
-    --process-intro-left: 17.8536%;
-    --process-intro-top: 13.3908%;
-    --process-intro-width: 66.1303%;
+    --process-intro-left: 22%;
+    --process-intro-top-base: 13.3908%;
+    --process-intro-top: var(--process-intro-top-base);
+    --process-intro-width: 56%;
 
     /* ---- Type ----------------------------------------------------------- */
-    --process-heading-size: clamp(2.25rem, 3.64vw, 4rem);
-    --process-stage-title-size: clamp(1.625rem, 2.73vw, 3rem);
+    --process-heading-size: var(--type-h2);
+    /* Stage names use the larger supporting-heading scale so they remain
+       clearly distinct from the descriptive body copy. */
+    --process-stage-title-size: var(--font-size-2xl);
     --process-stage-number-size: clamp(5rem, 8.53vw, 9.375rem);
-    --process-body-size: clamp(0.75rem, 1.137vw, 1.25rem);
-    --process-heading-line-height: var(--line-height-normal);
-    --process-copy-line-height: var(--line-height-normal);
+    --process-body-size: var(--font-size-body);
+    --process-copy-line-height: var(--line-height-body-compact);
 
     /* ---- Route ---------------------------------------------------------- */
     --process-route-left: 18.5546%;
@@ -32,7 +35,22 @@
     --process-route-height: 55.4753%;
     --process-route-stroke-width: 0.1875rem;
     --process-route-dash: 0.5625rem;
+    --process-route-endpoint-mask-radius: var(
+        --process-responsive-number-center
+    );
+    --process-route-start-mask-radius: var(
+        --process-route-endpoint-mask-radius
+    );
+    --process-route-end-mask-radius: var(
+        --process-route-endpoint-mask-radius
+    );
     --process-arrow-width: clamp(1.875rem, 3.043vw, 3.3445rem);
+    --process-arrow-fade-start: 0.99;
+    --process-arrow-arrival-duration: 0.05;
+    --process-scroll-start: 0.5;
+    --process-image-arrival-duration: 0.025;
+    --process-image-hold-duration: 0.09;
+    --process-image-exit-duration: 0.035;
 
     /* ---- Shared card ---------------------------------------------------- */
     --process-card-width: 11.8216%;
@@ -41,6 +59,8 @@
     --process-reveal-shift: 1.5rem;
     --process-reveal-scale: 0.94;
     --process-image-darkening: rgb(var(--c-black-rgb) / 0.2);
+    --process-first-stage-offset-y: -3rem;
+    --process-final-stage-route-progress: 0.9;
 
     /* ---- Stage 1: Discovery Call --------------------------------------- */
     --process-1-number-left: 8.4435%;
@@ -50,7 +70,7 @@
     --process-1-description-left: 14.5484%;
     --process-1-description-top: 27.5705%;
     --process-1-description-width: 24.2415%;
-    --process-1-image-left: 37.6405%;
+    --process-1-image-left: 45%;
     --process-1-image-top: 29.6954%;
     --process-1-image-rotation: 6.56deg;
     --process-1-media-left: -13.818%;
@@ -166,18 +186,83 @@
     --process-responsive-padding-block: var(--space-section-md);
     --process-responsive-padding-inline: var(--container-gutter);
     --process-responsive-header-width: var(--container-default);
+    --process-responsive-heading-width: none;
     --process-responsive-header-gap: var(--space-sm);
-    --process-responsive-flow-gap: var(--space-2xl);
+    --process-responsive-flow-gap: var(--space-lg);
     --process-responsive-flow-margin: var(--space-3xl);
-    --process-responsive-stage-min-height: 18rem;
+    --process-responsive-stage-min-height: 16rem;
+    --process-responsive-final-stage-min-height: var(
+        --process-responsive-stage-min-height
+    );
     --process-responsive-number-size: clamp(4.5rem, 12vw, 7rem);
-    --process-responsive-title-size: clamp(1.75rem, 4.8vw, 2.75rem);
+    --process-responsive-number-center: clamp(2.25rem, 6vw, 3.5rem);
+    --process-responsive-number-mask-width: 62%;
     --process-responsive-body-size: clamp(0.9375rem, 2.2vw, 1.125rem);
     --process-responsive-card-width: clamp(10.5rem, 24vw, 13rem);
     --process-responsive-copy-width: 31rem;
+    --process-responsive-title-width: none;
     --process-responsive-copy-gap: var(--space-2xs);
     --process-responsive-number-offset: var(--space-sm);
     --process-responsive-stage-padding: clamp(4.25rem, 10vw, 7.5rem);
+    --process-responsive-mobile-image-top: 35%;
+    --process-responsive-mobile-image-inset: var(--space-sm);
+    --process-desktop-flow-tightening: var(--space-3xl);
+    --process-laptop-flow-tightening: var(--space-2xl);
     --process-mobile-route-left: 1.5rem;
     --process-mobile-route-right: 2.5rem;
+}
+
+@media (min-width: 64rem) {
+    :root {
+        --process-header-top: var(--space-0);
+        --process-intro-top: calc(
+            var(--process-intro-top-base) - var(--process-header-top-base)
+        );
+        /* Keep the Process heading identical to the Packages section title
+           at the desktop breakpoint. */
+        --process-heading-size: var(--font-size-4xl);
+    }
+}
+
+@media (min-width: 48rem) and (max-width: 63.999rem) {
+    :root {
+        --process-scroll-start: 0.6;
+        --process-responsive-flow-margin: var(--space-lg);
+        --process-responsive-flow-gap: var(--space-sm);
+        --process-responsive-stage-min-height: 12rem;
+    }
+}
+
+@media (max-width: 63.999rem) {
+    :root {
+        --process-image-darkening: rgb(var(--c-black-rgb) / 0.28);
+        --process-image-hold-duration: 0.16;
+        --process-image-exit-duration: 0.05;
+    }
+}
+
+@media (max-width: 47.999rem) {
+    :root {
+        --process-responsive-flow-gap: var(--space-2xs);
+        --process-responsive-stage-min-height: 13rem;
+        --process-responsive-final-stage-min-height: 14.5rem;
+        --process-responsive-mobile-image-top: 27%;
+    }
+}
+
+@media (max-width: 23.4375rem) {
+    :root {
+        --process-route-start-mask-radius: var(--space-sm);
+    }
+}
+
+@media (width: 20rem) {
+    :root {
+        --process-responsive-stage-padding: calc(
+            var(--space-xl) + var(--space-2xs)
+        );
+        --process-responsive-heading-width: 12.5rem;
+        --process-mobile-route-left: var(--space-sm);
+        --process-mobile-route-right: var(--space-lg);
+    }
 }
