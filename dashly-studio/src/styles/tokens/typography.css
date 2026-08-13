@@ -115,7 +115,7 @@
     --font-size-contact-form: 0.89375rem;
 
     /* FAQ type keeps the section light and editorial. */
-    --font-size-faq-title: var(--font-size-4xl);
+    --font-size-faq-title: min(var(--type-section-title), 3.375rem);
     --font-size-faq-subtitle: var(--font-size-md);
     --font-size-faq-question: var(--font-size-md);
     --font-size-faq-answer: var(--font-size-sm);

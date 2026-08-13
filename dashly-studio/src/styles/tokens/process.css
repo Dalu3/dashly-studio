@@ -12,6 +12,7 @@
     --process-canvas-aspect-ratio: 1758.752 / 1730;
     --process-header-left: 13.646%;
     --process-header-top-base: 7.2399%;
+    --process-header-flow-shift: -7.2399%;
     --process-header-top: var(--process-header-top-base);
     --process-header-width: 75.9844%;
     --process-intro-left: 22%;
@@ -206,8 +207,12 @@
     --process-responsive-stage-padding: clamp(4.25rem, 10vw, 7.5rem);
     --process-responsive-mobile-image-top: 35%;
     --process-responsive-mobile-image-inset: var(--space-sm);
-    --process-desktop-flow-tightening: var(--space-3xl);
-    --process-laptop-flow-tightening: var(--space-2xl);
+    --process-desktop-flow-offset: var(--space-2xs);
+    --process-desktop-canvas-bottom-trim: var(--space-3xl);
+    --process-laptop-flow-offset: calc(
+        var(--space-xl) + var(--space-2xs)
+    );
+    --process-laptop-canvas-bottom-trim: var(--space-lg);
     --process-mobile-route-left: 1.5rem;
     --process-mobile-route-right: 2.5rem;
 }

@@ -45,9 +45,9 @@
     --contact-ui-scale: 1;
 
     /* FAQ composition: compact intro beside a wider accordion on desktop. */
-    --faq-intro-width: 20rem;
+    --faq-intro-width: 24rem;
     --faq-column-gap: var(--space-3xl);
-    --faq-control-min-height: 4rem;
+    --faq-control-min-height: 3rem;
     --faq-chevron-size: 1rem;
 
     /* Footer coordinates from Figma node 458:88, expressed in rem. */

@@ -555,22 +555,34 @@
 }
 
 @media (min-width: 64rem) and (max-width: 79.999rem) {
+    .canvas {
+        margin-bottom: calc(
+            0rem - var(--process-laptop-canvas-bottom-trim)
+        );
+    }
+
     .flow {
         transform: translateY(
             calc(
-                var(--space-0) - var(--process-header-top-base) -
-                    var(--process-laptop-flow-tightening)
+                var(--process-header-flow-shift) +
+                    var(--process-laptop-flow-offset)
             )
         );
     }
 }
 
 @media (min-width: 80rem) {
+    .canvas {
+        margin-bottom: calc(
+            0rem - var(--process-desktop-canvas-bottom-trim)
+        );
+    }
+
     .flow {
         transform: translateY(
             calc(
-                var(--space-0) - var(--process-header-top-base) -
-                    var(--process-desktop-flow-tightening)
+                var(--process-header-flow-shift) +
+                    var(--process-desktop-flow-offset)
             )
         );
     }

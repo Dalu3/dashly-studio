@@ -14,14 +14,14 @@
 
 .faq-intro {
     min-width: 0;
-    margin-bottom: var(--space-xl);
+    margin-bottom: var(--space-lg);
 }
 
 .faq-intro h2 {
     margin: var(--space-0);
     color: var(--color-text-primary);
     font-family: var(--font-family-sans);
-    font-size: var(--type-section-title);
+    font-size: var(--font-size-faq-title);
     font-weight: var(--font-weight-bold);
     letter-spacing: var(--letter-spacing-wide-plus);
     line-height: var(--line-height-display);
@@ -52,12 +52,12 @@
     justify-content: space-between;
     width: 100%;
     min-height: var(--faq-control-min-height);
-    padding: var(--space-md) var(--space-0);
+    padding: var(--space-xs) var(--space-0);
     border: 0;
     background: transparent;
     color: var(--color-text-primary);
     font-family: var(--font-family-sans);
-    font-size: var(--type-body);
+    font-size: var(--font-size-faq-question);
     font-weight: var(--font-weight-regular);
     letter-spacing: var(--letter-spacing-wide-plus);
     line-height: var(--line-height-body-compact);
@@ -107,7 +107,7 @@
     visibility: hidden;
     color: var(--color-text-secondary);
     font-family: var(--font-family-sans);
-    font-size: var(--type-body);
+    font-size: var(--font-size-faq-answer);
     line-height: var(--line-height-relaxed);
     transition: var(--transition-faq-reveal);
 }
@@ -121,7 +121,7 @@
     max-width: var(--measure-default);
     margin: var(--space-0);
     padding: var(--space-0) calc(var(--faq-chevron-size) + var(--space-md))
-        var(--space-md) var(--space-0);
+        var(--space-xs) var(--space-0);
 }
 
 .faq-item.active .faq-answer {
@@ -133,15 +133,17 @@
 @media (min-width: 64rem) {
     .faq-container {
         max-width: var(--content-max-width-contact);
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-        column-gap: var(--space-xl);
+        grid-template-columns:
+            minmax(0, var(--faq-intro-width))
+            minmax(0, var(--container-narrow));
+        column-gap: var(--faq-column-gap);
+        justify-content: space-between;
     }
 
     .faq-intro {
         margin-bottom: var(--space-0);
-        padding-top: var(--space-md);
+        padding-top: var(--space-sm);
     }
-
 }
 
 /* The approved desktop starts at 64rem. Keep every desktop declaration above
