@@ -1,13 +1,4 @@
-/**
- * Contact section — rebuilt to match Figma node 466:121 (file
- * 3LhBS0rxm6b4cgkZNESvJl) exactly: background, the two-column split (text
- * flexible, form capped at its real 716.58px width), heading/body type, and
- * the form card's own metrics.
- *
- * Mobile-first: the base layout is a single column (copy, then the form
- * card below it); the two-column layout from the Figma reference only
- * appears from --bp-lg up, via the one media query in `.container`.
- */
+/** Contact section: mobile-first, using the shared landing-page tokens. */
 
 .root {
     background:
@@ -21,8 +12,7 @@
 }
 
 .container {
-    /* Wider than the sitewide --content-max-width on purpose — see
-       --content-max-width-wide in layout.css for why. */
+    box-sizing: border-box;
     width: 100%;
     max-width: var(--content-max-width-wide);
     margin-inline: auto;
@@ -30,7 +20,13 @@
     display: grid;
     grid-template-columns: 1fr;
     align-items: center;
-    gap: var(--space-xl);
+    gap: var(--space-md);
+}
+
+@media (min-width: 48rem) {
+    .container {
+        gap: var(--space-xl);
+    }
 }
 
 .intro {
@@ -42,20 +38,28 @@
 
 .heading {
     font-family: var(--font-family-sans);
-    font-size: var(--type-section-title);
+    font-size: var(--font-size-contact-heading);
     font-weight: var(--font-weight-bold);
     line-height: var(--line-height-display);
     letter-spacing: var(--letter-spacing-wide-plus);
-    /* Figma uses solid black here, not --color-text-primary (#2a2a26). */
     color: var(--color-text-black);
+}
+
+@media (max-width: 47.999rem) {
+    .heading {
+        font-size: var(--type-h2);
+        line-height: var(--line-height-type-h2);
+        text-align: left;
+    }
+
 }
 
 .headingLine {
     display: block;
+    white-space: nowrap;
 }
 
 .headingAccent {
-    /* Exact accent hex from Figma, not --color-text-accent (#29c9ff). */
     color: var(--color-text-accent);
 }
 
@@ -71,9 +75,6 @@
 /* ---- Form card ---------------------------------------------------------- */
 
 .card {
-    /* The site's global reset (box-sizing: border-box on everything) isn't
-       wired in yet — see reset.css — so this is set explicitly: Figma's
-       716.58px card width already includes its own padding. */
     box-sizing: border-box;
     min-width: 0;
     display: flex;
@@ -88,10 +89,13 @@
 
 @media (min-width: 64rem) {
     .container {
-        max-width: var(--content-max-width-contact);
-        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+        max-width: var(--content-max-width-wide);
+        grid-template-columns:
+            minmax(0, var(--faq-intro-width))
+            minmax(0, var(--container-narrow));
         align-items: start;
-        gap: var(--space-2xl);
+        gap: var(--faq-column-gap);
+        justify-content: space-between;
     }
 
     .intro {
@@ -107,7 +111,6 @@
     font-family: var(--font-family-sans);
     font-size: var(--type-control);
     font-weight: var(--font-weight-semibold);
-    /* Exact hex pair from Figma's Send button (sds text/background-brand). */
     color: var(--color-action-primary-text);
     background: var(--color-action-primary-bg);
     border: none;
@@ -118,7 +121,7 @@
 }
 
 .submit:hover:not(:disabled) {
-    background: var(--color-action-primary-hover);
+    background: var(--color-action-primary-bg-hover);
 }
 
 .submit:focus-visible {
@@ -159,16 +162,13 @@
     }
 
     .submit:active:not(:disabled) {
-        background: var(--color-action-primary-hover);
+        background: var(--color-action-primary-bg-hover);
         transform: scale(0.99);
     }
 }
 
-/* Tablet only: pair Name/Email and the two selects into two-column rows,
-   matching the reference composition; Timeline, Message and Send stay full
-   width. Phones keep the single-column stack (below 48rem), and the
-   approved desktop (64rem+) is untouched. */
-@media (min-width: 48rem) {
+/* Pair short fields from tablet upward; long fields and actions stay full-width. */
+@media (min-width: 48rem) and (max-width: 63.999rem), (min-width: 80rem) {
     .card {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));

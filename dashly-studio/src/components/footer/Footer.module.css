@@ -19,7 +19,7 @@
 
     background: var(--color-surface-inverse);
     color: var(--color-text-inverse);
-    line-height: 1.1;
+    line-height: var(--line-height-type-display);
     padding-block: var(--space-section-padding);
     padding-inline: var(--container-gutter);
 }
@@ -150,7 +150,7 @@
     max-width: 19rem;
     font-size: var(--font-size-footer-link);
     font-weight: var(--font-weight-extralight);
-    line-height: 1.265;
+    line-height: var(--line-height-display);
     letter-spacing: var(--letter-spacing-wide-plus);
 }
 
@@ -249,7 +249,7 @@
 
     .nav .link,
     .touch .link {
-        line-height: 1;
+        line-height: var(--line-height-none);
     }
 
     .nav .linkList,
@@ -341,7 +341,7 @@
 
     .tagline,
     .wordmark {
-        line-height: 1.25;
+        line-height: var(--line-height-body-compact);
     }
 
     .columns {
@@ -366,7 +366,7 @@
         max-width: none;
         margin: 0;
         padding: 1.25rem 0 var(--space-0);
-        line-height: 1.25;
+        line-height: var(--line-height-body-compact);
     }
 
     .legal {
@@ -511,5 +511,15 @@
 
     .bottom {
         gap: var(--space-md);
+    }
+
+    .copyright {
+        text-align: center;
+    }
+
+    .legal {
+        width: 100%;
+        column-gap: var(--space-0);
+        justify-content: space-between;
     }
 }

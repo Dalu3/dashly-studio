@@ -282,7 +282,7 @@ export function ContactForm() {
                 id="contact-timeline"
                 name="timeline"
                 label="Timeline"
-                placeholder="Flexible"
+                placeholder="e.g. Flexible"
                 value={formValues.timeline}
                 onChange={handleChange}
                 onBlur={handleBlur}

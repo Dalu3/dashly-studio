@@ -26,6 +26,13 @@
     line-height: var(--line-height-display);
 }
 
+@media (max-width: 47.999rem) {
+    .faq-intro h2 {
+        font-size: var(--type-h2);
+        line-height: var(--line-height-type-h2);
+    }
+}
+
 .faq-intro p {
     margin: var(--space-2xs) var(--space-0) var(--space-0);
     color: var(--color-text-primary);
@@ -147,14 +154,6 @@
     .faq-intro {
         margin-bottom: var(--space-0);
         padding-top: var(--space-sm);
-    }
-}
-
-/* Laptop composition: give the left-side heading a little more breathing
-   room without moving the accordion's shared right content edge. */
-@media (min-width: 64.0625rem) and (max-width: 107.999rem) {
-    .faq-container {
-        padding-left: var(--space-3xl);
     }
 }
 

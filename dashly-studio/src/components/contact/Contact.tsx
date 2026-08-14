@@ -20,7 +20,7 @@ export default function Contact() {
                     <h2 id="contact-heading" className={styles.heading}>
                         <span className={styles.headingLine}>HAVE A PROJECT</span>
                         <span className={cn(styles.headingLine, styles.headingAccent)}>
-                         IM MIND?
+                         IN MIND?
                         </span>
                     </h2>
                     <p className={styles.body}>
