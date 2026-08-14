@@ -10,6 +10,7 @@ import {
     getSchemaForPage,
     homePage,
     indexablePages,
+    notFoundPage,
     staticPages,
 } from "../src/seo/siteMetadata.js";
 
@@ -281,7 +282,6 @@ async function writeStaticPages(baseHtml) {
 
         if (page.path === homePage.path) {
             await fs.writeFile(path.join(distDir, "index.html"), html);
-            await fs.writeFile(path.join(distDir, "404.html"), html);
             continue;
         }
 
@@ -290,6 +290,9 @@ async function writeStaticPages(baseHtml) {
         await fs.mkdir(outputDir, { recursive: true });
         await fs.writeFile(path.join(outputDir, "index.html"), html);
     }
+
+    const notFoundHtml = renderHtml(baseHtml, notFoundPage);
+    await fs.writeFile(path.join(distDir, "404.html"), notFoundHtml);
 }
 
 async function writeRobotsAndSitemap() {

@@ -17,39 +17,12 @@ import { scrollToHash } from "./utils/scrollToHash";
 import { CookieConsentProvider } from "./context/CookieConsentContext.jsx";
 import { trackAnalyticsPageView } from "./utils/consentScripts";
 import { useCookieConsent } from "./context/useCookieConsent.js";
+import { EstimatorHost } from "./components/estimator/EstimatorHost.jsx";
 import {
     getPageMetadataByPath,
-    homePage,
+    notFoundPage,
     normalizePathname,
 } from "./seo/siteMetadata.js";
-
-function isReloadNavigation() {
-    if (typeof window === "undefined") {
-        return false;
-    }
-
-    const performanceApi = window.performance;
-
-    if (!performanceApi) {
-        return false;
-    }
-
-    const getEntriesByType = performanceApi.getEntriesByType;
-    const navigationEntries =
-        typeof getEntriesByType === "function"
-            ? getEntriesByType.call(performanceApi, "navigation")
-            : [];
-    const navigationEntry =
-        navigationEntries && navigationEntries.length
-            ? navigationEntries[0]
-            : null;
-
-    if (navigationEntry?.type) {
-        return navigationEntry.type === "reload";
-    }
-
-    return performanceApi.navigation?.type === 1;
-}
 
 function HomePage({ onHeroReady }) {
     return (
@@ -90,7 +63,23 @@ function AnalyticsPageTracker({ pathname }) {
 }
 
 function AppFrame({ pathname, onHeroReady }) {
-    const page = getPageMetadataByPath(pathname) ?? homePage;
+    const page = getPageMetadataByPath(pathname);
+
+    if (!page) {
+        return (
+            <>
+                <Header />
+                <main className="privacy-container" id="main-content">
+                    <h1>Page not found</h1>
+                    <p>The page you are looking for does not exist.</p>
+                    <p>
+                        <a href="/">Return to the Dashly Studio homepage</a>
+                    </p>
+                </main>
+                <Footer />
+            </>
+        );
+    }
 
     if (page.key === "privacy") {
         return (
@@ -125,23 +114,8 @@ function App() {
     const [pathname, setPathname] = useState(() =>
         normalizePathname(window.location.pathname),
     );
-    // isReady: both loading conditions are met (assets + scene ready, AND
-    // the 2s minimum has elapsed) — drives everything that shouldn't happen
-    // until the page is actually meant to be visible (scroll restoration,
-    // the cookie banner, the loader's fade-out).
-    // showLoader: the Loader is still in the DOM. Stays true through the
-    // fade-out transition itself, so removal only happens once the
-    // animation has actually finished (or the safety-net timeout below
-    // fires), never instantly.
     const [isReady, setIsReady] = useState(false);
     const [showLoader, setShowLoader] = useState(true);
-
-    // Resolves once Hero reports its 3D scene has actually rendered a first
-    // frame (see HeroProps.onReady / HelloModel.tsx's own comments on what
-    // "ready" means there) — created once, lazily, so the loader-timing
-    // effect below and handleHeroReady always share the same promise/
-    // resolver pair for this mount, however many times the component
-    // itself re-renders.
     const heroReadyRef = useRef(null);
 
     if (heroReadyRef.current === null) {
@@ -149,7 +123,6 @@ function App() {
         const promise = new Promise((res) => {
             resolve = res;
         });
-
         heroReadyRef.current = { promise, resolve };
     }
 
@@ -158,47 +131,23 @@ function App() {
     }, []);
 
     useEffect(() => {
-        // Minimum time the loader stays up, regardless of how fast the
-        // scene is actually ready — and a hard cap so a slow or failed
-        // network never hangs it forever; the real page always wins after
-        // MAX_WAIT_MS regardless of what's still loading in the background.
         const MIN_DISPLAY_MS = 2000;
         const MAX_WAIT_MS = 6000;
-
-        const page =
-            getPageMetadataByPath(normalizePathname(window.location.pathname)) ??
-            homePage;
-        const needsHeroAssets = page.key !== "privacy" && page.key !== "terms";
-
-        if (needsHeroAssets) {
-            // Fire-and-forget: starts the network fetch + glTF parse as
-            // early as possible, in parallel with the loader's minimum
-            // display time. Dynamic import keeps three.js out of the main
-            // bundle; this resolves to the SAME cached promise HelloModel's
-            // own mount reads from (see fur/preloadHello.ts) — the fetch
-            // happens once, here, not a second time when Hero mounts.
-            import("./components/hero/fur/preloadHello")
-                .then((mod) => mod.preloadHelloGeometries())
-                .catch(() => {});
-        }
-
+        const page = getPageMetadataByPath(
+            normalizePathname(window.location.pathname),
+        );
+        const needsHeroAssets = page?.key === "home";
         let cancelled = false;
         const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-        // NOT just "assets fetched" — this only resolves once Hero's scene
-        // has been fully built, its shaders compiled, and a first frame
-        // actually rendered (handleHeroReady above). That is what "ready"
-        // means for condition 1; the asset fetch alone is not enough.
         const heroSceneReady = needsHeroAssets
             ? heroReadyRef.current.promise
             : Promise.resolve();
 
-        const ready = Promise.all([wait(MIN_DISPLAY_MS), heroSceneReady]);
-
-        Promise.race([ready, wait(MAX_WAIT_MS)]).then(() => {
-            if (!cancelled) {
-                setIsReady(true);
-            }
+        Promise.race([
+            Promise.all([wait(MIN_DISPLAY_MS), heroSceneReady]),
+            wait(MAX_WAIT_MS),
+        ]).then(() => {
+            if (!cancelled) setIsReady(true);
         });
 
         return () => {
@@ -206,52 +155,39 @@ function App() {
         };
     }, []);
 
-    // The page underneath is now mounted the whole time the loader is up
-    // (so Hero can build its scene hidden behind it) — without this, a
-    // user could scroll the real page in the dark before the reveal and
-    // land somewhere unexpected once the loader fades away. Save/restore
-    // rather than a blunt set/clear, matching CookieConsent's own scroll
-    // lock (see CookieConsent.jsx) — the two never fight over this because
-    // whichever cleans up second restores whatever the other left behind.
     useEffect(() => {
-        if (!showLoader) {
-            return undefined;
-        }
-
+        if (!showLoader) return undefined;
+        const documentElement = document.documentElement;
+        const previousHtmlOverflow = documentElement.style.overflow;
         const previousBodyOverflow = document.body.style.overflow;
+        documentElement.style.overflow = "hidden";
         document.body.style.overflow = "hidden";
-
         return () => {
+            documentElement.style.overflow = previousHtmlOverflow;
             document.body.style.overflow = previousBodyOverflow;
         };
     }, [showLoader]);
 
-    // Once ready, the loader starts its opacity fade (pure CSS transition,
-    // see Loader.css) and Loader's own onFadeOutEnd removes it from the DOM
-    // when that transition completes. This is the fallback for the rare
-    // case that event never fires (already-zero opacity, a skipped
-    // transitionend under heavy main-thread load, etc) — set comfortably
-    // longer than the CSS transition itself so it only ever acts as a
-    // safety net, not the primary trigger.
     useEffect(() => {
-        if (!isReady || !showLoader) {
-            return undefined;
-        }
-
-        const timer = setTimeout(() => setShowLoader(false), 600);
-
-        return () => clearTimeout(timer);
+        if (!isReady || !showLoader) return undefined;
+        const timer = window.setTimeout(() => setShowLoader(false), 600);
+        return () => window.clearTimeout(timer);
     }, [isReady, showLoader]);
 
     useEffect(() => {
         window.history.scrollRestoration = "manual";
-
-        if (isReloadNavigation() && window.location.hash) {
-            const cleanUrl = `${window.location.pathname}${window.location.search}`;
-            window.history.replaceState(null, "", cleanUrl);
+        if (!window.location.hash) {
             window.scrollTo(0, 0);
         }
     }, []);
+
+    useEffect(() => {
+        const page = getPageMetadataByPath(pathname) ?? notFoundPage;
+        document.title = page.title;
+
+        const robots = document.querySelector('meta[name="robots"]');
+        robots?.setAttribute("content", page.robots);
+    }, [pathname]);
 
     useEffect(() => {
         const syncPathname = () => {
@@ -268,14 +204,9 @@ function App() {
     }, []);
 
     useEffect(() => {
-        if (!isReady) {
-            return undefined;
-        }
+        if (!isReady) return undefined;
 
-        if (!window.location.hash) {
-            window.scrollTo(0, 0);
-            return undefined;
-        }
+        if (!window.location.hash) return undefined;
 
         let frameId = 0;
         let attempts = 0;
@@ -295,9 +226,7 @@ function App() {
     }, [isReady, pathname]);
 
     useEffect(() => {
-        if (!isReady) {
-            return undefined;
-        }
+        if (!isReady) return undefined;
 
         const handleNavigationScroll = () => {
             if (window.location.hash) {
@@ -320,10 +249,8 @@ function App() {
     return (
         <CookieConsentProvider>
             <AnalyticsPageTracker pathname={pathname} />
-            {/* Always mounted (not gated on isReady) so Hero can build its
-                3D scene hidden behind the loader's opaque overlay, instead
-                of only starting once the loader is already gone. */}
             <AppFrame pathname={pathname} onHeroReady={handleHeroReady} />
+            <EstimatorHost />
             {showLoader && (
                 <Loader
                     fadingOut={isReady}

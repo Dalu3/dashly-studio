@@ -22,6 +22,12 @@
     min-height: 100vh; /* fallback for browsers without svh */
     min-height: 100svh;
 
+    /* Hero participates in the same section rhythm as the content below it.
+       Its trailing padding and Selected Work's leading padding are both owned
+       by the shared token, so the space between their content is the sum of
+       two section paddings at every viewport. */
+    padding-block-end: var(--space-section-padding);
+
     /* Belt and braces: the section itself must never widen the page. */
     max-width: 100%;
 }

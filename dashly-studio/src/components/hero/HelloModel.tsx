@@ -109,7 +109,7 @@ const LAYOUT = {
         // Preserve the original wide-screen composition: the wordmark fills
         // the upper Hero more confidently and sits closer to the navigation.
         width: 0.93,
-        offsetY: 0.12,
+        offsetY: 0.19,
         maxHeight: 0.57,
         sizeScale: 0.87,
         verticalScale: 1,
@@ -134,7 +134,6 @@ const LAYOUT = {
 
 const CAMERA_FOV = 20;
 const CAMERA_Z = 6.5;
-const LAYOUT_RESIZE_DEBOUNCE_MS = 120;
 const LAYOUT_EPSILON = 1e-7;
 
 /** -Z is the word's "up" in the file, so +90 deg about X stands it upright. */
@@ -262,7 +261,6 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
         let lastCanvasWidth = 0;
         let lastCanvasHeight = 0;
         let lastPixelRatio = 0;
-        let layoutTimer = 0;
         let layoutFrameId = 0;
 
         const furHandles: FurHandles[] = [];
@@ -277,6 +275,7 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
         let renderCount = 0;
         let shadowUpdateCount = 0;
         const drawingBufferSize = new Vector2();
+        let syncLayoutBeforeRender = () => {};
 
         const writeDebugDataset = () => {
             if (!debugEnabled || !activeQuality) return;
@@ -286,14 +285,15 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
             let strandTriangles = 0;
 
             for (const fur of furHandles) {
-                const count = fur.strandMesh.count;
-                const templateVertices =
-                    fur.strandMesh.geometry.getAttribute("position").count;
-                const templateIndices =
-                    fur.strandMesh.geometry.getIndex()?.count ?? 0;
-                strands += count;
-                strandVertices += count * templateVertices;
-                strandTriangles += count * (templateIndices / 3);
+                for (const mesh of fur.strandMeshes) {
+                    const count = mesh.count;
+                    const templateVertices =
+                        mesh.geometry.getAttribute("position").count;
+                    const templateIndices = mesh.geometry.getIndex()?.count ?? 0;
+                    strands += count;
+                    strandVertices += count * templateVertices;
+                    strandTriangles += count * (templateIndices / 3);
+                }
             }
 
             host.dataset.furMetrics = JSON.stringify({
@@ -356,6 +356,19 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
 
         const render = () => {
             if (canRender()) {
+                // DevTools device emulation and mobile browser chrome can
+                // update the visual viewport before ResizeObserver/window
+                // resize is delivered. Never draw a frame using a camera and
+                // holder transform measured for a different canvas size.
+                // applyLayout updates the cached dimensions before its own
+                // nested render, so this cannot recurse indefinitely.
+                if (
+                    host.clientWidth !== lastCanvasWidth ||
+                    host.clientHeight !== lastCanvasHeight
+                ) {
+                    syncLayoutBeforeRender();
+                }
+
                 const startedAt = debugEnabled ? performance.now() : 0;
 
                 if (debugEnabled && gl && gpuTimer && !activeGpuQuery) {
@@ -386,6 +399,7 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
 
         const frameLoop = createFrameLoop(render);
         const furDataWorker = createFurDataWorker();
+        let syncLayoutForViewportEntry = () => {};
 
         // This is the final render gate for the entire WebGL scene. Fur
         // subsystems already stop their own ticks when hidden/offscreen, but
@@ -398,8 +412,11 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
 
                 if (canRender()) {
                     // Keep the already-created canvas visually correct on the
-                    // first re-entry frame. The scheduler below still holds
-                    // the continuous idle loop until scrolling is quiet.
+                    // first re-entry frame. A viewport resize can happen while
+                    // the Hero is offscreen, so refresh its transform before
+                    // drawing instead of presenting the stale desktop-sized
+                    // word inside the mobile canvas.
+                    syncLayoutForViewportEntry();
                     render();
                     scheduleHeroResume(render);
                 } else {
@@ -473,9 +490,11 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
                     fur.group.quaternion.copy(source.quaternion);
                     fur.group.scale.copy(source.scale);
                     renderer.getDrawingBufferSize(drawingBufferSize);
-                    fur.materials.strand.uniforms.uDrawingBufferSize.value.copy(
-                        drawingBufferSize,
-                    );
+                    for (const material of fur.materials.strands) {
+                        material.uniforms.uDrawingBufferSize.value.copy(
+                            drawingBufferSize,
+                        );
+                    }
                     created.push(fur);
                 }
             } catch (error) {
@@ -547,7 +566,7 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
                     publicHandles.strandMaterials.splice(
                         0,
                         publicHandles.strandMaterials.length,
-                        ...replacement.map((fur) => fur.materials.strand),
+                        ...replacement.flatMap((fur) => fur.materials.strands),
                     );
                     publicHandles.supportMaterials.splice(
                         0,
@@ -620,9 +639,11 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
 
                 renderer.getDrawingBufferSize(drawingBufferSize);
                 for (const fur of furHandles) {
-                    fur.materials.strand.uniforms.uDrawingBufferSize.value.copy(
-                        drawingBufferSize,
-                    );
+                    for (const material of fur.materials.strands) {
+                        material.uniforms.uDrawingBufferSize.value.copy(
+                            drawingBufferSize,
+                        );
+                    }
                 }
             }
 
@@ -644,7 +665,7 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
             // The mobile composition keeps the contact shadow tight beneath
             // the word. Desktop retains its existing deeper, more dramatic
             // separation from the ground plane.
-            const shadowZ = aspect < 0.85 ? -0.065 : -0.24;
+            const shadowZ = aspect < 0.85 ? -0.14 : -0.24;
 
             const visibleH =
                 2 * Math.tan((CAMERA_FOV * Math.PI) / 360) * CAMERA_Z;
@@ -690,16 +711,18 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
             }
         };
 
+        syncLayoutForViewportEntry = applyLayout;
+        syncLayoutBeforeRender = applyLayout;
+
         const scheduleLayout = () => {
-            window.clearTimeout(layoutTimer);
             window.cancelAnimationFrame(layoutFrameId);
-            layoutTimer = window.setTimeout(() => {
-                layoutTimer = 0;
-                layoutFrameId = window.requestAnimationFrame(() => {
-                    layoutFrameId = 0;
-                    applyLayout();
-                });
-            }, LAYOUT_RESIZE_DEBOUNCE_MS);
+            // ResizeObserver already batches notifications. One animation
+            // frame aligns the camera/canvas/model update with paint without
+            // exposing the old desktop transform for an extra 120 ms.
+            layoutFrameId = window.requestAnimationFrame(() => {
+                layoutFrameId = 0;
+                applyLayout();
+            });
         };
 
         let buildFrameId = 0;
@@ -762,7 +785,7 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
 
             const handles: HelloModelHandles = {
                 scene,
-                strandMaterials: furHandles.map((fur) => fur.materials.strand),
+                strandMaterials: furHandles.flatMap((fur) => fur.materials.strands),
                 supportMaterials: furHandles.map((fur) => fur.materials.support),
                 renderer,
                 camera,
@@ -779,19 +802,21 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
                               let baseTriangles = 0;
 
                               for (const fur of furHandles) {
-                                  const strandCount = fur.strandMesh.count;
-                                  const templateVertices =
-                                      fur.strandMesh.geometry.getAttribute("position")
-                                          .count;
-                                  const templateIndices =
-                                      fur.strandMesh.geometry.getIndex()?.count ?? 0;
                                   const baseIndexCount =
                                       fur.baseMesh.geometry.getIndex()?.count ?? 0;
 
-                                  strands += strandCount;
-                                  strandVertices += strandCount * templateVertices;
-                                  strandTriangles +=
-                                      strandCount * (templateIndices / 3);
+                                  for (const mesh of fur.strandMeshes) {
+                                      const strandCount = mesh.count;
+                                      const templateVertices =
+                                          mesh.geometry.getAttribute("position").count;
+                                      const templateIndices =
+                                          mesh.geometry.getIndex()?.count ?? 0;
+                                      strands += strandCount;
+                                      strandVertices +=
+                                          strandCount * templateVertices;
+                                      strandTriangles +=
+                                          strandCount * (templateIndices / 3);
+                                  }
                                   baseVertices +=
                                       fur.baseMesh.geometry.getAttribute("position")
                                           .count;
@@ -874,6 +899,9 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
         const observer = new ResizeObserver(scheduleLayout);
         observer.observe(host);
         window.addEventListener("resize", scheduleLayout, { passive: true });
+        window.visualViewport?.addEventListener("resize", scheduleLayout, {
+            passive: true,
+        });
         window.addEventListener("orientationchange", scheduleLayout, {
             passive: true,
         });
@@ -886,10 +914,10 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
             cancelAnimationFrame(readyFrameId);
             cancelAnimationFrame(layoutFrameId);
             window.clearTimeout(rebuildTimer);
-            window.clearTimeout(layoutTimer);
             observer.disconnect();
             viewportObserver.disconnect();
             window.removeEventListener("resize", scheduleLayout);
+            window.visualViewport?.removeEventListener("resize", scheduleLayout);
             window.removeEventListener("orientationchange", scheduleLayout);
             document.removeEventListener(
                 "visibilitychange",

@@ -388,6 +388,16 @@ export const legalPages = {
     },
 };
 
+export const notFoundPage = {
+    key: "notFound",
+    kind: "error",
+    path: "/404.html",
+    title: "Page Not Found | Dashly Studio",
+    description: "The requested page could not be found on Dashly Studio.",
+    robots: PAGE_ROBOTS_NOINDEX,
+    indexable: false,
+};
+
 export const pageMetadata = {
     [homePage.key]: homePage,
     [legalPages.privacy.key]: legalPages.privacy,

@@ -4,6 +4,7 @@ import "./Packages.css";
 import arrowImage from "../assets/arrow.webp";
 import { PROJECT_TYPE_SELECT_EVENT } from "../constants/projectTypes";
 import { navigateToHash } from "../utils/scrollToHash";
+import { openEstimator } from "./estimator/estimatorEvents";
 import { SECTION_PREWARM_ROOT_MARGIN } from "../constants/performance";
 
 const packages = [
@@ -388,8 +389,8 @@ export default function Packages() {
                         Five questions and you&rsquo;ll have a price.
                     </p>
                     <a
-                        href="#contact"
-                        onClick={(event) => navigateToHash(event, "#contact")}
+                        href="#estimator"
+                        onClick={(event) => { event.preventDefault(); openEstimator(event.currentTarget); }}
                     >
                         Get My Estimate
                         <img

@@ -6,7 +6,10 @@ const DEFAULT_SCROLL_DURATION = 420;
 const DESKTOP_NATIVE_SCROLL_MEDIA_QUERY =
     "(min-width: 1061px) and (hover: hover) and (pointer: fine)";
 const TOUCH_SCROLL_MEDIA_QUERY = "(max-width: 63.999rem)";
-const PHONE_SCROLL_MEDIA_QUERY = "(max-width: 47.999rem)";
+const CONTENT_SCROLL_CLEARANCE = 50;
+const HASH_TARGET_ALIASES = {
+    services: "packages",
+};
 
 let activeScrollFrame = 0;
 let activeScrollToken = 0;
@@ -49,48 +52,70 @@ function normalizePathname(pathname = "/") {
     return normalized || "/";
 }
 
-function getSectionStartOffset(element) {
+function getSectionContentScrollTop(element, elementTop) {
     const header = document.querySelector(".glass-navbar");
-
-    if (!header) {
-        return 0;
-    }
-
-    const headerBounds = header.getBoundingClientRect();
     const sectionPaddingTop = Number.parseFloat(
         window.getComputedStyle(element).paddingTop,
     );
-    const phonePaddingOffset = window.matchMedia(PHONE_SCROLL_MEDIA_QUERY)
-        .matches
-        ? (Number.isFinite(sectionPaddingTop) ? sectionPaddingTop : 0) / 2
-        : 0;
+    const headerBottom = header?.getBoundingClientRect().bottom ?? 0;
+    const contentStart =
+        elementTop + (Number.isFinite(sectionPaddingTop) ? sectionPaddingTop : 0);
 
-    // The fixed header does not take up document flow. Position the section's
-    // padding edge immediately beneath it on laptop and desktop. On phone,
-    // shift through half of the actual section padding so half remains visible
-    // before the content; the value always follows the section's CSS token.
-    return Math.max(0, headerBounds.bottom - phonePaddingOffset);
+    // Every standard section lands with its first content 50px below the
+    // fixed header. The content position follows the section's real padding,
+    // so responsive section tokens remain the source of truth.
+    return contentStart - headerBottom - CONTENT_SCROLL_CLEARANCE;
 }
 
-function getMinimumSectionScrollTop(element) {
-    if (element.id === "work") {
-        const hero = document.querySelector('[aria-label="Introduction"]');
+function getElevatedSectionScrollTop(element, elementTop) {
+    // FAQ and Contact need one additional shared 50px step above their
+    // content, so the viewport rests higher while retaining the same anchor
+    // rule as the rest of the navigation.
+    return (
+        getSectionContentScrollTop(element, elementTop) -
+        CONTENT_SCROLL_CLEARANCE
+    );
+}
 
-        if (hero) {
-            const heroBottom =
-                window.scrollY + hero.getBoundingClientRect().bottom;
+function getWorkScrollTop(element, elementTop) {
+    const hero = document.querySelector('[aria-label="Introduction"]');
+    const header = document.querySelector(".glass-navbar");
+    const sectionPaddingTop = Number.parseFloat(
+        window.getComputedStyle(element).paddingTop,
+    );
+    const headerBottom = header?.getBoundingClientRect().bottom ?? 0;
+    const heroBottom = hero
+        ? window.scrollY + hero.getBoundingClientRect().bottom
+        : elementTop;
+    const heroMeta = hero?.querySelector('[aria-label="Studio information"]');
+    const heroMetaBottom = heroMeta
+        ? window.scrollY + heroMeta.getBoundingClientRect().bottom
+        : heroBottom;
+    const tickerText = element.querySelector('[class*="tickerText"]');
+    const tickerTextPaddingTop = tickerText
+        ? Number.parseFloat(window.getComputedStyle(tickerText).paddingTop)
+        : 0;
+    const tickerTextTop = tickerText
+        ? window.scrollY + tickerText.getBoundingClientRect().top
+        : elementTop +
+          (Number.isFinite(sectionPaddingTop) ? sectionPaddingTop : 0);
+    const visualTickerTop =
+        tickerTextTop +
+        (Number.isFinite(tickerTextPaddingTop) ? tickerTextPaddingTop : 0);
 
-            // Hero uses 100svh, which can differ from window.innerHeight on
-            // a tablet or phone. Move a single rendered pixel past its actual
-            // lower boundary so neither Hero nor its fixed navigation state
-            // remains visible.
-            return Math.ceil(heroBottom) + 1;
-        }
+    // Work follows the full-screen Hero directly. At widths where its actual
+    // top padding is shorter than the floating header, stopping just after
+    // Hero would place the marquee beneath the header. Keep the marquee's
+    // first rendered line flush with the header instead, using the section's
+    // computed padding rather than a breakpoint-specific offset. At laptop
+    // and desktop widths the padding is already at least as tall as the
+    // header, so Hero is fully outside the viewport.
+    const shouldClearHeroShell =
+        !Number.isFinite(sectionPaddingTop) || sectionPaddingTop >= headerBottom;
+    const heroBoundary = shouldClearHeroShell ? heroBottom : heroMetaBottom;
+    const lastSafeTickerScrollTop = visualTickerTop - headerBottom;
 
-        return window.innerHeight;
-    }
-
-    return 0;
+    return Math.ceil(Math.min(heroBoundary, lastSafeTickerScrollTop));
 }
 
 function dispatchViewportCheck() {
@@ -248,11 +273,12 @@ export function scrollToElement(element, options = {}) {
     }
 
     const elementTop = window.pageYOffset + element.getBoundingClientRect().top;
-    const offset = getSectionStartOffset(element);
-    const nextScrollTop = Math.max(
-        getMinimumSectionScrollTop(element),
-        elementTop - offset,
-    );
+    const nextScrollTop =
+        element.id === "work"
+            ? getWorkScrollTop(element, elementTop)
+            : element.id === "contact" || element.id === "faq"
+              ? getElevatedSectionScrollTop(element, elementTop)
+            : getSectionContentScrollTop(element, elementTop);
     const behavior = options.behavior ?? "smooth";
 
     if (behavior === "smooth") {
@@ -277,7 +303,8 @@ export function scrollToHash(hash, options) {
         return false;
     }
 
-    const id = decodeURIComponent(hash.replace(/^#/, ""));
+    const requestedId = decodeURIComponent(hash.replace(/^#/, ""));
+    const id = HASH_TARGET_ALIASES[requestedId] ?? requestedId;
     const element = document.getElementById(id);
 
     return scrollToElement(element, options);

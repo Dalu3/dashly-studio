@@ -123,6 +123,44 @@ export interface StrandAttributeData {
     shade: Float32Array;
 }
 
+/** Copies a deterministic subset of the prepared strand attributes. Hybrid
+ * mobile LOD uses this to keep a sparse detail coat plus a separately tuned
+ * silhouette coat without generating any additional roots or vertices. */
+export function filterStrandAttributes(
+    source: StrandAttributeData,
+    keep: (index: number) => boolean,
+): StrandAttributeData {
+    const sourceCount = source.shade.length;
+    const selected: number[] = [];
+
+    for (let index = 0; index < sourceCount; index += 1) {
+        if (keep(index)) selected.push(index);
+    }
+
+    const copy = (input: Float32Array, itemSize: number) => {
+        const output = new Float32Array(selected.length * itemSize);
+        selected.forEach((sourceIndex, targetIndex) => {
+            const sourceOffset = sourceIndex * itemSize;
+            const targetOffset = targetIndex * itemSize;
+            for (let component = 0; component < itemSize; component += 1) {
+                output[targetOffset + component] =
+                    input[sourceOffset + component]!;
+            }
+        });
+        return output;
+    };
+
+    return {
+        roots: copy(source.roots, 3),
+        normals: copy(source.normals, 3),
+        growth: copy(source.growth, 4),
+        curl: copy(source.curl, 4),
+        idle: copy(source.idle, 4),
+        params: copy(source.params, 4),
+        shade: copy(source.shade, 1),
+    };
+}
+
 const fract = (value: number) => value - Math.floor(value);
 const hash1 = (value: number) => fract(Math.sin(value) * 43758.5453123);
 const smoothstep = (edge0: number, edge1: number, value: number) => {

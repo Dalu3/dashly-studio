@@ -12,6 +12,7 @@ import {
 import styles from "./Contact.module.css";
 import { FormField } from "./FormField";
 import { FormSelect } from "./FormSelect";
+import { ESTIMATE_HANDOFF_EVENT } from "../estimator/estimatorEvents";
 
 /** Mirrors the package names in `Packages.jsx` so a lead's "what do you need"
  *  answer lines up with the services actually offered. */
@@ -119,6 +120,30 @@ export function ContactForm() {
     const [statusMessage, setStatusMessage] = useState("");
     const [isError, setIsError] = useState(false);
     const [showStatus, setShowStatus] = useState(false);
+    const [estimateSummary, setEstimateSummary] = useState<Record<string, unknown> | null>(null);
+
+    useEffect(() => {
+        const handleEstimateHandoff = (event: Event) => {
+            const summary = (event as CustomEvent<Record<string, unknown>>).detail;
+            if (!summary) return;
+            setEstimateSummary(summary);
+            const estimatorType = String(summary.websiteType ?? "");
+            const projectType: ProjectType = estimatorType === "Landing Page"
+                ? "Landing Page"
+                : estimatorType === "Catalogue Website"
+                  ? "Catalogue Web"
+                  : estimatorType === "E-commerce"
+                    ? "E-commerce"
+                    : "Multi-Page Web";
+            setFormValues((current) => ({
+                ...current,
+                projectType,
+                timeline: String(summary.timeline ?? current.timeline),
+            }));
+        };
+        window.addEventListener(ESTIMATE_HANDOFF_EVENT, handleEstimateHandoff);
+        return () => window.removeEventListener(ESTIMATE_HANDOFF_EVENT, handleEstimateHandoff);
+    }, []);
 
     useEffect(() => {
         if (!showStatus) {
@@ -233,6 +258,14 @@ export function ContactForm() {
 
     return (
         <form ref={formRef} className={styles.card} onSubmit={handleSubmit} noValidate>
+            {estimateSummary && (
+                <div className={styles.estimateSummary} aria-label="Your saved estimate">
+                    <span>Saved estimate</span>
+                    <strong>{String(estimateSummary.websiteType)} · {new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(Number(estimateSummary.estimate))}</strong>
+                </div>
+            )}
+            <input type="hidden" name="estimator_summary" value={estimateSummary ? JSON.stringify(estimateSummary) : ""} />
+            <input type="hidden" name="estimated_price" value={estimateSummary ? String(estimateSummary.estimate) : ""} />
             <FormField
                 id="contact-name"
                 name="name"

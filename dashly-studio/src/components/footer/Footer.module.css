@@ -197,6 +197,30 @@
     }
 }
 
+/* The laptop range needs the same two-column information hierarchy as the
+   desktop footer: brand at the left, with Navigation and contact information
+   sharing the right column. The 72rem composition below takes over unchanged
+   once there is room for its wider desktop spacing. */
+@media (min-width: 64rem) and (max-width: 71.999rem) {
+    .top {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        align-items: start;
+        column-gap: var(--space-xl);
+    }
+
+    .brand {
+        grid-column: 1;
+    }
+
+    .columns {
+        grid-column: 2;
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+        align-items: start;
+        column-gap: var(--space-lg);
+        row-gap: var(--space-0);
+    }
+}
+
 @media (min-width: 72rem) {
     .columns {
         grid-template-columns:
@@ -284,6 +308,11 @@
         flex-direction: row;
         align-items: center;
         justify-content: space-between;
+    }
+
+    .legal {
+        margin-inline-start: auto;
+        justify-content: flex-end;
     }
 }
 
@@ -472,6 +501,16 @@
    Phone only — everything above (tablet's 2-column .columns, the approved
    desktop composition) is untouched. */
 @media (max-width: 47.999rem) {
+    .divider {
+        width: calc(
+            100% - var(--container-gutter) - var(--container-gutter)
+        );
+        max-width: calc(
+            var(--content-max-width-wide) - var(--container-gutter) -
+                var(--container-gutter)
+        );
+    }
+
     .top {
         padding-block-start: var(--space-0);
         gap: 4.05rem;
@@ -484,8 +523,10 @@
     .tagline {
         /* Matches the Figma text box (308.17px) so the line break lands on
            "that" / "works" exactly like the frame, not wherever the
-           inherited --footer-responsive-copy-width happens to wrap it. */
+        inherited --footer-responsive-copy-width happens to wrap it. */
         max-width: 19.25rem;
+        font-size: var(--font-size-p);
+        font-weight: var(--font-weight-regular);
     }
 
     .wordmark {
@@ -514,6 +555,7 @@
     }
 
     .bottom {
+        align-items: center;
         gap: var(--space-md);
     }
 
@@ -522,8 +564,8 @@
     }
 
     .legal {
-        width: 100%;
-        column-gap: var(--space-0);
-        justify-content: space-between;
+        width: auto;
+        column-gap: var(--footer-responsive-legal-column-gap);
+        justify-content: center;
     }
 }

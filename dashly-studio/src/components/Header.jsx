@@ -3,13 +3,14 @@ import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import arrowIcon from "../assets/arrow.webp";
 import { navigateToHash, scrollToTop } from "../utils/scrollToHash";
+import { openEstimator } from "./estimator/estimatorEvents";
 
 const mobileLinks = [
     ["Work", "#work"],
     ["Services", "#packages"],
     ["Stages", "#stages"],
     ["FAQ", "#faq"],
-    ["Price Estimator", "#contact"],
+    ["Price Estimator", "#estimator"],
 ];
 
 function Header() {
@@ -92,6 +93,15 @@ function Header() {
 
     const handleHashLinkClick = (event, hash) => {
         event.preventDefault();
+
+        if (hash === "#estimator") {
+            const trigger = isMenuOpen
+                ? document.querySelector(".hamburger")
+                : event.currentTarget;
+            if (isMenuOpen) closeMobileMenu();
+            window.requestAnimationFrame(() => openEstimator(trigger));
+            return;
+        }
 
         if (isMenuOpen) {
             pendingHashScrollRef.current = hash;

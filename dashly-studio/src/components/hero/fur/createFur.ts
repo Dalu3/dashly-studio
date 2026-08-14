@@ -11,8 +11,17 @@ import {
     createCursorInteraction,
     type CursorInteractionHandle,
 } from "./cursorInteraction";
-import { createStrands } from "./createStrands";
+import {
+    createStrands,
+    filterStrandAttributes,
+    generateStrandAttributes,
+    strandCountFor,
+} from "./createStrands";
 import type { StrandMaterial } from "./createStrandMaterial";
+import {
+    createShellFoundation,
+    type ShellFoundationMaterial,
+} from "./createShellFoundation";
 import { createSupportMaterial, type SupportMaterial } from "./createSupportMaterial";
 import { createIdleAnimation, type IdleAnimationHandle } from "./idleAnimation";
 import { prepareGeometry } from "./prepareGeometry";
@@ -59,9 +68,12 @@ export interface FurHandles {
      *  interaction, and what a bounding-box calculation should measure. */
     baseMesh: Mesh;
     strandMesh: InstancedMesh;
+    strandMeshes: InstancedMesh[];
     materials: {
         strand: StrandMaterial;
+        strands: StrandMaterial[];
         support: SupportMaterial;
+        shell?: ShellFoundationMaterial;
     };
     dispose: () => void;
 }
@@ -114,9 +126,7 @@ export function createFur(
     // generated once and reused while only the fibres animate.
     baseMesh.castShadow = true;
 
-    const { mesh: strandMesh, material: strandMaterial } = createStrands(
-        geometry,
-        {
+    const strandOptions = {
             density: options.quality.density,
             rootColor: options.rootColor,
             tipColor: options.tipColor,
@@ -125,17 +135,74 @@ export function createFur(
             strandWidth: options.quality.strandWidth ?? DEFAULT_STRAND_WIDTH,
             minStrandPixels: options.quality.minStrandPixels,
             shadeContrast: options.quality.shadeContrast,
-        },
-        options.prepared?.strands,
-    );
+    };
+    const allStrands =
+        options.prepared?.strands ??
+        generateStrandAttributes(
+            geometry,
+            strandCountFor(geometry, options.quality.density),
+        );
+    const hybrid = options.quality.shellCount > 0;
+    const strandResults = hybrid
+        ? [
+              createStrands(
+                  geometry,
+                  strandOptions,
+                  filterStrandAttributes(
+                      allStrands,
+                      (index) =>
+                          allStrands.shade[index]! <
+                          options.quality.detailStrandFraction,
+                  ),
+              ),
+              createStrands(
+                  geometry,
+                  {
+                      ...strandOptions,
+                      strandLength: strandOptions.strandLength * 1.16,
+                      strandWidth: strandOptions.strandWidth * 1.1,
+                      minStrandPixels: strandOptions.minStrandPixels * 1.12,
+                  },
+                  filterStrandAttributes(allStrands, (index) => {
+                      const shade = allStrands.shade[index]!;
+                      const normalY = Math.abs(allStrands.normals[index * 3 + 1]!);
+                      return (
+                          shade >= options.quality.detailStrandFraction &&
+                          shade <
+                              options.quality.detailStrandFraction +
+                                  (1 - options.quality.detailStrandFraction) *
+                                      options.quality.silhouetteStrandFraction &&
+                          normalY < options.quality.silhouetteNormalThreshold
+                      );
+                  }),
+              ),
+          ]
+        : [createStrands(geometry, strandOptions, allStrands)];
+    const strandMeshes = strandResults.map((result) => result.mesh);
+    const strandMaterials = strandResults.map((result) => result.material);
+    const strandMesh = strandMeshes[0]!;
+    const strandMaterial = strandMaterials[0]!;
+    const shell = hybrid
+        ? createShellFoundation(geometry, {
+              count: options.quality.shellCount,
+              length: options.quality.shellLength,
+              rootColor: options.rootColor,
+              tipColor: options.tipColor,
+          })
+        : null;
 
     if (options.lightDir) {
-        strandMaterial.uniforms.uLightDir.value.copy(options.lightDir);
+        for (const material of strandMaterials) {
+            material.uniforms.uLightDir.value.copy(options.lightDir);
+        }
+        shell?.material.uniforms.uLightDir.value.copy(options.lightDir);
         supportMaterial.uniforms.uLightDir.value.copy(options.lightDir);
     }
 
     const group = new Group();
-    group.add(baseMesh, strandMesh);
+    group.add(baseMesh);
+    if (shell) group.add(shell.mesh);
+    group.add(...strandMeshes);
 
     const cursor: CursorInteractionHandle = createCursorInteraction({
         camera: options.camera,
@@ -145,14 +212,16 @@ export function createFur(
         // supportMaterial deliberately excluded — the base mesh's geometry
         // must never move, so it isn't cursor-reactive at all (see
         // createSupportMaterial.ts). Only strandMaterial reacts.
-        materials: [strandMaterial],
+        materials: strandMaterials,
         frameLoop: options.frameLoop,
     });
 
     const idle: IdleAnimationHandle = createIdleAnimation({
         viewportElement: options.viewportElement,
         setTime: (seconds) => {
-            strandMaterial.uniforms.uTime.value = seconds;
+            for (const material of strandMaterials) {
+                material.uniforms.uTime.value = seconds;
+            }
         },
         frameLoop: options.frameLoop,
         reducedMotion: options.reducedMotion,
@@ -170,19 +239,33 @@ export function createFur(
         // InstancedMesh.dispose() itself only releases the instancing GPU
         // state, not the geometry/material objects.
         geometry.dispose();
-        strandMesh.geometry.dispose();
+        for (const mesh of strandMeshes) {
+            mesh.geometry.dispose();
+        }
 
         supportMaterial.dispose();
-        strandMaterial.dispose();
+        for (const material of strandMaterials) {
+            material.dispose();
+        }
+        shell?.material.dispose();
 
-        strandMesh.dispose();
+        for (const mesh of strandMeshes) {
+            mesh.dispose();
+        }
+        shell?.mesh.dispose();
     };
 
     return {
         group,
         baseMesh,
         strandMesh,
-        materials: { strand: strandMaterial, support: supportMaterial },
+        strandMeshes,
+        materials: {
+            strand: strandMaterial,
+            strands: strandMaterials,
+            support: supportMaterial,
+            shell: shell?.material,
+        },
         dispose,
     };
 }
