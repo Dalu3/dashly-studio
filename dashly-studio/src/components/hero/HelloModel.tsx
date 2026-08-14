@@ -11,6 +11,7 @@ import {
     Scene,
     ShadowMaterial,
     Vector3,
+    Vector2,
     WebGLRenderer,
 } from "three";
 
@@ -172,7 +173,11 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
     const reducedMotion = usePrefersReducedMotion();
     const reducedMotionRef = useRef(reducedMotion);
     reducedMotionRef.current = reducedMotion;
-    const debugEnabled = import.meta.env.DEV && debug;
+    const debugRequested =
+        debug ||
+        (typeof window !== "undefined" &&
+            new URLSearchParams(window.location.search).has("furDebug"));
+    const debugEnabled = import.meta.env.DEV && debugRequested;
 
     useEffect(() => {
         const host = hostRef.current;
@@ -271,6 +276,40 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
         let gpuRenderMs: number | null = null;
         let renderCount = 0;
         let shadowUpdateCount = 0;
+        const drawingBufferSize = new Vector2();
+
+        const writeDebugDataset = () => {
+            if (!debugEnabled || !activeQuality) return;
+
+            let strands = 0;
+            let strandVertices = 0;
+            let strandTriangles = 0;
+
+            for (const fur of furHandles) {
+                const count = fur.strandMesh.count;
+                const templateVertices =
+                    fur.strandMesh.geometry.getAttribute("position").count;
+                const templateIndices =
+                    fur.strandMesh.geometry.getIndex()?.count ?? 0;
+                strands += count;
+                strandVertices += count * templateVertices;
+                strandTriangles += count * (templateIndices / 3);
+            }
+
+            host.dataset.furMetrics = JSON.stringify({
+                quality: activeQuality.name,
+                strands,
+                strandVertices,
+                strandTriangles,
+                cssWidth: renderer.domElement.clientWidth,
+                cssHeight: renderer.domElement.clientHeight,
+                bufferWidth: renderer.domElement.width,
+                bufferHeight: renderer.domElement.height,
+                pixelRatio: renderer.getPixelRatio(),
+                cpuRenderMs,
+                gpuRenderMs,
+            });
+        };
 
         const rendererContext = debugEnabled ? renderer.getContext() : null;
         const gl =
@@ -339,6 +378,8 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
                         pendingGpuQueries.push(activeGpuQuery);
                         activeGpuQuery = null;
                     }
+
+                    writeDebugDataset();
                 }
             }
         };
@@ -388,7 +429,11 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
             let prepared: PreparedFurData[] | undefined;
 
             try {
-                prepared = await furDataWorker.generate(sources, quality.density);
+                prepared = await furDataWorker.generate(
+                    sources,
+                    quality.density,
+                    quality.strokeRadius,
+                );
             } catch (error) {
                 if (disposed) {
                     return created;
@@ -427,6 +472,10 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
                     fur.group.position.copy(source.position);
                     fur.group.quaternion.copy(source.quaternion);
                     fur.group.scale.copy(source.scale);
+                    renderer.getDrawingBufferSize(drawingBufferSize);
+                    fur.materials.strand.uniforms.uDrawingBufferSize.value.copy(
+                        drawingBufferSize,
+                    );
                     created.push(fur);
                 }
             } catch (error) {
@@ -508,6 +557,7 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
                 }
 
                 render();
+                writeDebugDataset();
 
                 // Dispose only after the replacement has been rendered once;
                 // no frame can observe missing geometry between the two sets.
@@ -567,6 +617,13 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
                 lastCanvasWidth = w;
                 lastCanvasHeight = h;
                 lastPixelRatio = pixelRatio;
+
+                renderer.getDrawingBufferSize(drawingBufferSize);
+                for (const fur of furHandles) {
+                    fur.materials.strand.uniforms.uDrawingBufferSize.value.copy(
+                        drawingBufferSize,
+                    );
+                }
             }
 
             if (!modelReady) {
@@ -629,6 +686,7 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
 
             if (drawingBufferChanged || projectionChanged || compositionChanged) {
                 render();
+                writeDebugDataset();
             }
         };
 
@@ -767,8 +825,9 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
                     : undefined,
             };
             publicHandles = handles;
+            writeDebugDataset();
 
-            if (import.meta.env.DEV) {
+            if (debugEnabled) {
                 // Dev-only handle for tuning the fur from the console.
                 // Stripped from production builds by the DEV guard.
                 (

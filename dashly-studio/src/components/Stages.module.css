@@ -159,6 +159,16 @@
     will-change: transform, opacity;
 }
 
+@media (min-width: 64rem) {
+    .number {
+        transform: translate3d(
+            0,
+            calc(var(--stage-number-shift) - var(--space-2xs)),
+            0
+        );
+    }
+}
+
 .copy {
     display: contents;
 }
@@ -568,6 +578,14 @@
                     var(--process-laptop-flow-offset)
             )
         );
+    }
+}
+
+/* Laptop-to-standard-desktop: tighten the independently positioned copy
+   while preserving every stage title and route coordinate. */
+@media (min-width: 64rem) and (max-width: 107.999rem) {
+    .copy p {
+        top: calc(var(--description-top) - var(--space-xs));
     }
 }
 

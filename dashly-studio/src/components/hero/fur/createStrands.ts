@@ -458,6 +458,8 @@ export interface CreateStrandsOptions {
     tipColor?: string;
     strandLength: number;
     strandWidth: number;
+    minStrandPixels: number;
+    shadeContrast: number;
 }
 
 export interface StrandsResult {
@@ -490,6 +492,8 @@ export function createStrands(
         tipColor: options.tipColor,
         strandLength: options.strandLength,
         strandWidth: options.strandWidth,
+        minStrandPixels: options.minStrandPixels,
+        shadeContrast: options.shadeContrast,
     });
 
     const mesh = new InstancedMesh(template, material, count);

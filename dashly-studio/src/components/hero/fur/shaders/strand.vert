@@ -17,6 +17,8 @@
 
 uniform float uStrandLength;
 uniform float uStrandWidth;
+uniform vec2  uDrawingBufferSize;
+uniform float uMinStrandPixels;
 uniform vec3  uGravity;
 uniform vec3  uCursor;
 uniform vec3  uCursorDir;
@@ -145,7 +147,23 @@ void main() {
 
     widthAxis = axisLen < 1e-4 ? vec3(0.0, 0.0, 1.0) : widthAxis / axisLen;
 
-    vec3 worldPos = worldCentre + widthAxis * (width * side * 0.5);
+    // Keep the authored world-space width whenever it already rasterises
+    // cleanly. If projection/model scale would make it sub-pixel, expand only
+    // the ribbon width to the profile's physical-pixel floor. The floor tapers
+    // to zero with the hair, preserving fine tips and avoiding blunt cards.
+    float halfWidth = width * 0.5;
+    vec4 clipCentre = projectionMatrix * viewMatrix * vec4(worldCentre, 1.0);
+    vec4 clipWidth = projectionMatrix * viewMatrix * vec4(widthAxis * halfWidth, 0.0);
+    vec2 halfWidthNdc = clipWidth.xy / max(abs(clipCentre.w), 1e-5);
+    float projectedFullWidth = length(
+        halfWidthNdc * max(uDrawingBufferSize, vec2(1.0))
+    );
+    float minFullWidth = uMinStrandPixels * pow(max(1.0 - t, 0.0), 0.62);
+    float screenSpaceScale = projectedFullWidth > 1e-5
+        ? max(1.0, minFullWidth / projectedFullWidth)
+        : 1.0;
+    vec3 worldPos = worldCentre
+        + widthAxis * (halfWidth * screenSpaceScale * side);
 
     vStrandT = t;
     vShade = aShade;

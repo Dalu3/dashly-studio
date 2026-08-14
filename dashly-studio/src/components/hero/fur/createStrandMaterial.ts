@@ -4,6 +4,7 @@ import {
     GLSL3,
     ShaderMaterial,
     Vector3,
+    Vector2,
     type IUniform,
 } from "three";
 
@@ -16,6 +17,9 @@ export interface StrandUniforms extends CursorReactiveUniforms {
     [uniform: string]: IUniform;
     uStrandLength: IUniform<number>;
     uStrandWidth: IUniform<number>;
+    uDrawingBufferSize: IUniform<Vector2>;
+    uMinStrandPixels: IUniform<number>;
+    uShadeContrast: IUniform<number>;
     uRootColor: IUniform<Color>;
     uTipColor: IUniform<Color>;
     uLightDir: IUniform<Vector3>;
@@ -34,12 +38,17 @@ export interface StrandMaterialOptions {
     tipColor?: string;
     strandLength: number;
     strandWidth: number;
+    minStrandPixels: number;
+    shadeContrast: number;
 }
 
 export function createStrandMaterial(options: StrandMaterialOptions): StrandMaterial {
     const uniforms: StrandUniforms = {
         uStrandLength: { value: options.strandLength },
         uStrandWidth: { value: options.strandWidth },
+        uDrawingBufferSize: { value: new Vector2(1, 1) },
+        uMinStrandPixels: { value: options.minStrandPixels },
+        uShadeContrast: { value: options.shadeContrast },
         uRootColor: { value: new Color(options.rootColor ?? "#1eb6f7") },
         uTipColor: { value: new Color(options.tipColor ?? "#6fd4fb") },
         uLightDir: { value: new Vector3(-0.4, 0.8, 0.6).normalize() },

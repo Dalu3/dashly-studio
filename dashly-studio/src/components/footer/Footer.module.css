@@ -21,15 +21,15 @@
     color: var(--color-text-inverse);
     line-height: var(--line-height-type-display);
     padding-block: var(--space-section-padding);
-    padding-inline: var(--container-gutter);
 }
 
 .top {
-    /* Wider than the sitewide --content-max-width on purpose — see
-       --content-max-width-wide in layout.css for why. */
-    max-width: var(--content-max-width-footer);
+    box-sizing: border-box;
+    width: 100%;
+    max-width: var(--content-max-width-wide);
     margin-inline: auto;
     padding-block: var(--space-0) clamp(2.5rem, 1.5rem + 4vw, 4.25rem);
+    padding-inline: var(--container-gutter);
     display: grid;
     grid-template-columns: 1fr;
     gap: clamp(2rem, 1rem + 3vw, 3rem);
@@ -37,12 +37,6 @@
 
 @media (min-width: 72rem) {
     .top {
-        /* Brand sized to its own content (capped so it can't crowd the other
-           two columns), then a flexible spacer track absorbs all the extra
-           width — nav and touch sit in the last two tracks, sized to their
-           own content, so they move together as a fixed-gap pair and the
-           touch column's own right edge lands on the container's right
-           edge instead of stopping short in the middle. */
         grid-template-columns: minmax(0, auto) minmax(1.5rem, 1fr) auto;
     }
 
@@ -176,9 +170,10 @@
 }
 
 /* Laptop type scale: tagline=p, wordmark=H2 (bumped up from H3 so "Dashly
-   Studio" reads as the brand mark, not a column label), column headings=H3,
-   every link and the meta row=small. The approved desktop starts at 64rem —
-   independent of the 72rem/108rem structural breakpoints below. */
+   Studio" reads as the brand mark, not a column label), column headings=H3.
+   Footer links and metadata retain their component-specific type tokens. The
+   approved desktop starts at 64rem — independent of the 72rem/108rem
+   structural breakpoints below. */
 @media (min-width: 64rem) {
     .tagline {
         font-size: var(--font-size-p);
@@ -193,9 +188,12 @@
     }
 
     .link,
-    .touchBlurb,
+    .touchBlurb {
+        font-size: var(--font-size-footer-link);
+    }
+
     .bottom {
-        font-size: var(--font-size-small);
+        font-size: var(--font-size-footer-meta);
     }
 }
 
@@ -207,7 +205,7 @@
         column-gap: var(--footer-column-gap-desktop);
         row-gap: 0;
         align-items: stretch;
-        transform: translateX(var(--footer-columns-visual-shift-desktop));
+        transform: none;
     }
 
     .nav,
@@ -259,16 +257,20 @@
 }
 
 .divider {
-    max-width: var(--content-max-width-footer);
+    width: 100%;
+    max-width: var(--content-max-width-wide);
     margin-inline: auto;
     height: 1px;
     background: rgb(214 237 248 / 0.15);
 }
 
 .bottom {
-    max-width: var(--content-max-width-footer);
+    box-sizing: border-box;
+    width: 100%;
+    max-width: var(--content-max-width-wide);
     margin-inline: auto;
     padding-block: 1.25rem var(--space-0);
+    padding-inline: var(--container-gutter);
     display: flex;
     flex-direction: column;
     gap: var(--space-sm);
@@ -285,8 +287,27 @@
     }
 }
 
+@media (min-width: 64rem) {
+    .bottom {
+        justify-content: flex-start;
+        gap: var(--space-xl);
+    }
+}
+
+/* FAQ and Contact apply this existing visual inset to their headings through
+   the standard desktop range. Keep Footer's primary content on that same
+   line while its container and right edge continue to use the shared gutter. */
+@media (min-width: 64rem) and (max-width: 107.999rem) {
+    .top {
+        padding-inline-start: calc(
+            var(--container-gutter) + var(--space-xs)
+        );
+    }
+}
+
 .copyright {
     margin: 0;
+    font-weight: var(--font-weight-light);
 }
 
 .legal {
@@ -296,18 +317,8 @@
 
 .legalLink {
     font-size: inherit;
-    font-weight: inherit;
+    font-weight: var(--font-weight-light);
     letter-spacing: inherit;
-}
-
-/* The footer shares the page-wide responsive gutter. Its internal content
-   can still use the Contact composition width without changing the page edge. */
-@media (min-width: 64rem) {
-    .top,
-    .divider,
-    .bottom {
-        max-width: var(--content-max-width-contact);
-    }
 }
 
 /* At the large desktop breakpoint the footer keeps the same fixed-width shell
@@ -321,9 +332,8 @@
         position: static;
         display: grid;
         height: auto;
-        max-width: none;
         padding-block: var(--space-0) 4.25rem;
-        column-gap: var(--footer-column-gap-figma);
+        column-gap: var(--space-xl);
     }
 
     .brand,
@@ -349,23 +359,21 @@
             max-content
             calc(19rem - var(--footer-columns-shift-figma));
         column-gap: var(--footer-column-gap-figma);
-        transform: translateX(var(--footer-columns-visual-shift-figma));
+        transform: none;
     }
 
     .divider {
         position: static;
         width: auto;
-        max-width: none;
-        margin: 0;
+        margin-inline: auto;
         height: 1px;
     }
 
     .bottom {
         position: static;
         width: auto;
-        max-width: none;
-        margin: 0;
-        padding: 1.25rem 0 var(--space-0);
+        margin-inline: auto;
+        padding-block: 1.25rem var(--space-0);
         line-height: var(--line-height-body-compact);
     }
 
@@ -464,10 +472,6 @@
    Phone only — everything above (tablet's 2-column .columns, the approved
    desktop composition) is untouched. */
 @media (max-width: 47.999rem) {
-    .root {
-        padding-inline: var(--space-md);
-    }
-
     .top {
         padding-block-start: var(--space-0);
         gap: 4.05rem;

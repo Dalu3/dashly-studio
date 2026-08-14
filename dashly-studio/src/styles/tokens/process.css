@@ -22,9 +22,9 @@
 
     /* ---- Type ----------------------------------------------------------- */
     --process-heading-size: var(--type-h2);
-    /* Stage names use the larger supporting-heading scale so they remain
-       clearly distinct from the descriptive body copy. */
-    --process-stage-title-size: var(--font-size-2xl);
+    /* Stage names use the supporting-heading scale so they remain distinct
+       from the descriptive body copy without dominating the route. */
+    --process-stage-title-size: var(--font-size-xl);
     --process-stage-number-size: clamp(5rem, 8.53vw, 9.375rem);
     --process-body-size: var(--font-size-body);
     --process-copy-line-height: var(--line-height-body-compact);

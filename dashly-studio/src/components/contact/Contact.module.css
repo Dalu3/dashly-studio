@@ -69,7 +69,7 @@
     line-height: var(--line-height-body-compact);
     letter-spacing: var(--letter-spacing-wide-plus);
     color: var(--color-text-black);
-    max-width: var(--measure-narrow);
+    max-width: var(--measure-default);
 }
 
 /* ---- Form card ---------------------------------------------------------- */
@@ -103,6 +103,21 @@
         margin-top: var(--space-0);
     }
 
+    .body {
+        inline-size: min(
+            var(--measure-default),
+            calc(100% + var(--faq-column-gap))
+        );
+    }
+
+}
+
+/* Laptop-to-standard-desktop text inset: matches the visual gutter while
+   leaving the form track and the shared container geometry unchanged. */
+@media (min-width: 64rem) and (max-width: 107.999rem) {
+    .intro {
+        padding-inline-start: var(--space-xs);
+    }
 }
 
 .submit {
@@ -158,6 +173,8 @@
    intact and constrain this touch/press feedback to tablet and phone widths. */
 @media (max-width: 47.999rem) {
     .card {
+        width: calc(100% + (var(--space-3xs) * 2));
+        margin-inline: calc(var(--space-3xs) * -1);
         padding: var(--space-sm);
     }
 

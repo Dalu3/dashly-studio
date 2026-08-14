@@ -16,6 +16,7 @@ export interface WorkerPreparedGeometry {
 export interface FurWorkerRequest {
     id: number;
     density: number;
+    strokeRadius: number;
     geometries: WorkerSourceGeometry[];
 }
 

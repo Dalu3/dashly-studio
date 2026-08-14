@@ -78,11 +78,11 @@ export interface FurHandles {
 // A longer pile gives the word a silky coat rather than short plush fuzz.
 // Per-strand length variation in strand.vert still keeps the silhouette from
 // becoming a uniform inflated outline.
-const STRAND_LENGTH = 0.0078;
+const DEFAULT_STRAND_LENGTH = 0.0078;
 // Slightly fuller roots and mid-sections improve overlap and front-surface
 // coverage. The shader keeps the final tip at zero width, so the additional
 // body does not turn the fibres into blunt ribbons.
-const STRAND_WIDTH = 0.0009;
+const DEFAULT_STRAND_WIDTH = 0.0009;
 
 /**
  * Builds a complete fur system — base mesh plus thousands of individually-
@@ -102,7 +102,9 @@ export function createFur(
     sourceGeometry: BufferGeometry,
     options: CreateFurOptions,
 ): FurHandles {
-    const geometry = options.prepared?.geometry ?? prepareGeometry(sourceGeometry);
+    const geometry =
+        options.prepared?.geometry ??
+        prepareGeometry(sourceGeometry, options.quality.strokeRadius);
 
     const supportMaterial = createSupportMaterial({
         rootColor: options.rootColor,
@@ -118,8 +120,11 @@ export function createFur(
             density: options.quality.density,
             rootColor: options.rootColor,
             tipColor: options.tipColor,
-            strandLength: STRAND_LENGTH,
-            strandWidth: STRAND_WIDTH,
+            strandLength:
+                options.quality.strandLength ?? DEFAULT_STRAND_LENGTH,
+            strandWidth: options.quality.strandWidth ?? DEFAULT_STRAND_WIDTH,
+            minStrandPixels: options.quality.minStrandPixels,
+            shadeContrast: options.quality.shadeContrast,
         },
         options.prepared?.strands,
     );

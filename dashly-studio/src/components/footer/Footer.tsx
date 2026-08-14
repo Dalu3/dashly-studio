@@ -10,6 +10,8 @@ import styles from "./Footer.module.css";
  * in that frame — no Ukraine banner, no email line, no icon glyphs.
  */
 export default function Footer() {
+    const currentYear = new Date().getFullYear();
+
     return (
         <footer className={styles.root}>
             <div className={styles.top}>
@@ -75,7 +77,7 @@ export default function Footer() {
 
             <div className={styles.bottom}>
                 <p className={styles.copyright}>
-                    © 2026, Dashly Studio. All Rights Reserved.
+                    © {currentYear}, Dashly Studio. All Rights Reserved.
                 </p>
                 <div className={styles.legal}>
                     <a className={cn(styles.link, styles.legalLink)} href="/terms/">

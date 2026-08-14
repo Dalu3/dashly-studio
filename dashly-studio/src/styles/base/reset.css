@@ -105,8 +105,3 @@ a {
     outline-offset: 2px;
     border-radius: var(--radius-xs);
 }
-
-/* Anchored sections clear the sticky header when jumped to. */
-:target {
-    scroll-margin-top: var(--space-3xl);
-}

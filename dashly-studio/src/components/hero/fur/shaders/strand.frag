@@ -12,6 +12,7 @@ layout(location = 0) out vec4 fragColor;
 uniform vec3 uRootColor;
 uniform vec3 uTipColor;
 uniform vec3 uLightDir;
+uniform float uShadeContrast;
 
 varying vec3  vWorldNormal;
 varying vec3  vWorldPos;
@@ -27,14 +28,12 @@ void main() {
     // Root-biased colour ramp, squared like the old shell/fin pass — only
     // the outermost tips should pick up the pale highlight.
     vec3 color = mix(uRootColor, uTipColor, vStrandT * vStrandT);
-    // Per-STRAND brightness variation (not per-fragment noise) — every
-    // fragment of a given hair shares its one hashed value, so the fibre
-    // reads as a single toned strand rather than a noisy surface. Widened
-    // from (0.82, 1.0) — centred on roughly the same average so the overall
-    // colour doesn't visibly shift, just spread further apart so
-    // neighbouring hairs read as visibly different fibres instead of a
-    // near-uniform tone.
-    color *= mix(0.58, 1.18, vShade);
+    // Per-strand brightness variation, attenuated by the responsive quality
+    // profile. Full contrast preserves individually readable desktop fibres;
+    // mobile blends toward the same 0.88 average so sub-pixel hairs form a
+    // soft coat instead of high-frequency blue noise.
+    float strandTone = mix(0.58, 1.18, vShade);
+    color *= mix(0.88, strandTone, uShadeContrast);
 
     vec3 shaded = shadeFibre(color, n, normalize(uLightDir), viewDir, vStrandT);
 

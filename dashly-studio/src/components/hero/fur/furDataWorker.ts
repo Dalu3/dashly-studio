@@ -19,6 +19,7 @@ export interface FurDataWorkerHandle {
     generate: (
         sources: readonly HelloMeshSource[],
         density: number,
+        strokeRadius: number,
     ) => Promise<PreparedFurData[]>;
     dispose: () => void;
 }
@@ -64,7 +65,7 @@ export function createFurDataWorker(): FurDataWorkerHandle {
     };
 
     return {
-        generate: (sources, density) => {
+        generate: (sources, density, strokeRadius) => {
             if (disposed || failed) {
                 return Promise.reject(new Error("fur generation worker is disposed"));
             }
@@ -87,7 +88,12 @@ export function createFurDataWorker(): FurDataWorkerHandle {
                 return { position, index };
             });
 
-            const request: FurWorkerRequest = { id, density, geometries };
+            const request: FurWorkerRequest = {
+                id,
+                density,
+                strokeRadius,
+                geometries,
+            };
             const promise = new Promise<PreparedFurData[]>((resolve, reject) => {
                 pending.set(id, { resolve, reject });
             });

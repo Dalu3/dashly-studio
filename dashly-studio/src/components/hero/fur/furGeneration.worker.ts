@@ -33,7 +33,7 @@ const transferStrands = (
 };
 
 workerScope.onmessage = (event: MessageEvent<FurWorkerRequest>) => {
-    const { id, density, geometries } = event.data;
+    const { id, density, strokeRadius, geometries } = event.data;
 
     try {
         const transfer: Transferable[] = [];
@@ -42,7 +42,7 @@ workerScope.onmessage = (event: MessageEvent<FurWorkerRequest>) => {
             source.setAttribute("position", new BufferAttribute(serialized.position, 3));
             source.setIndex(new BufferAttribute(serialized.index, 1));
 
-            const prepared = prepareGeometry(source);
+            const prepared = prepareGeometry(source, strokeRadius);
             const count = strandCountFor(prepared, density);
             const strands = generateStrandAttributes(prepared, count);
             const position = prepared.getAttribute("position").array as Float32Array;

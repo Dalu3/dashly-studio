@@ -19,6 +19,7 @@ function Header() {
     const scrollPhaseRef = useRef("top");
     const scrollPositionRef = useRef({ x: 0, y: 0 });
     const pendingLogoScrollRef = useRef(false);
+    const pendingHashScrollRef = useRef(null);
 
     useLayoutEffect(() => {
         if (!isMenuOpen && !isMenuClosing) {
@@ -93,8 +94,8 @@ function Header() {
         event.preventDefault();
 
         if (isMenuOpen) {
+            pendingHashScrollRef.current = hash;
             closeMobileMenu();
-            window.requestAnimationFrame(() => navigateToHash(null, hash, "/"));
             return;
         }
 
@@ -147,6 +148,15 @@ function Header() {
             if (pendingLogoScrollRef.current) {
                 pendingLogoScrollRef.current = false;
                 scrollToTop();
+            }
+
+            if (pendingHashScrollRef.current) {
+                const hash = pendingHashScrollRef.current;
+                pendingHashScrollRef.current = null;
+
+                window.requestAnimationFrame(() =>
+                    navigateToHash(null, hash, "/"),
+                );
             }
         }
     };

@@ -8,62 +8,126 @@ export type FurQualityName =
 export interface FurQualityPreset {
     name: FurQualityName;
     density: number;
+    minDpr: number;
     maxDpr: number;
     maxPhysicalPixels: number;
     idleFps: number;
+    strokeRadius: number;
+    strandLength: number;
+    strandWidth: number;
+    minStrandPixels: number;
+    shadeContrast: number;
+    shellCount: number;
+    shellLength: number;
+    detailStrandFraction: number;
+    silhouetteStrandFraction: number;
+    silhouetteNormalThreshold: number;
 }
 
-const DPR_STEPS = [2, 1.75, 1.5, 1.25, 1] as const;
+const DPR_STEPS = [2, 1.875, 1.75, 1.5, 1.25, 1] as const;
 
 export const FUR_QUALITY: Record<FurQualityName, FurQualityPreset> = {
-    // The restored, larger desktop wordmark exposes more canvas area. Raising
-    // instance density (rather than ribbon width) restores a full coat while
-    // preserving fine tapered tips and the existing shader silhouette.
+    // Desktop retains the finest fibres. Its density is slightly below the
+    // previous pass; the unchanged support radius means this is a direct
+    // geometry saving rather than a visual-size change.
     high: {
         name: "high",
-        density: 4.8e6,
+        density: 4.6e6,
+        minDpr: 1,
         maxDpr: 2,
         maxPhysicalPixels: 6e6,
         idleFps: 30,
+        strokeRadius: 0.0085,
+        strandLength: 0.0078,
+        strandWidth: 0.0009,
+        minStrandPixels: 0.7,
+        shadeContrast: 1,
+        shellCount: 0,
+        shellLength: 0,
+        detailStrandFraction: 1,
+        silhouetteStrandFraction: 0,
+        silhouetteNormalThreshold: 0,
     },
-    // Laptop viewports render the word at a smaller projected size, so a
-    // modest density reduction removes geometry that contributes least to the
-    // final pixels. Keep this close to high: changing strand width/length to
-    // mask a larger cut made the coat visibly thinner in earlier comparisons.
+    // As the projected word gets smaller, make each tapered ribbon marginally
+    // fuller before removing instances. This preserves overlap and edge detail
+    // without changing the word's layout scale.
     balanced: {
         name: "balanced",
-        density: 4.35e6,
-        maxDpr: 2,
+        density: 4.15e6,
+        minDpr: 1.25,
+        maxDpr: 1.875,
         maxPhysicalPixels: 4.5e6,
         idleFps: 30,
+        strokeRadius: 0.00855,
+        strandLength: 0.0079,
+        strandWidth: 0.00094,
+        minStrandPixels: 0.85,
+        shadeContrast: 0.8,
+        shellCount: 0,
+        shellLength: 0,
+        detailStrandFraction: 1,
+        silhouetteStrandFraction: 0,
+        silhouetteNormalThreshold: 0,
     },
-    // Tablet gets a real geometry budget instead of desktop density. The cut
-    // remains deliberately below 20%, while the existing front/silhouette
-    // weighted sampler keeps the saved roots concentrated on back-facing,
-    // low-visibility surface rather than exposing the support mesh.
+    // Tablet adds a little support mass and pile reach. The radius remains
+    // below the measured 0.009 threshold where the e/loops begin to close.
     tablet: {
         name: "tablet",
-        density: 4e6,
+        density: 3.75e6,
+        minDpr: 1.5,
         maxDpr: 2,
         maxPhysicalPixels: 3.5e6,
         idleFps: 24,
+        strokeRadius: 0.00865,
+        strandLength: 0.0081,
+        strandWidth: 0.00102,
+        minStrandPixels: 1,
+        shadeContrast: 0.58,
+        shellCount: 8,
+        shellLength: 0.0042,
+        detailStrandFraction: 0.3,
+        silhouetteStrandFraction: 0.42,
+        silhouetteNormalThreshold: 0.38,
     },
     mobile: {
         name: "mobile",
-        density: 2.4e6,
+        density: 2.25e6,
+        minDpr: 1.75,
         maxDpr: 2,
         maxPhysicalPixels: 2.5e6,
         idleFps: 20,
+        strokeRadius: 0.00875,
+        strandLength: 0.00835,
+        strandWidth: 0.00112,
+        minStrandPixels: 1.15,
+        shadeContrast: 0.4,
+        shellCount: 10,
+        shellLength: 0.0046,
+        detailStrandFraction: 0.24,
+        silhouetteStrandFraction: 0.46,
+        silhouetteNormalThreshold: 0.4,
     },
-    // This retains the former, visually-approved mobile strand density. DPR is
-    // kept at 2 because thin sub-pixel fibres become visibly soft at 1.25–1.5
-    // DPR on modern mobile displays; geometry is the safer budget to reduce.
+    // Reduced-motion and narrow mobile screens use the fewest instances, so
+    // width, length and a 3.5% fuller support stroke carry the silhouette.
+    // DPR 2 is allowed only while the compact canvas remains inside the
+    // mobile framebuffer budget; larger mobile canvases step down normally.
     "mobile-low": {
         name: "mobile-low",
-        density: 1.9e6,
+        density: 1.75e6,
+        minDpr: 1.75,
         maxDpr: 2,
         maxPhysicalPixels: 1.75e6,
         idleFps: 15,
+        strokeRadius: 0.0088,
+        strandLength: 0.00855,
+        strandWidth: 0.0012,
+        minStrandPixels: 1.25,
+        shadeContrast: 0.32,
+        shellCount: 12,
+        shellLength: 0.0048,
+        detailStrandFraction: 0.2,
+        silhouetteStrandFraction: 0.5,
+        silhouetteNormalThreshold: 0.42,
     },
 };
 
@@ -79,7 +143,14 @@ export function resolveFurPixelRatio(
     quality: FurQualityPreset,
 ): number {
     const cssPixels = Math.max(1, canvasWidth) * Math.max(1, canvasHeight);
-    const dprCeiling = Math.min(devicePixelRatio, quality.maxDpr);
+    // Small canvases benefit from controlled supersampling even when browser
+    // emulation reports DPR 1. This prevents a 375 CSS-pixel canvas from also
+    // having only 375 physical pixels, while the pixel budget still prevents
+    // the same policy from multiplying a large desktop framebuffer.
+    const dprCeiling = Math.min(
+        Math.max(devicePixelRatio, quality.minDpr),
+        quality.maxDpr,
+    );
 
     for (const dpr of DPR_STEPS) {
         if (

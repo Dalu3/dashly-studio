@@ -29,7 +29,7 @@ import { buildRoundedStrokeGeometry } from "./buildRoundedStroke";
  * radius to uFurLength, and with the radius pinned here that ratio is the
  * fur's to give.
  */
-const STROKE_RADIUS = 0.0085;
+const DEFAULT_STROKE_RADIUS = 0.0085;
 
 /**
  * How coincident two vertices must be (in hello.glb's raw, ~0.4-unit-wide
@@ -237,9 +237,12 @@ function addLowerStemCap(source: BufferGeometry): BufferGeometry {
  * Neither is used downstream: fur placement is driven by object-space
  * position via a fixed-axis triplanar projection (see shell.frag), not by UV.
  */
-export function prepareGeometry(source: BufferGeometry): BufferGeometry {
+export function prepareGeometry(
+    source: BufferGeometry,
+    strokeRadius = DEFAULT_STROKE_RADIUS,
+): BufferGeometry {
     const rounded = buildRoundedStrokeGeometry(source, {
-        radius: STROKE_RADIUS,
+        radius: strokeRadius,
         // 20 segments puts the facet-to-facet angle at 18 degrees. On a
         // stroke this narrow that is already below what reads as faceted,
         // and it keeps the rebuilt mesh (~11k vertices) and its derived fin

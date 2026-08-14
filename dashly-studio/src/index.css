@@ -75,20 +75,6 @@ body {
     box-sizing: border-box;
 }
 
-#packages {
-    scroll-margin-top: var(--space-3xl);
-}
-
-#stages {
-    scroll-margin-top: 53px;
-}
-#faq {
-    scroll-margin-top: 140px;
-}
-#contact {
-    scroll-margin-top: calc(var(--space-section-gap) + var(--space-sm));
-}
-
 /* Each section owns its internal rhythm. External gaps would expose the page
    surface between the intentional colour-bridge layers. */
 #main-content > * + * {
@@ -101,15 +87,6 @@ body {
 }
 
 @media (min-width: 598px) and (max-width: 769px) {
-    #packages,
-    #stages {
-        scroll-margin-top: calc(var(--space-3xl) + var(--space-sm));
-    }
-
-    #faq {
-        scroll-margin-top: 110px;
-    }
-
     .block-title {
         font-size: var(--block-title-size-lg);
         text-align: center;
@@ -117,15 +94,6 @@ body {
 }
 
 @media (max-width: 598px) {
-    #packages,
-    #stages {
-        scroll-margin-top: calc(var(--space-3xl) - var(--space-xs));
-    }
-
-    #faq {
-        scroll-margin-top: 110px;
-    }
-
     .block-title {
         padding: 0;
         text-align: center;

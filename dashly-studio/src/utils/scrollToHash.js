@@ -6,6 +6,7 @@ const DEFAULT_SCROLL_DURATION = 420;
 const DESKTOP_NATIVE_SCROLL_MEDIA_QUERY =
     "(min-width: 1061px) and (hover: hover) and (pointer: fine)";
 const TOUCH_SCROLL_MEDIA_QUERY = "(max-width: 63.999rem)";
+const PHONE_SCROLL_MEDIA_QUERY = "(max-width: 47.999rem)";
 
 let activeScrollFrame = 0;
 let activeScrollToken = 0;
@@ -48,31 +49,48 @@ function normalizePathname(pathname = "/") {
     return normalized || "/";
 }
 
-function getHeaderOffset(element) {
-    const scrollMarginTop = Number.parseFloat(
-        window.getComputedStyle(element).scrollMarginTop,
-    );
-
+function getSectionStartOffset(element) {
     const header = document.querySelector(".glass-navbar");
 
     if (!header) {
-        return !Number.isNaN(scrollMarginTop) && scrollMarginTop > 0
-            ? scrollMarginTop
-            : 0;
+        return 0;
     }
 
     const headerBounds = header.getBoundingClientRect();
-    const headerBottom = Math.max(0, headerBounds.bottom);
-
-    // Keep the target section below the floating navigation. A section's
-    // scroll margin still provides its intended breathing room, but it must
-    // never be smaller than the visible menu offset.
-    return Math.max(
-        headerBottom,
-        !Number.isNaN(scrollMarginTop) && scrollMarginTop > 0
-            ? scrollMarginTop
-            : 0,
+    const sectionPaddingTop = Number.parseFloat(
+        window.getComputedStyle(element).paddingTop,
     );
+    const phonePaddingOffset = window.matchMedia(PHONE_SCROLL_MEDIA_QUERY)
+        .matches
+        ? (Number.isFinite(sectionPaddingTop) ? sectionPaddingTop : 0) / 2
+        : 0;
+
+    // The fixed header does not take up document flow. Position the section's
+    // padding edge immediately beneath it on laptop and desktop. On phone,
+    // shift through half of the actual section padding so half remains visible
+    // before the content; the value always follows the section's CSS token.
+    return Math.max(0, headerBounds.bottom - phonePaddingOffset);
+}
+
+function getMinimumSectionScrollTop(element) {
+    if (element.id === "work") {
+        const hero = document.querySelector('[aria-label="Introduction"]');
+
+        if (hero) {
+            const heroBottom =
+                window.scrollY + hero.getBoundingClientRect().bottom;
+
+            // Hero uses 100svh, which can differ from window.innerHeight on
+            // a tablet or phone. Move a single rendered pixel past its actual
+            // lower boundary so neither Hero nor its fixed navigation state
+            // remains visible.
+            return Math.ceil(heroBottom) + 1;
+        }
+
+        return window.innerHeight;
+    }
+
+    return 0;
 }
 
 function dispatchViewportCheck() {
@@ -230,8 +248,11 @@ export function scrollToElement(element, options = {}) {
     }
 
     const elementTop = window.pageYOffset + element.getBoundingClientRect().top;
-    const offset = getHeaderOffset(element);
-    const nextScrollTop = Math.max(0, elementTop - offset);
+    const offset = getSectionStartOffset(element);
+    const nextScrollTop = Math.max(
+        getMinimumSectionScrollTop(element),
+        elementTop - offset,
+    );
     const behavior = options.behavior ?? "smooth";
 
     if (behavior === "smooth") {
