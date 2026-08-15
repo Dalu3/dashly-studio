@@ -1,9 +1,9 @@
 import "./Header.css";
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import arrowIcon from "../assets/arrow.webp";
 import { navigateToHash, scrollToTop } from "../utils/scrollToHash";
 import { openEstimator } from "./estimator/estimatorEvents";
+import { TextArrowAction } from "./ui/TextArrowAction.jsx";
 
 const mobileLinks = [
     ["Work", "#work"],
@@ -22,6 +22,7 @@ function Header() {
     const scrollPositionRef = useRef({ x: 0, y: 0 });
     const pendingLogoScrollRef = useRef(false);
     const pendingHashScrollRef = useRef(null);
+    const pendingEstimatorOpenRef = useRef(null);
     const menuRef = useRef(null);
     const menuTriggerRef = useRef(null);
 
@@ -134,11 +135,21 @@ function Header() {
         event.preventDefault();
 
         if (hash === "#estimator") {
+            if (window.location.pathname !== "/") {
+                window.location.assign("/#estimator");
+                return;
+            }
+
             const trigger = isMenuOpen
                 ? document.querySelector(".hamburger")
                 : event.currentTarget;
-            if (isMenuOpen) closeMobileMenu();
-            window.requestAnimationFrame(() => openEstimator(trigger));
+            if (isMenuOpen) {
+                pendingEstimatorOpenRef.current = trigger;
+                closeMobileMenu();
+                return;
+            }
+
+            openEstimator(trigger);
             return;
         }
 
@@ -208,6 +219,12 @@ function Header() {
                     navigateToHash(null, hash, "/"),
                 );
             }
+
+            if (pendingEstimatorOpenRef.current) {
+                const trigger = pendingEstimatorOpenRef.current;
+                pendingEstimatorOpenRef.current = null;
+                window.requestAnimationFrame(() => openEstimator(trigger));
+            }
         }
     };
 
@@ -249,14 +266,12 @@ function Header() {
                             {label}
                         </a>
                     ))}
-                    <a
+                    <TextArrowAction
                         href="/#contact"
-                        className="cta"
                         onClick={(event) => handleHashLinkClick(event, "#contact")}
                     >
                         Let’s Talk
-                        <img src={arrowIcon} alt="" className="arrow-icon" />
-                    </a>
+                    </TextArrowAction>
                 </nav>
             </header>
 
@@ -298,19 +313,13 @@ function Header() {
                                 {label}
                             </a>
                         ))}
-                        <a
+                        <TextArrowAction
                             href="/#contact"
                             className="mobile-menu__cta"
                             onClick={(event) => handleHashLinkClick(event, "#contact")}
                         >
-                            <span>Let’s Talk</span>
-                            <img
-                                src={arrowIcon}
-                                alt=""
-                                aria-hidden="true"
-                                className="mobile-menu__cta-arrow"
-                            />
-                        </a>
+                            Let’s Talk
+                        </TextArrowAction>
                     </nav>
                 </aside>,
                 document.body,

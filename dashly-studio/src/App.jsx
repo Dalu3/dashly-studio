@@ -1,63 +1,53 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import "./App.css";
 import Header from "./components/Header.jsx";
-import { Hero } from "./components/hero/Hero";
-import { SelectedWork } from "./components/selected-work/SelectedWork";
-import { MainPage } from "./components/MainPage.jsx";
-import Packages from "./components/Packages.jsx";
-import Stages from "./components/Stages.jsx";
-import FAQ from "./components/FAQ.jsx";
-import Contact from "./components/contact/Contact";
 import Footer from "./components/footer/Footer";
 import Loader from "./components/Loader.jsx";
-import Privacy from "./components/Privacy.jsx";
-import Terms from "./components/Terms.jsx";
 import CookieConsent from "./components/CookieConsent.jsx";
 import { scrollToHash } from "./utils/scrollToHash";
 import { CookieConsentProvider } from "./context/CookieConsentContext.jsx";
 import { trackAnalyticsPageView } from "./utils/consentScripts";
 import { useCookieConsent } from "./context/useCookieConsent.js";
-import { EstimatorHost } from "./components/estimator/EstimatorHost.jsx";
+import { openEstimator } from "./components/estimator/estimatorEvents.js";
 import {
     getPageMetadataByPath,
     notFoundPage,
     normalizePathname,
 } from "./seo/siteMetadata.js";
 
-function HomePage({ onHeroReady }) {
+const HomePage = lazy(() => import("./components/HomePage.jsx"));
+const Privacy = lazy(() => import("./components/Privacy.jsx"));
+const Terms = lazy(() => import("./components/Terms.jsx"));
+const ServicePage = lazy(() => import("./components/ServicePage.jsx"));
+
+function LegalRouteFallback({ title }) {
     return (
-        <main id="main-content">
-            {/* Redesign preview: animated Hero background only. The existing
-                MainPage hero below is untouched and still the live one. */}
-            <Hero onReady={onHeroReady}>
-                <MainPage />
-            </Hero>
-            <SelectedWork />
-            <Packages />
-            <Stages />
-            <FAQ />
-            <Contact />
+        <main className="privacy-container" id="main-content" tabIndex={-1}>
+            <h1>{title}</h1>
         </main>
     );
 }
 
-function AnalyticsPageTracker({ pathname }) {
+function AnalyticsPageTracker({ pathname, routeKey }) {
     const { consent } = useCookieConsent();
-    const hasTrackedView = useRef(false);
+    const lastTrackedRouteKey = useRef(null);
 
     useEffect(() => {
-        if (!consent?.preferences.analytics || hasTrackedView.current) {
+        if (
+            !consent?.preferences.analytics ||
+            lastTrackedRouteKey.current === routeKey
+        ) {
             return;
         }
 
-        hasTrackedView.current = true;
+        lastTrackedRouteKey.current = routeKey;
 
         trackAnalyticsPageView({
             pagePath: pathname,
             pageLocation: window.location.href,
             pageTitle: document.title,
         });
-    }, [consent?.preferences.analytics, pathname]);
+    }, [consent?.preferences.analytics, pathname, routeKey]);
 
     return null;
 }
@@ -69,7 +59,7 @@ function AppFrame({ pathname, onHeroReady }) {
         return (
             <>
                 <Header />
-                <main className="privacy-container" id="main-content">
+                <main className="privacy-container" id="main-content" tabIndex={-1}>
                     <h1>Page not found</h1>
                     <p>The page you are looking for does not exist.</p>
                     <p>
@@ -85,7 +75,9 @@ function AppFrame({ pathname, onHeroReady }) {
         return (
             <>
                 <Header />
-                <Privacy />
+                <Suspense fallback={<LegalRouteFallback title="Privacy Policy" />}>
+                    <Privacy />
+                </Suspense>
                 <Footer />
             </>
         );
@@ -95,7 +87,21 @@ function AppFrame({ pathname, onHeroReady }) {
         return (
             <>
                 <Header />
-                <Terms />
+                <Suspense fallback={<LegalRouteFallback title="Terms and Conditions" />}>
+                    <Terms />
+                </Suspense>
+                <Footer />
+            </>
+        );
+    }
+
+    if (page.kind === "service") {
+        return (
+            <>
+                <Header />
+                <Suspense fallback={<LegalRouteFallback title={page.schemaName} />}>
+                    <ServicePage page={page} />
+                </Suspense>
                 <Footer />
             </>
         );
@@ -104,18 +110,37 @@ function AppFrame({ pathname, onHeroReady }) {
     return (
         <>
             <Header />
-            <HomePage onHeroReady={onHeroReady} />
+            <Suspense fallback={null}>
+                <HomePage onHeroReady={onHeroReady} />
+            </Suspense>
             <Footer />
         </>
     );
 }
 
 function App() {
-    const [pathname, setPathname] = useState(() =>
-        normalizePathname(window.location.pathname),
+    const initialPathname = normalizePathname(window.location.pathname);
+    const didReload = window.performance
+        ?.getEntriesByType("navigation")
+        .some((entry) => entry.type === "reload");
+    const shouldReturnLegalPageToHomeOnReload =
+        didReload && getPageMetadataByPath(initialPathname)?.kind === "legal";
+    const [route, setRoute] = useState(() => ({
+        pathname: shouldReturnLegalPageToHomeOnReload ? "/" : initialPathname,
+        search: shouldReturnLegalPageToHomeOnReload ? "" : window.location.search,
+    }));
+    const { pathname, search } = route;
+    const startsOnHomeRoute = useRef(
+        getPageMetadataByPath(pathname)?.key === "home",
     );
-    const [isReady, setIsReady] = useState(false);
-    const [showLoader, setShowLoader] = useState(true);
+    const shouldResetScrollOnReload = useRef(didReload);
+    const shouldReturnLegalPageToHomeOnReloadRef = useRef(
+        shouldReturnLegalPageToHomeOnReload,
+    );
+    const [isReady, setIsReady] = useState(() => !startsOnHomeRoute.current);
+    const [showLoader, setShowLoader] = useState(
+        () => startsOnHomeRoute.current,
+    );
     const heroReadyRef = useRef(null);
 
     if (heroReadyRef.current === null) {
@@ -130,21 +155,26 @@ function App() {
         heroReadyRef.current.resolve();
     }, []);
 
+    const focusMainContent = useCallback(() => {
+        window.requestAnimationFrame(() => {
+            document.getElementById("main-content")?.focus({
+                preventScroll: true,
+            });
+        });
+    }, []);
+
     useEffect(() => {
+        if (!startsOnHomeRoute.current) {
+            return undefined;
+        }
+
         const MIN_DISPLAY_MS = 2000;
         const MAX_WAIT_MS = 6000;
-        const page = getPageMetadataByPath(
-            normalizePathname(window.location.pathname),
-        );
-        const needsHeroAssets = page?.key === "home";
         let cancelled = false;
         const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-        const heroSceneReady = needsHeroAssets
-            ? heroReadyRef.current.promise
-            : Promise.resolve();
 
         Promise.race([
-            Promise.all([wait(MIN_DISPLAY_MS), heroSceneReady]),
+            Promise.all([wait(MIN_DISPLAY_MS), heroReadyRef.current.promise]),
             wait(MAX_WAIT_MS),
         ]).then(() => {
             if (!cancelled) setIsReady(true);
@@ -174,11 +204,19 @@ function App() {
         return () => window.clearTimeout(timer);
     }, [isReady, showLoader]);
 
-    useEffect(() => {
-        window.history.scrollRestoration = "manual";
-        if (!window.location.hash) {
-            window.scrollTo(0, 0);
+    useLayoutEffect(() => {
+        if (shouldReturnLegalPageToHomeOnReloadRef.current) {
+            window.history.replaceState({}, "", "/");
         }
+
+        window.history.scrollRestoration = "manual";
+
+        if (shouldResetScrollOnReload.current) {
+            const { pathname: currentPathname, search: currentSearch } = window.location;
+            window.history.replaceState({}, "", `${currentPathname}${currentSearch}`);
+        }
+
+        window.scrollTo(0, 0);
     }, []);
 
     useEffect(() => {
@@ -191,7 +229,10 @@ function App() {
 
     useEffect(() => {
         const syncPathname = () => {
-            setPathname(normalizePathname(window.location.pathname));
+            setRoute({
+                pathname: normalizePathname(window.location.pathname),
+                search: window.location.search,
+            });
         };
 
         window.addEventListener("popstate", syncPathname);
@@ -212,7 +253,14 @@ function App() {
         let attempts = 0;
 
         const scrollWhenReady = () => {
-            if (scrollToHash(window.location.hash) || attempts >= 10) {
+            if (window.location.hash === "#estimator") {
+                frameId = requestAnimationFrame(() =>
+                    openEstimator(document.activeElement),
+                );
+                return;
+            }
+
+            if (scrollToHash(window.location.hash) || attempts >= 120) {
                 return;
             }
 
@@ -248,9 +296,15 @@ function App() {
 
     return (
         <CookieConsentProvider>
-            <AnalyticsPageTracker pathname={pathname} />
+            <a
+                className="skip-to-main-content"
+                href="#main-content"
+                onClick={focusMainContent}
+            >
+                Skip to main content
+            </a>
+            <AnalyticsPageTracker pathname={pathname} routeKey={`${pathname}${search}`} />
             <AppFrame pathname={pathname} onHeroReady={handleHeroReady} />
-            <EstimatorHost />
             {showLoader && (
                 <Loader
                     fadingOut={isReady}

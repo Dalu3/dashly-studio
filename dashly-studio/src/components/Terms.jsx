@@ -1,9 +1,13 @@
 import { SITE_EMAIL } from "../seo/siteMetadata.js";
+import { useCookieConsent } from "../context/useCookieConsent.js";
+import { InlineTextAction } from "./ui/InlineTextAction.jsx";
 import "./Privacy.css";
 
 export default function Terms() {
+    const { openPreferences } = useCookieConsent();
+
     return (
-        <main className="privacy-container" id="main-content">
+        <main className="privacy-container" id="main-content" tabIndex={-1}>
             <h1>Terms and Conditions</h1>
             <p>Last updated: 14 August 2026</p>
 
@@ -646,9 +650,12 @@ export default function Terms() {
                 <h2>20. Privacy and Data Protection</h2>
                 <p>
                     Our collection and use of personal information is described in
-                    our Privacy Policy.
+                    our <InlineTextAction href="/privacy/">Privacy Policy</InlineTextAction>.
                 </p>
-                <p>Our Privacy Policy explains:</p>
+                <p>
+                    Our <InlineTextAction href="/privacy/">Privacy Policy</InlineTextAction>{" "}
+                    explains:
+                </p>
                 <ul>
                     <li>what information we collect;</li>
                     <li>how we use it;</li>
@@ -659,7 +666,8 @@ export default function Terms() {
                     <li>your data protection rights.</li>
                 </ul>
                 <p>
-                    By using the Site, you should also review our Privacy Policy.
+                    By using the Site, you should also review our{" "}
+                    <InlineTextAction href="/privacy/">Privacy Policy</InlineTextAction>.
                 </p>
             </section>
 
@@ -673,10 +681,20 @@ export default function Terms() {
                     will be controlled through the website’s consent settings.
                 </p>
                 <p>
-                    You can review or update your choices through the Cookie
-                    Settings option available on the Site.
+                    You can review or update your choices through the{" "}
+                    <InlineTextAction
+                        as="button"
+                        onClick={openPreferences}
+                        type="button"
+                    >
+                        Cookie Settings
+                    </InlineTextAction>{" "}
+                    option available on the Site.
                 </p>
-                <p>More information is provided in our Privacy Policy.</p>
+                <p>
+                    More information is provided in our{" "}
+                    <InlineTextAction href="/privacy/">Privacy Policy</InlineTextAction>.
+                </p>
             </section>
 
             <section>

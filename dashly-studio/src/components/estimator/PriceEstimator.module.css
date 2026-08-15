@@ -95,12 +95,44 @@
 
 .close:hover { background: var(--color-action-accent-bg-subtle); }
 
-.body {
+.bodyRegion {
+    position: relative;
     min-height: 0;
+    overflow: hidden;
+}
+
+.body {
+    height: 100%;
+    min-height: 0;
+    box-sizing: border-box;
     padding: var(--space-lg) var(--container-gutter);
     overflow: auto;
     overscroll-behavior: contain;
     -webkit-overflow-scrolling: touch;
+}
+
+.scrollHint {
+    position: absolute;
+    right: var(--container-gutter);
+    bottom: var(--space-0);
+    left: var(--container-gutter);
+    display: flex;
+    min-height: var(--space-2xl);
+    align-items: end;
+    justify-content: center;
+    gap: var(--space-2xs);
+    padding-block-end: var(--space-xs);
+    background: linear-gradient(to bottom, transparent, var(--color-surface-raised));
+    color: var(--color-text-secondary);
+    font-size: var(--type-small);
+    font-weight: var(--font-weight-medium);
+    line-height: var(--line-height-small);
+    pointer-events: none;
+}
+
+.scrollHintArrow {
+    color: var(--color-text-accent);
+    font-size: var(--type-control);
 }
 
 .step,
@@ -126,6 +158,15 @@
     color: var(--color-text-secondary);
     font-size: var(--type-body);
     line-height: var(--line-height-type-body);
+}
+
+.step[data-step="website"] h2,
+.step[data-step="website"] .description {
+    text-align: center;
+}
+
+.step[data-step="website"] .description {
+    margin-inline: auto;
 }
 
 .options,
@@ -162,6 +203,8 @@
     background: var(--color-action-accent-bg-subtle);
 }
 
+.option[data-selected] .price { color: var(--color-text-accent); }
+
 .option:focus-within { box-shadow: var(--shadow-focus-ring); }
 
 .option input {
@@ -173,7 +216,7 @@
     place-content: center;
     border: 1px solid var(--color-border-default);
     background: var(--color-surface-raised);
-    color: var(--color-action-accent-text);
+    color: var(--color-surface-raised);
 }
 
 .option[data-control="radio"] input { border-radius: var(--radius-circle); }
@@ -408,6 +451,7 @@
     .topbar,
     .actions { padding-inline: var(--space-lg); }
     .body { padding: var(--space-xl) var(--space-lg); }
+    .scrollHint { right: var(--space-lg); left: var(--space-lg); }
 
     .featureGrid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -428,6 +472,7 @@
     .dialog { height: 88dvh; max-height: 88dvh; }
     .topbar,
     .actions { padding-inline: var(--space-xl); }
+    .scrollHint { right: var(--space-xl); left: var(--space-xl); }
 }
 
 @media (max-width: 29.999rem) {

@@ -1,19 +1,18 @@
 import "./MainPage.css";
 import { ArrowControl } from "./ui/ArrowControl";
 import { navigateToHash } from "../utils/scrollToHash";
+import { homeContent } from "../seo/siteMetadata.js";
 
 export function MainPage() {
     return (
         <div className="hero-copy" id="main">
             <div className="hero-copy__message">
                 <h1>
-                    <span>We create websites</span>
-                    <span>That perform</span>
+                    {homeContent.heroTitleLines.map((line) => (
+                        <span key={line}>{line}</span>
+                    ))}
                 </h1>
-                <p>
-                    Dashly Studio is a web design and development studio
-                    helping businesses build a stronger online presence
-                </p>
+                <p>{homeContent.heroSubtitle}</p>
             </div>
 
             <div className="hero-copy__meta" aria-label="Studio information">

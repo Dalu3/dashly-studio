@@ -23,12 +23,12 @@ const BUDGET_OPTIONS = [
     "£5,000+",
 ] as const;
 
-type Budget = (typeof BUDGET_OPTIONS)[number];
+type Budget = "" | (typeof BUDGET_OPTIONS)[number];
 
 type FormValues = {
     name: string;
     email: string;
-    projectType: ProjectType;
+    projectType: ProjectType | "";
     budget: Budget;
     timeline: string;
     message: string;
@@ -37,8 +37,8 @@ type FormValues = {
 const INITIAL_FORM_VALUES: FormValues = {
     name: "",
     email: "",
-    projectType: PROJECT_TYPE_OPTIONS[0],
-    budget: BUDGET_OPTIONS[0],
+    projectType: "",
+    budget: "",
     timeline: "",
     message: "",
 };
@@ -65,8 +65,8 @@ const INITIAL_TOUCHED: Record<keyof FormValues, boolean> = {
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-/** Only name, email and message are required — projectType/budget always
- *  carry a valid default, timeline (like the old phone field) is optional. */
+/** Name, email, project type, budget and message are required. A project type
+ *  is prefilled only when the visitor arrives from a service or estimator. */
 function validateField(field: keyof FormValues, rawValue: string): string {
     const value = rawValue.trim();
 
@@ -84,6 +84,14 @@ function validateField(field: keyof FormValues, rawValue: string): string {
         }
     }
 
+    if (field === "budget" && !value) {
+        return "Please select your budget.";
+    }
+
+    if (field === "projectType" && !value) {
+        return "Please select what you need.";
+    }
+
     if (field === "message" && !value) {
         return "Please tell us a little about your idea.";
     }
@@ -95,8 +103,8 @@ function validateForm(values: FormValues): FormErrors {
     return {
         name: validateField("name", values.name),
         email: validateField("email", values.email),
-        projectType: "",
-        budget: "",
+        projectType: validateField("projectType", values.projectType),
+        budget: validateField("budget", values.budget),
         timeline: "",
         message: validateField("message", values.message),
     };
@@ -123,6 +131,10 @@ export function ContactForm() {
     const [showStatus, setShowStatus] = useState(false);
     const [formErrorSummary, setFormErrorSummary] = useState("");
     const [estimateSummary, setEstimateSummary] = useState<Record<string, unknown> | null>(null);
+    const savedEstimate = typeof estimateSummary?.estimate === "number"
+        ? estimateSummary.estimate
+        : null;
+    const hasSavedEstimate = savedEstimate !== null && Number.isFinite(savedEstimate);
 
     useEffect(() => {
         const handleEstimateHandoff = (event: Event) => {
@@ -136,7 +148,9 @@ export function ContactForm() {
                   ? "Catalogue Web"
                   : estimatorType === "E-Commerce"
                     ? "E-commerce"
-                    : "Multi-Page Web";
+                    : estimatorType === "Web Application"
+                      ? "Web Application"
+                      : "Multi-Page Web";
             setFormValues((current) => ({
                 ...current,
                 projectType,
@@ -283,14 +297,14 @@ export function ContactForm() {
                     {formErrorSummary}
                 </div>
             )}
-            {estimateSummary && (
+            {hasSavedEstimate && (
                 <div className={styles.estimateSummary} aria-label="Your saved estimate">
                     <span>Saved estimate</span>
-                    <strong>{String(estimateSummary.websiteType)} · {new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(Number(estimateSummary.estimate))}</strong>
+                    <strong>{String(estimateSummary?.websiteType)} · {new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(savedEstimate)}</strong>
                 </div>
             )}
             <input type="hidden" name="estimator_summary" value={estimateSummary ? JSON.stringify(estimateSummary) : ""} />
-            <input type="hidden" name="estimated_price" value={estimateSummary ? String(estimateSummary.estimate) : ""} />
+            <input type="hidden" name="estimated_price" value={hasSavedEstimate ? String(savedEstimate) : ""} />
             <FormField
                 id="contact-name"
                 name="name"
@@ -325,6 +339,9 @@ export function ContactForm() {
                 value={formValues.projectType}
                 onChange={(value) => handleSelectChange("projectType", value)}
                 options={PROJECT_TYPE_OPTIONS}
+                placeholder="Select what you need"
+                required
+                error={touched.projectType ? errors.projectType : undefined}
             />
 
             <FormSelect
@@ -334,14 +351,17 @@ export function ContactForm() {
                 value={formValues.budget}
                 onChange={(value) => handleSelectChange("budget", value)}
                 options={BUDGET_OPTIONS}
+                placeholder="Select your budget"
+                required
+                error={touched.budget ? errors.budget : undefined}
             />
 
             <FormField
                 id="contact-timeline"
                 name="timeline"
-                label="Timeline"
+                label="When do you need the website?"
                 className={styles.fullWidth}
-                placeholder="e.g. Flexible"
+                placeholder="e.g. Within 1–2 months, flexible, or before 1 June"
                 value={formValues.timeline}
                 onChange={handleChange}
                 onBlur={handleBlur}

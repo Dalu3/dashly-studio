@@ -1,12 +1,15 @@
 import { markHeroScrollActivity } from "../components/hero/heroResumeScheduler";
 
 export const VIEWPORT_CHECK_EVENT = "dashly:viewport-check";
+const LAZY_SECTION_REQUEST_EVENT = "dashly:load-home-section";
 
 const DEFAULT_SCROLL_DURATION = 420;
 const DESKTOP_NATIVE_SCROLL_MEDIA_QUERY =
     "(min-width: 1061px) and (hover: hover) and (pointer: fine)";
 const TOUCH_SCROLL_MEDIA_QUERY = "(max-width: 63.999rem)";
+const PHONE_SCROLL_MEDIA_QUERY = "(max-width: 47.999rem)";
 const CONTENT_SCROLL_CLEARANCE = 50;
+const PHONE_CONTENT_SCROLL_CLEARANCE = 24;
 const HASH_TARGET_ALIASES = {
     services: "packages",
 };
@@ -32,6 +35,19 @@ function getScrollDuration() {
     return Number.isFinite(duration) && duration > 0
         ? duration
         : DEFAULT_SCROLL_DURATION;
+}
+
+function getContentScrollClearance() {
+    if (
+        typeof window === "undefined" ||
+        typeof window.matchMedia !== "function"
+    ) {
+        return CONTENT_SCROLL_CLEARANCE;
+    }
+
+    return window.matchMedia(PHONE_SCROLL_MEDIA_QUERY).matches
+        ? PHONE_CONTENT_SCROLL_CLEARANCE
+        : CONTENT_SCROLL_CLEARANCE;
 }
 
 function normalizePathname(pathname = "/") {
@@ -60,20 +76,20 @@ function getSectionContentScrollTop(element, elementTop) {
     const headerBottom = header?.getBoundingClientRect().bottom ?? 0;
     const contentStart =
         elementTop + (Number.isFinite(sectionPaddingTop) ? sectionPaddingTop : 0);
+    const contentScrollClearance = getContentScrollClearance();
 
-    // Every standard section lands with its first content 50px below the
-    // fixed header. The content position follows the section's real padding,
-    // so responsive section tokens remain the source of truth.
-    return contentStart - headerBottom - CONTENT_SCROLL_CLEARANCE;
+    // Every standard section lands with a small clearance below the fixed
+    // header. The content position follows the section's real padding, so
+    // responsive section tokens remain the source of truth.
+    return contentStart - headerBottom - contentScrollClearance;
 }
 
 function getElevatedSectionScrollTop(element, elementTop) {
-    // FAQ and Contact need one additional shared 50px step above their
-    // content, so the viewport rests higher while retaining the same anchor
-    // rule as the rest of the navigation.
+    // FAQ and Contact need one additional shared clearance step above their
+    // content while retaining the same anchor rule as the rest of navigation.
     return (
         getSectionContentScrollTop(element, elementTop) -
-        CONTENT_SCROLL_CLEARANCE
+        getContentScrollClearance()
     );
 }
 
@@ -307,6 +323,13 @@ export function scrollToHash(hash, options) {
     const id = HASH_TARGET_ALIASES[requestedId] ?? requestedId;
     const element = document.getElementById(id);
 
+    if (!element) {
+        window.dispatchEvent(
+            new CustomEvent(LAZY_SECTION_REQUEST_EVENT, { detail: id }),
+        );
+        return false;
+    }
+
     return scrollToElement(element, options);
 }
 
@@ -342,7 +365,15 @@ export function navigateToHash(event, hash, pathname = "/") {
         return;
     }
 
-    requestAnimationFrame(() => {
-        scrollToHash(hash);
-    });
+    let attempts = 0;
+    const scrollWhenSectionIsMounted = () => {
+        if (scrollToHash(hash) || attempts >= 120) {
+            return;
+        }
+
+        attempts += 1;
+        requestAnimationFrame(scrollWhenSectionIsMounted);
+    };
+
+    requestAnimationFrame(scrollWhenSectionIsMounted);
 }

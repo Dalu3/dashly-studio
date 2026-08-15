@@ -1,4 +1,5 @@
 import { cn } from "@/utils/cn";
+import type { MouseEvent } from "react";
 
 import { FOOTER_NAV_LINKS, FOOTER_SOCIAL_LINKS } from "./footerLinks";
 import styles from "./Footer.module.css";
@@ -11,6 +12,28 @@ import styles from "./Footer.module.css";
  */
 export default function Footer() {
     const currentYear = new Date().getFullYear();
+    const handleLegalLinkClick = (event: MouseEvent<HTMLAnchorElement>) => {
+        if (
+            event.button !== 0 ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey
+        ) {
+            return;
+        }
+
+        event.preventDefault();
+        const href = event.currentTarget.getAttribute("href");
+
+        if (!href) {
+            return;
+        }
+
+        window.scrollTo(0, 0);
+        window.history.pushState({}, "", href);
+        window.dispatchEvent(new PopStateEvent("popstate"));
+    };
 
     return (
         <footer className={styles.root}>
@@ -80,10 +103,21 @@ export default function Footer() {
                     © {currentYear}, Dashly Studio. All Rights Reserved.
                 </p>
                 <div className={styles.legal}>
-                    <a className={cn(styles.link, styles.legalLink)} href="/terms/">
+                    <a
+                        className={cn(styles.link, styles.legalLink)}
+                        href="/terms/"
+                        onClick={handleLegalLinkClick}
+                    >
                         Terms &amp; Conditions
                     </a>
-                    <a className={cn(styles.link, styles.legalLink)} href="/privacy/">
+                    <span className={styles.legalSeparator} aria-hidden="true">
+                        •
+                    </span>
+                    <a
+                        className={cn(styles.link, styles.legalLink)}
+                        href="/privacy/"
+                        onClick={handleLegalLinkClick}
+                    >
                         Privacy Policy
                     </a>
                 </div>

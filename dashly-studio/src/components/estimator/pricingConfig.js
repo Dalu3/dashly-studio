@@ -11,8 +11,12 @@ const websiteTypes = SERVICE_OFFERINGS.flatMap((service) => {
     const id = service.estimatorWebsiteTypeId;
     const pricing = id ? ESTIMATOR_WEBSITE_PRICING[id] : undefined;
 
-    return pricing
-        ? [{ id, label: service.label, description: service.description, ...pricing }]
+    if (pricing) {
+        return [{ id, label: service.label, description: service.description, ...pricing }];
+    }
+
+    return id === "web-application"
+        ? [{ id, label: service.label, description: service.description, directContact: true }]
         : [];
 });
 

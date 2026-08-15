@@ -1,6 +1,7 @@
 import { useEffect, useId, useState } from "react";
 import "./FAQ.css";
 import { faqItems } from "../seo/siteMetadata.js";
+import { openEstimator } from "./estimator/estimatorEvents.js";
 
 export default function FAQ() {
     const [activeIndex, setActiveIndex] = useState(null);
@@ -9,8 +10,9 @@ export default function FAQ() {
     useEffect(() => {
         const closeOnOutsidePress = (event) => {
             const clickedQuestion = event.target.closest?.(".faq-question");
+            const clickedAnswer = event.target.closest?.(".faq-answer");
 
-            if (!clickedQuestion) {
+            if (!clickedQuestion && !clickedAnswer) {
                 setActiveIndex(null);
             }
         };
@@ -73,7 +75,21 @@ export default function FAQ() {
                                     aria-hidden={!isOpen}
                                 >
                                     <div className="faq-answer-inner">
-                                        <p>{item.answer}</p>
+                                        <p>
+                                            {item.answerBeforeEstimator ?? item.answer}
+                                            {item.estimatorLabel && (
+                                                <button
+                                                    className="faq-estimator-inline-link"
+                                                    onClick={(event) =>
+                                                        openEstimator(event.currentTarget)
+                                                    }
+                                                    type="button"
+                                                >
+                                                    {item.estimatorLabel}
+                                                </button>
+                                            )}
+                                            {item.answerAfterEstimator}
+                                        </p>
                                     </div>
                                 </div>
                             </div>

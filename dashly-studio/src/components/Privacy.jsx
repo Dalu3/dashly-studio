@@ -1,9 +1,13 @@
 import { SITE_EMAIL } from "../seo/siteMetadata.js";
+import { useCookieConsent } from "../context/useCookieConsent.js";
+import { InlineTextAction } from "./ui/InlineTextAction.jsx";
 import "./Privacy.css";
 
 export default function Privacy() {
+    const { openPreferences } = useCookieConsent();
+
     return (
-        <main className="privacy-container" id="main-content">
+        <main className="privacy-container" id="main-content" tabIndex={-1}>
             <h1>Privacy Policy</h1>
             <p>Last updated: 14 August 2026</p>
 
@@ -449,7 +453,15 @@ export default function Privacy() {
                 </p>
                 <p>
                     You can change or withdraw your choice at any time through the
-                    Cookie Settings option available on the website.
+                    {" "}
+                    <InlineTextAction
+                        as="button"
+                        onClick={openPreferences}
+                        type="button"
+                    >
+                        Cookie Settings
+                    </InlineTextAction>{" "}
+                    option available on the website.
                 </p>
                 <p>
                     Withdrawing consent does not affect processing that was lawful
@@ -474,53 +486,44 @@ export default function Privacy() {
             <section>
                 <h2>9. Third-Party Service Providers</h2>
                 <p>
-                    We may use trusted third-party service providers to help
-                    operate our website and business.
+                    This website currently uses the following service providers
+                    and technologies.
                 </p>
                 <p>
-                    Depending on the technologies currently enabled on our website,
-                    these providers may assist with:
-                </p>
-                <ul>
-                    <li>website hosting;</li>
-                    <li>domain and infrastructure services;</li>
-                    <li>email delivery;</li>
-                    <li>contact form processing;</li>
-                    <li>analytics;</li>
-                    <li>security;</li>
-                    <li>spam or abuse prevention;</li>
-                    <li>performance monitoring;</li>
-                    <li>content delivery;</li>
-                    <li>project and business administration.</li>
-                </ul>
-                <p>
-                    These providers may process limited personal information where
-                    necessary to provide their services.
+                    <strong>GitHub Pages</strong> hosts the website and serves its
+                    static files.
                 </p>
                 <p>
-                    Where a service provider acts as a processor on our behalf, we
-                    take reasonable steps to ensure appropriate data protection
-                    arrangements are in place.
-                </p>
-                <p>We do not sell your personal information.</p>
-                <p>
-                    <strong>Services actually used by this website</strong>
+                    <strong>Google Fonts</strong> delivers the Sora web font. When
+                    your browser requests the font, Google may receive technical
+                    information such as your IP address and browser details.
                 </p>
                 <p>
-                    This section should accurately list any third-party services
-                    that process visitor information.
+                    <strong>Google Analytics 4</strong> is loaded only when you
+                    allow analytics cookies. It helps us understand aggregate use
+                    of the website and may set analytics cookies.
                 </p>
-                <p>Examples may include:</p>
-                <ul>
-                    <li>hosting provider;</li>
-                    <li>analytics provider;</li>
-                    <li>form/email provider;</li>
-                    <li>CAPTCHA or bot-protection service;</li>
-                    <li>CDN/security provider.</li>
-                </ul>
                 <p>
-                    We will update this Policy if the services we use materially
-                    change.
+                    <strong>EmailJS</strong> processes and delivers contact form
+                    enquiries. The information you submit in the form, such as
+                    your name, email address and project details, is sent through
+                    EmailJS so that we can respond to your enquiry.
+                </p>
+                <p>
+                    We store your cookie consent choice in your browser&apos;s local
+                    storage. This helps the website remember your preference and
+                    is not shared with a third party by the storage mechanism
+                    itself.
+                </p>
+                <p>
+                    The website&apos;s video and WebGL visual assets are served as
+                    part of the website and run in your browser. They do not add a
+                    separate third-party tracking provider.
+                </p>
+                <p>
+                    We do not currently use a CAPTCHA, bot-protection provider or
+                    separate marketing technology. We will update this Policy if
+                    the services we use materially change.
                 </p>
             </section>
 

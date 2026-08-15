@@ -1,7 +1,7 @@
 export const SITE_URL = "https://dashly.studio";
 export const SITE_NAME = "Dashly Studio";
 export const SITE_EMAIL = "dashly.studio.webdev@gmail.com";
-export const SITE_IMAGE = "/og-image.png";
+export const SITE_IMAGE = "/og-image.jpg";
 export const SITE_IMAGE_ALT =
     "Dashly Studio preview for web design and website development in Aberdeen and across the UK";
 export const PAGE_ROBOTS_INDEX =
@@ -21,7 +21,11 @@ export const faqItems = [
     },
     {
         question: "How much will my website cost?",
-        answer: "Website costs depend on the scope, number of pages and features you need. Use our Price Estimator to answer five quick questions and get an initial estimate for your project.",
+        answerBeforeEstimator:
+            "Website costs depend on the scope, number of pages and features you need. Use our ",
+        estimatorLabel: "Price Estimator",
+        answerAfterEstimator:
+            " to answer five quick questions and get an initial estimate for your project.",
     },
     {
         question: "What’s included in the price?",
@@ -43,11 +47,10 @@ export const faqItems = [
 
 export const homeContent = {
     heroSubtitle:
-        "Dashly Studio designs and develops fast, SEO-ready websites for small businesses in Aberdeen and across the UK.",
+        "Dashly Studio is a web design and development studio helping businesses build a stronger online presence",
     heroTitleLines: [
-        "Web Design Aberdeen",
-        "UK Small Business Websites",
-        "That Turn Visitors Into Clients",
+        "We create websites",
+        "That perform",
     ],
     packagesIntro:
         "Choose the type of website you need, then move into a build that is designed to rank, load quickly, and turn visits into enquiries.",
@@ -400,6 +403,9 @@ export const notFoundPage = {
 
 export const pageMetadata = {
     [homePage.key]: homePage,
+    ...Object.fromEntries(
+        Object.values(servicePages).map((page) => [page.key, page]),
+    ),
     [legalPages.privacy.key]: legalPages.privacy,
     [legalPages.terms.key]: legalPages.terms,
 };

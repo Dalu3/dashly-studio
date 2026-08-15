@@ -3,8 +3,7 @@
  *
  * Font sizes use clamp() so type scales fluidly between the smallest phone and
  * the largest desktop WITHOUT a media query per step. This is what replaces the
- * current `.block-title` pattern, which redefines font-size in five separate
- * breakpoints across index.css.
+ * historical breakpoint-specific title rules in the global stylesheet.
  *
  * Scale ratio: ~1.25 (major third) at mobile, widening to ~1.333 at desktop.
  */
@@ -34,7 +33,6 @@
     --font-size-2xl: clamp(1.42rem, 1.25rem + 0.86vw, 2.25rem);
     --font-size-3xl: clamp(1.6rem, 1.34rem + 1.31vw, 3rem);
     --font-size-4xl: clamp(1.8rem, 1.4rem + 2vw, 3.7rem);
-    --font-size-5xl: clamp(2rem, 1.4rem + 3vw, 4.5rem);
 
     /* ---- Semantic fluid type -------------------------------------------
        The semantic scale is the migration target for redesigned sections.
@@ -67,17 +65,17 @@
         0.9375rem
     );
     --type-control: 1rem;
-    /* Selected Work card captions share one scale outside the intentionally
-       compact 320px layout override. */
-    --type-project-card-caption: 1rem;
-
-    /* Deprecated semantic aliases remain during the controlled component
-       migration. Remove them only after their active usages reach zero. */
-    --type-label: clamp(
-        0.875rem,
-        calc(0.852993rem + 0.093897vw),
-        0.9375rem
+    /* Selected Work card captions are a reusable composition role for the
+       card title and description. This clamp preserves the former 16px /
+       18px / 20px values at 320px, 768px and 1024px without mutating the
+       token at breakpoints. */
+    --type-project-card-caption: clamp(
+        1rem,
+        calc(0.75rem + 0.78125vw),
+        1.25rem
     );
+
+    /* Supporting semantic roles. */
     --type-small: clamp(
         0.8125rem,
         calc(0.790493rem + 0.093897vw),
@@ -98,8 +96,10 @@
         calc(1.257923rem + 1.032864vw),
         2.1875rem
     );
-    --type-display: var(--type-display-primary);
-    --type-number: clamp(3rem, calc(1.5rem + 6vw), 9.375rem);
+
+    /* Shared laptop typography for long-form informational documents. */
+    --type-document-heading: 1.5rem;
+    --type-document-body: 1.125rem;
 
     /* Footer type scale — intentionally more compact than the Figma display
        scale so the footer stays visually light beside the contact form. */
@@ -111,12 +111,9 @@
 
     /* Compact contact composition scale. */
     --font-size-contact-heading: 3.1875rem;
-    --font-size-contact-body: 1.1rem;
-    --font-size-contact-form: 0.89375rem;
 
     /* FAQ type keeps the section light and editorial. */
     --font-size-faq-title: min(var(--type-section-title), 3.375rem);
-    --font-size-faq-subtitle: var(--font-size-md);
     --font-size-faq-question: var(--font-size-md);
     --font-size-faq-answer: var(--font-size-sm);
 
@@ -124,7 +121,6 @@
        The six sizes the whole page's laptop layout is built from. Every
        heading, paragraph, body and form/link size at --bp-lg and up should
        resolve to one of these — no other desktop font-size should exist. */
-    --font-size-h1: 4.75rem; /* 76px */
     --font-size-h2: 2.1875rem; /* 35px */
     --font-size-h3: 1.25rem; /* 20px */
     --font-size-p: 1.35rem; /* 21.6px */
@@ -164,16 +160,4 @@
     --measure-narrow: 45ch;
     --measure-default: 65ch;
     --measure-wide: 80ch;
-}
-
-@media (min-width: 48rem) {
-    :root {
-        --type-project-card-caption: 1.125rem;
-    }
-}
-
-@media (min-width: 64rem) {
-    :root {
-        --type-project-card-caption: 1.25rem;
-    }
 }

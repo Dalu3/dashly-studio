@@ -31,9 +31,11 @@ function Option({ type = "radio", name, item, checked, onChange, priceLabel, rec
 
 export default function PriceEstimator({ answers, setAnswers, currentStep, setCurrentStep, onClose, onReset }) {
     const dialogRef = useRef(null);
+    const bodyRef = useRef(null);
     const afterCloseRef = useRef(null);
     const [showResult, setShowResult] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
+    const [showScrollHint, setShowScrollHint] = useState(false);
     const estimate = useMemo(() => calculateEstimate(answers, pricingConfig), [answers]);
     const step = STEPS[currentStep];
     const website = pricingConfig.websiteTypes.find((item) => item.id === answers.websiteTypeId);
@@ -76,6 +78,32 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
     }, [currentStep, showResult]);
 
     useEffect(() => {
+        const body = bodyRef.current;
+
+        if (!body || showResult) {
+            setShowScrollHint(false);
+            return undefined;
+        }
+
+        const syncScrollHint = () => {
+            const canScroll = body.scrollHeight > body.clientHeight;
+            const isAtEnd = body.scrollTop + body.clientHeight >= body.scrollHeight - 1;
+
+            setShowScrollHint(canScroll && !isAtEnd);
+        };
+
+        syncScrollHint();
+        body.addEventListener("scroll", syncScrollHint, { passive: true });
+        const resizeObserver = new ResizeObserver(syncScrollHint);
+        resizeObserver.observe(body);
+
+        return () => {
+            body.removeEventListener("scroll", syncScrollHint);
+            resizeObserver.disconnect();
+        };
+    }, [currentStep, showResult]);
+
+    useEffect(() => {
         if (!isClosing) return undefined;
         const rawDuration = window.getComputedStyle(document.documentElement).getPropertyValue("--duration-fast");
         const duration = rawDuration.trim().endsWith("ms") ? Number.parseFloat(rawDuration) : Number.parseFloat(rawDuration) * 1000;
@@ -111,7 +139,19 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
         : currentStep === 3
             ? Boolean(answers.startingPointId)
             : true;
-    const next = () => currentStep === STEPS.length - 1 ? setShowResult(true) : setCurrentStep((value) => value + 1);
+    const next = () => {
+        if (currentStep === 0 && website?.directContact) {
+            talk();
+            return;
+        }
+
+        if (currentStep === STEPS.length - 1) {
+            setShowResult(true);
+            return;
+        }
+
+        setCurrentStep((value) => value + 1);
+    };
     const back = () => showResult ? setShowResult(false) : setCurrentStep((value) => Math.max(0, value - 1));
     const startAgain = () => { setShowResult(false); onReset(); };
     const talk = () => {
@@ -132,10 +172,10 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
             <p className={styles.disclaimer}>This is an initial estimate based on your selections. We&rsquo;ll confirm the final scope and price after a free consultation.</p>
         </div>
     ) : (
-        <div className={styles.step}>
+        <div className={styles.step} data-step={step.id}>
             <h2 id="estimator-heading" tabIndex="-1">{step.title}</h2>
             <p className={styles.description}>{step.description}</p>
-            {step.id === "website" && <fieldset className={styles.optionGroup}><legend className="visually-hidden">Website type</legend>{pricingConfig.websiteTypes.map((item) => <Option key={item.id} name="website" item={item} checked={answers.websiteTypeId === item.id} onChange={() => selectWebsite(item.id)} priceLabel={`From ${money(item.basePrice)}`} />)}</fieldset>}
+            {step.id === "website" && <fieldset className={styles.optionGroup}><legend className="visually-hidden">Website type</legend>{pricingConfig.websiteTypes.map((item) => <Option key={item.id} name="website" item={item} checked={answers.websiteTypeId === item.id} onChange={() => selectWebsite(item.id)} priceLabel={item.directContact ? "Tailored scope" : `From ${money(item.basePrice)}`} />)}</fieldset>}
             {step.id === "pages" && <div className={styles.options}>
                 <div className={styles.rangeValue}><span>Pages</span><strong>{answers.pageCount === 20 ? "20+" : answers.pageCount}</strong></div>
                 <input className={styles.range} type="range" min="1" max="20" value={answers.pageCount} onChange={(event) => update({ pageCount: Number(event.target.value) })} aria-label="Number of pages" />
@@ -156,13 +196,16 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
                     </div>
                     <button type="button" className={styles.close} onClick={() => requestClose()} aria-label="Close price estimator">×</button>
                 </header>
-                <div className={styles.body}>{content}</div>
+                <div className={styles.bodyRegion}>
+                    <div ref={bodyRef} className={styles.body}>{content}</div>
+                    {showScrollHint && <div className={styles.scrollHint} aria-hidden="true"><span>Scroll to see more</span><span className={styles.scrollHintArrow}>↓</span></div>}
+                </div>
                 <footer className={styles.actions}>
                     <div className={styles.secondaryActions}>
                         {(currentStep > 0 || showResult) && <button type="button" className={styles.secondary} onClick={back}>Back</button>}
                         <button type="button" className={styles.reset} onClick={startAgain}>Start again</button>
                     </div>
-                    {showResult ? <button type="button" className={styles.primary} onClick={talk}>Let&rsquo;s talk <span aria-hidden="true">↗</span></button> : <button type="button" className={styles.primary} onClick={next} disabled={!valid}>{currentStep === STEPS.length - 1 ? "See estimate" : "Next"} <span aria-hidden="true">→</span></button>}
+                    {showResult ? <button type="button" className={styles.primary} onClick={talk}>Let&rsquo;s talk <span aria-hidden="true">↗</span></button> : <button type="button" className={styles.primary} onClick={next} disabled={!valid}>{currentStep === 0 && website?.directContact ? "Let’s talk" : currentStep === STEPS.length - 1 ? "See estimate" : "Next"} <span aria-hidden="true">{currentStep === 0 && website?.directContact ? "↗" : "→"}</span></button>}
                 </footer>
             </section>
         </div>,

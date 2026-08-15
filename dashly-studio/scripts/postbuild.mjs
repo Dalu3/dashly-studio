@@ -8,11 +8,15 @@ import {
     SITE_NAME,
     SITE_URL,
     getSchemaForPage,
+    faqItems,
+    homeContent,
     homePage,
+    SITE_EMAIL,
     indexablePages,
     notFoundPage,
     staticPages,
 } from "../src/seo/siteMetadata.js";
+import { SERVICE_OFFERINGS } from "../src/data/services.js";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDirectory, "..");
@@ -94,6 +98,139 @@ function replaceSchemaScript(html, schema) {
     );
 }
 
+function renderLink(href, label) {
+    return `<a href="${escapeHtml(href)}">${escapeHtml(label)}</a>`;
+}
+
+function renderFaqAnswer(item) {
+    if (item.answer) {
+        return escapeHtml(item.answer);
+    }
+
+    return `${escapeHtml(item.answerBeforeEstimator ?? "")}${renderLink(
+        "/#estimator",
+        item.estimatorLabel,
+    )}${escapeHtml(item.answerAfterEstimator ?? "")}`;
+}
+
+function renderSiteNavigation() {
+    return `<header>
+    <a href="/" aria-label="Dashly Studio home">Dashly Studio</a>
+    <nav aria-label="Primary">
+        ${renderLink("/#work", "Work")}
+        ${renderLink("/#packages", "Services")}
+        ${renderLink("/#stages", "Process")}
+        ${renderLink("/#faq", "FAQ")}
+        ${renderLink("/#contact", "Contact")}
+    </nav>
+</header>`;
+}
+
+function renderSiteFooter() {
+    return `<footer>
+    <p>Dashly Studio — web design and development for businesses in Aberdeen and across the UK.</p>
+    <nav aria-label="Footer">
+        ${renderLink("/terms/", "Terms and Conditions")}
+        ${renderLink("/privacy/", "Privacy Policy")}
+    </nav>
+</footer>`;
+}
+
+function renderHomeFallback() {
+    const services = SERVICE_OFFERINGS.map(
+        (service) => `<li><strong>${escapeHtml(service.label)}</strong>: ${escapeHtml(service.description)}</li>`,
+    ).join("\n");
+    const faq = faqItems
+        .slice(0, 3)
+        .map(
+            (item) => `<details><summary>${escapeHtml(item.question)}</summary><p>${renderFaqAnswer(item)}</p></details>`,
+        )
+        .join("\n");
+
+    return `<main id="main-content" tabindex="-1">
+    <section aria-labelledby="home-title">
+        <h1 id="home-title">${homeContent.heroTitleLines.map(escapeHtml).join(" ")}</h1>
+        <p>${escapeHtml(homeContent.heroSubtitle)}</p>
+        <p>${renderLink("/#contact", "Start a project conversation")}</p>
+    </section>
+    <section id="packages" aria-labelledby="services-title">
+        <h2 id="services-title">The websites we build</h2>
+        <ul>${services}</ul>
+        <p>${renderLink("/#contact", "Tell us about your project")}</p>
+    </section>
+    <section id="faq" aria-labelledby="faq-title">
+        <h2 id="faq-title">Frequently asked questions</h2>
+        ${faq}
+    </section>
+    <section id="contact" aria-labelledby="contact-title">
+        <h2 id="contact-title">Have a project in mind?</h2>
+        <p>Contact Dashly Studio at ${renderLink(`mailto:${SITE_EMAIL}`, SITE_EMAIL)}.</p>
+    </section>
+</main>`;
+}
+
+function renderServiceFallback(page) {
+    const sections = page.sections
+        .map(
+            (section) => `<section><h2>${escapeHtml(section.title)}</h2><p>${escapeHtml(section.description)}</p><ul>${section.bullets.map((bullet) => `<li>${escapeHtml(bullet)}</li>`).join("")}</ul></section>`,
+        )
+        .join("\n");
+    const relatedLinks = page.relatedLinks
+        .map(
+            (link) => `<li>${renderLink(link.href, link.label)}: ${escapeHtml(link.description)}</li>`,
+        )
+        .join("");
+
+    return `<main id="main-content" tabindex="-1">
+    <p>${escapeHtml(page.eyebrow)}</p>
+    <h1>${escapeHtml(page.schemaName)}</h1>
+    <p>${escapeHtml(page.lead)}</p>
+    ${sections}
+    <p>${renderLink(page.primaryHref, page.primaryLabel)}</p>
+    <p>${renderLink(page.secondaryHref, page.secondaryLabel)}</p>
+    <section><h2>Related services</h2><ul>${relatedLinks}</ul></section>
+</main>`;
+}
+
+function renderLegalFallback(page) {
+    const isPrivacy = page.key === "privacy";
+    const sections = isPrivacy
+        ? `<section><h2>Privacy at Dashly Studio</h2><p>We collect the details you provide in an enquiry, such as your name, email address, project requirements, budget and timeline, to respond to you and prepare an estimate.</p><p>GitHub Pages hosts this website, Google Fonts delivers the Sora web font, Google Analytics 4 is loaded only with analytics consent, and EmailJS processes contact-form enquiries.</p><p>We store your cookie consent choice in your browser&apos;s local storage so the website can remember it. Video and WebGL visual assets run in your browser and do not add a separate tracking provider.</p><p>You can contact us to ask about your information, request corrections or discuss how it is used.</p></section>`
+        : `<section><h2>Using this website</h2><p>These Terms govern your use of the Dashly Studio website. Project services, scope and deliverables are agreed separately in a proposal, quotation, statement of work or contract.</p><h2>Estimates and enquiries</h2><p>Any website estimate is indicative only and does not create a contract. Final scope, pricing and timing are confirmed separately in writing.</p><h2>Privacy</h2><p>Please also review our ${renderLink("/privacy/", "Privacy Policy")}.</p><h2>Contact</h2><p>For questions about these Terms, contact ${renderLink(`mailto:${SITE_EMAIL}`, SITE_EMAIL)}.</p></section>`;
+
+    return `<main id="main-content" tabindex="-1">
+    <h1>${escapeHtml(isPrivacy ? "Privacy Policy" : "Terms and Conditions")}</h1>
+    <p>Last updated: 14 August 2026</p>
+    ${sections}
+    <p>${renderLink("/", "Return to the Dashly Studio homepage")}</p>
+</main>`;
+}
+
+function renderNotFoundFallback() {
+    return `<main id="main-content" tabindex="-1"><h1>Page not found</h1><p>The page you are looking for does not exist.</p><p>${renderLink("/", "Return to the Dashly Studio homepage")}</p></main>`;
+}
+
+function renderStaticFallback(page) {
+    const content = page.key === "home"
+        ? renderHomeFallback()
+        : page.kind === "service"
+            ? renderServiceFallback(page)
+        : page.key === "privacy" || page.key === "terms"
+            ? renderLegalFallback(page)
+            : renderNotFoundFallback();
+
+    return `<div id="static-page-content"><a class="skip-to-main-content" href="#main-content">Skip to main content</a>${renderSiteNavigation()}${content}${renderSiteFooter()}</div>`;
+}
+
+function injectStaticFallback(html, page) {
+    const fallback = renderStaticFallback(page);
+
+    return html.replace(
+        '<div id="root"></div>',
+        `${fallback}\n        <div id="root"></div>`,
+    );
+}
+
 function renderHtml(baseHtml, page) {
     const absoluteUrl = new URL(page.path, SITE_URL).toString();
     const absoluteImage = new URL(SITE_IMAGE, SITE_URL).toString();
@@ -116,7 +253,7 @@ function renderHtml(baseHtml, page) {
     html = upsertMetaByProperty(html, "og:description", page.description);
     html = upsertMetaByProperty(html, "og:url", absoluteUrl);
     html = upsertMetaByProperty(html, "og:image", absoluteImage);
-    html = upsertMetaByProperty(html, "og:image:type", "image/png");
+    html = upsertMetaByProperty(html, "og:image:type", "image/jpeg");
     html = upsertMetaByProperty(html, "og:image:alt", SITE_IMAGE_ALT);
     html = upsertMetaByProperty(html, "og:image:width", "1200");
     html = upsertMetaByProperty(html, "og:image:height", "630");
@@ -126,6 +263,7 @@ function renderHtml(baseHtml, page) {
     html = upsertMetaByName(html, "twitter:image", absoluteImage);
     html = upsertMetaByName(html, "twitter:image:alt", SITE_IMAGE_ALT);
     html = replaceSchemaScript(html, schema);
+    html = injectStaticFallback(html, page);
 
     return html;
 }
@@ -264,8 +402,8 @@ function createOgImageBuffer() {
     ]);
 }
 
-async function ensureOgImagePng() {
-    const outputPath = path.join(distDir, "og-image.png");
+async function ensureOgImage() {
+    const outputPath = path.join(distDir, path.basename(SITE_IMAGE));
 
     try {
         // Prefer a static file copied from /public during the Vite build.
@@ -342,7 +480,7 @@ async function syncDocsFolder() {
 async function main() {
     const baseHtml = await fs.readFile(path.join(distDir, "index.html"), "utf8");
 
-    await ensureOgImagePng();
+await ensureOgImage();
     await writeStaticPages(baseHtml);
     await writeRobotsAndSitemap();
     await ensureCnameAndNoJekyll();

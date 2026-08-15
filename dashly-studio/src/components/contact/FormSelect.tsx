@@ -12,6 +12,7 @@ export interface FormSelectProps {
     value: string;
     onChange: (value: string) => void;
     options: readonly string[];
+    placeholder?: string;
     required?: boolean;
     error?: string;
 }
@@ -27,6 +28,7 @@ export function FormSelect({
     value,
     onChange,
     options,
+    placeholder,
     required = false,
     error,
 }: FormSelectProps) {
@@ -132,7 +134,9 @@ export function FormSelect({
                     }}
                     onKeyDown={handleTriggerKeyDown}
                 >
-                    <span>{value}</span>
+                    <span className={!value ? styles.placeholder : undefined}>
+                        {value || placeholder}
+                    </span>
                     <svg
                         className={cn(styles.chevron, isOpen && styles.chevronOpen)}
                         viewBox="0 0 16 16"

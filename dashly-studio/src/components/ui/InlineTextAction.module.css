@@ -1,0 +1,19 @@
+.root {
+    padding: var(--space-0);
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font-family: inherit;
+    font-size: inherit;
+    font-weight: inherit;
+    line-height: inherit;
+    text-decoration: underline;
+    text-decoration-thickness: var(--border-width-medium);
+    text-underline-offset: 0.125em;
+    cursor: pointer;
+}
+
+.root:focus-visible {
+    outline: var(--border-width-medium) solid var(--color-focus-ring);
+    outline-offset: var(--space-3xs);
+}

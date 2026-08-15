@@ -1,93 +1,57 @@
 .privacy-container {
-    max-width: var(--content-max-width);
-    margin: 120px auto 20px auto;
-    padding: 20px var(--container-gutter);
-    color: #000;
-    background-color: #f6f6f6;
-    font-family: "Sora", sans-serif;
+    max-width: var(--container-default);
+    margin: var(--space-4xl) auto var(--space-md);
+    padding: var(--space-md) var(--container-gutter);
+    color: var(--color-text-primary);
+    background-color: var(--color-surface-page);
+    font-family: var(--font-family-sans);
 }
 
-/* Laptop type scale (--bp-lg/64rem and up): page title=H2, section
-   heading=H3, body copy=body. These are the unscoped defaults — every
-   media query below is capped at 63.999rem so none of it reaches into the
-   approved desktop range. */
 .privacy-container h1 {
-    font-size: var(--font-size-h2);
-    margin-bottom: 20px;
+    margin-block-end: var(--space-md);
+    font-size: var(--type-h2);
+    line-height: var(--line-height-type-h2);
 }
 
 .privacy-container h2 {
-    margin-top: 30px;
-    font-size: var(--font-size-h3);
+    margin-block-start: var(--space-lg);
+    font-size: var(--type-h3);
+    line-height: var(--line-height-type-h3);
 }
 
 .privacy-container p,
 .privacy-container ul {
-    font-size: var(--font-size-body);
-    line-height: 1.6;
+    font-size: var(--type-body);
+    line-height: var(--line-height-relaxed);
+}
+
+.privacy-container a {
+    color: var(--color-text-primary);
+    text-decoration: underline;
+    text-decoration-thickness: var(--border-width-medium);
+    text-underline-offset: 0.125em;
+}
+
+.privacy-container a:focus-visible {
+    outline: var(--border-width-medium) solid var(--color-focus-ring);
+    outline-offset: var(--space-3xs);
 }
 
 .privacy-container ul {
-    padding-left: 20px;
+    padding-inline-start: var(--space-md);
     margin-block-end: var(--space-md);
 }
-@media (min-width: 769px) and (max-width: 63.999rem) {
-    .privacy-container h1 {
-        font-size: 2.2rem;
-    }
+
+/* --bp-lg: legal and service documents use their approved 24px / 18px
+   laptop reading scale without changing the existing mobile composition. */
+@media (min-width: 64rem) {
+    .privacy-container h1,
     .privacy-container h2 {
-        margin-top: 30px;
-        font-size: 1.3rem;
+        font-size: var(--type-document-heading);
     }
 
     .privacy-container p,
     .privacy-container ul {
-        font-size: 1rem;
-        line-height: 1.6;
-    }
-}
-@media (min-width: 598px) and (max-width: 769px) {
-    .privacy-container h1 {
-        font-size: 2.2rem;
-    }
-    .privacy-container h2 {
-        margin-top: 30px;
-        font-size: 1.3rem;
-    }
-
-    .privacy-container p,
-    .privacy-container ul {
-        font-size: 1rem;
-        line-height: 1.6;
-    }
-}
-@media (min-width: 415px) and (max-width: 598px) {
-    .privacy-container h1 {
-        font-size: 1.7rem;
-    }
-    .privacy-container h2 {
-        margin-top: 30px;
-        font-size: 1.2rem;
-    }
-
-    .privacy-container p,
-    .privacy-container ul {
-        font-size: 1rem;
-        line-height: 1.6;
-    }
-}
-@media (min-width: 20px) and (max-width: 415px) {
-    .privacy-container h1 {
-        font-size: 1.7rem;
-    }
-    .privacy-container h2 {
-        margin-top: 30px;
-        font-size: 1.2rem;
-    }
-
-    .privacy-container p,
-    .privacy-container ul {
-        font-size: 1rem;
-        line-height: 1.6;
+        font-size: var(--type-document-body);
     }
 }

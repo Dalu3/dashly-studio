@@ -9,7 +9,6 @@ export function EstimatorHost() {
     const [answers, setAnswers] = useState(initialEstimatorAnswers);
     const [currentStep, setCurrentStep] = useState(0);
     const triggerRef = useRef(null);
-    const scrollRef = useRef({ x: 0, y: 0 });
 
     const close = useCallback(() => setIsOpen(false), []);
     const reset = useCallback(() => { setAnswers(initialEstimatorAnswers); setCurrentStep(0); }, []);
@@ -17,7 +16,6 @@ export function EstimatorHost() {
     useEffect(() => {
         const open = (event) => {
             triggerRef.current = event.detail?.trigger instanceof HTMLElement ? event.detail.trigger : document.activeElement;
-            scrollRef.current = { x: window.scrollX, y: window.scrollY };
             setIsOpen(true);
         };
         window.addEventListener(OPEN_ESTIMATOR_EVENT, open);
@@ -28,18 +26,26 @@ export function EstimatorHost() {
         if (!isOpen) return undefined;
         const body = document.body;
         const root = document.getElementById("root");
-        const previous = { position: body.style.position, top: body.style.top, left: body.style.left, width: body.style.width, overflow: body.style.overflow };
-        body.style.position = "fixed";
-        body.style.top = `${-scrollRef.current.y}px`;
-        body.style.left = `${-scrollRef.current.x}px`;
-        body.style.width = "100%";
+        const previous = {
+            overflow: body.style.overflow,
+            paddingRight: body.style.paddingRight,
+            htmlOverflow: document.documentElement.style.overflow,
+        };
+        const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+        const computedPaddingRight = Number.parseFloat(window.getComputedStyle(body).paddingRight) || 0;
+
         body.style.overflow = "hidden";
+        if (scrollbarWidth > 0) {
+            body.style.paddingRight = `${computedPaddingRight + scrollbarWidth}px`;
+        }
+        document.documentElement.style.overflow = "hidden";
         root?.setAttribute("inert", "");
         return () => {
-            Object.assign(body.style, previous);
+            body.style.overflow = previous.overflow;
+            body.style.paddingRight = previous.paddingRight;
+            document.documentElement.style.overflow = previous.htmlOverflow;
             root?.removeAttribute("inert");
-            window.scrollTo(scrollRef.current.x, scrollRef.current.y);
-            window.requestAnimationFrame(() => triggerRef.current?.focus?.());
+            window.requestAnimationFrame(() => triggerRef.current?.focus?.({ preventScroll: true }));
         };
     }, [isOpen]);
 

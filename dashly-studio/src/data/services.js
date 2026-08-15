@@ -44,5 +44,6 @@ export const SERVICE_OFFERINGS = [
         description:
             "A tailored digital product that brings your workflow, customers and business tools together in one place.",
         projectType: "Web Application",
+        estimatorWebsiteTypeId: "web-application",
     },
 ];

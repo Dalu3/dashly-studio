@@ -14,8 +14,11 @@ typography change.
 | `--type-display-primary` | Primary Hero display heading | Fluid, 375px–1440px: 30px → 64px. The 64px desktop maximum remains provisional until the canonical Hero design is selected. |
 | `--type-display-marquee` | Decorative marquee/ticker display text | Fluid: 35px at 375px → 64px at 1440px. |
 | `--type-section-title` | Primary title shared by major landing-page sections | Fluid: 32px at 375px → 64px at 1440px. |
+| `--type-h2` | Supporting page or section heading where the larger section-title role is not appropriate | Fluid: 24px at 375px → 35px at 1440px. |
+| `--type-h3` | Supporting subsection, card or option-group heading | Fluid: 18px at 375px → 24px at 1440px. |
 | `--type-lead` | Prominent introductory copy below a display or section title | Fluid: 16px at 375px → 24px at 1440px. |
 | `--type-body` | Standard explanatory and descriptive copy | Fluid: 16px at 375px → 20px at 1440px. |
+| `--type-small` | Supporting help, status and compact explanatory copy | Fluid: 13px at 375px → 14px at 1440px. |
 | `--type-metadata` | Micro metadata such as Hero location, availability and scroll prompt | Fluid: 10px at 375px → 15px at 1440px. |
 | `--type-control` | Form labels, inputs, selects, textareas and submit controls | Fixed at 16px; no `clamp()`. |
 
@@ -35,29 +38,64 @@ not part of the global semantic scale:
 
 - Header navigation and brand lockup.
 - Footer utility headings, links, metadata, tagline variant and wordmark.
+- Contact’s two-line display heading, whose current compact/mobile and desktop
+  compositions do not match one global role without changing its intended wrap.
+- FAQ’s compact section title, which caps below the global section-title role.
 - Process step titles, decorative stage numbers and other approved Process
   composition typography.
 - Packages prominent card titles and estimate CTA while their global role is
   unconfirmed.
+- `--type-project-card-caption`, the shared title/description role inside
+  Selected Work cards. It is fluid from 16px to 20px and replaces the former
+  breakpoint mutation of this same token.
+- `--type-document-heading` and `--type-document-body`, the shared 24px / 18px
+  laptop reading scale for long-form Privacy, Terms and service information
+  pages. Existing global roles do not reproduce these exact desktop values.
 
 Do not create, rename or change a component-specific typography style or token
 without explicit approval. Branding typography must not be folded into the
 generic semantic hierarchy.
 
-### Provisional and deprecated tokens
+### Legacy and component tokens
 
-- `--type-display` is a deprecated compatibility alias for
-  `--type-display-primary`.
-- `--type-label` and `--type-h2` are deprecated. Do not use them in new code.
-- `--type-small`, `--type-h3` and `--type-number` remain provisional. Reuse is
-  allowed only for their already-approved current mappings; do not expand their
-  meaning or change their values.
-- Legacy `--font-size-*` and component tokens remain only for sections that
-  have not completed controlled migration. Their presence is not permission to
-  reuse them in new components.
+- `--type-*` is the only canonical typography system for new UI. A semantic
+  role must be selected from this scale before a component-specific exception
+  is considered.
+- `--font-size-*` is a frozen compatibility/legacy layer. It remains in
+  production for controlled, visually verified existing compositions; it is
+  not a second canonical system and must not receive new usages.
+- Migrate a legacy usage only component-by-component after visual verification
+  confirms that an existing semantic role preserves its actual UI role. Never
+  map by token name alone or use a global replacement.
+- Legacy tokens may be removed only after search confirms zero production
+  usages, the affected components have passed visual verification, and the
+  user approves removal. Do not remove a legacy token merely to make the
+  inventory appear clean.
+- Existing component tokens remain only where the documented composition above
+  has no visually equivalent global role. Their presence is not permission to
+  create another component-specific size token.
+- A component-specific typography token may be added only after showing that no
+  canonical role fits, naming at least two intended reuses, and receiving
+  explicit approval.
 
 Deprecated or legacy tokens may be removed only after a scoped migration proves
 that active usage is zero and the user approves removal.
+
+### Migration status: controlled legacy remains
+
+The historical `--font-size-h2`, `--font-size-h3`, `--font-size-p`,
+`--font-size-body`, `--font-size-small` and generic
+`--font-size-2xs` through `--font-size-4xl` values still have production
+consumers. This means the previous two-system problem is **partially resolved**,
+not fully resolved: `--type-*` governs all new code, while `--font-size-*`
+remains frozen until each existing composition is independently verified.
+
+`--type-project-card-caption` is an approved, intentional exception. Its exact
+formula is `clamp(1rem, calc(0.75rem + 0.78125vw), 1.25rem)`. It replaces the
+former step-based 16px → 18px → 20px behavior with continuous scaling from 16px
+at and below 512px through 20px at and above 1024px. This is an intentional
+minor behavior change between former breakpoints, not a claim of identical
+values at every viewport.
 
 ### Mandatory rules
 
@@ -77,7 +115,8 @@ that active usage is zero and the user approves removal.
 8. Do not change typography architecture during unrelated spacing, layout,
    animation, color, accessibility, performance or refactoring work.
 9. Reuse the approved global role or approved component style before proposing
-   anything new.
+   anything new. Use `--type-control` for labels; do not create a label-size
+   token for ordinary UI text.
 
 ### Required mismatch workflow
 
@@ -110,6 +149,18 @@ After every significant UI migration, inspect all modified files for:
 
 A migration is not complete until this audit and the appropriate build,
 typecheck and responsive verification pass.
+
+### Fluid typography and breakpoints
+
+Canonical fluid tokens use one `clamp()` between their documented 375px minimum
+and 1440px maximum. Do not hand-tune their `vw` term in a component. A
+component-specific fluid token is permitted only for an already-approved unique
+composition and must reproduce measured endpoints rather than introduce a new
+visual scale.
+
+Do not add a media-query `font-size` override for ordinary UI typography. Use
+one only where a documented composition cannot use a fluid role without a
+material visual regression; record the affected component and viewports.
 
 ## Design-system rules
 

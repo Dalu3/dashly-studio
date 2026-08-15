@@ -73,6 +73,10 @@
     padding-right: var(--space-sm);
 }
 
+.placeholder {
+    color: var(--color-text-muted);
+}
+
 .selectTriggerOpen {
     border-color: var(--color-focus-ring);
     box-shadow: var(--shadow-focus-ring);

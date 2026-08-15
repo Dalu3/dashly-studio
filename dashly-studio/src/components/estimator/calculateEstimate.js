@@ -6,7 +6,9 @@ export function calculateEstimate(answers, config) {
     const website = findById(config.websiteTypes, answers.websiteTypeId);
     const startingPoint = findById(config.startingPoints, answers.startingPointId);
     const basePrice = website?.basePrice ?? 0;
-    const extraPages = website ? Math.max(0, answers.pageCount - website.includedPages) : 0;
+    const extraPages = website && Number.isFinite(website.includedPages)
+        ? Math.max(0, answers.pageCount - website.includedPages)
+        : 0;
     const extraPagesPrice = extraPages * config.extraPagePrice;
     const selectedFeatures = config.features.filter((feature) => answers.featureIds.includes(feature.id));
     const featureLines = selectedFeatures.map((feature) => ({ id: `feature-${feature.id}`, label: feature.label, amount: feature.price }));
@@ -31,14 +33,16 @@ export function calculateEstimate(answers, config) {
 
 export function createEstimateSummary(answers, estimate, config) {
     const find = (items, id) => findById(items, id);
+    const website = find(config.websiteTypes, answers.websiteTypeId);
+    const isDirectContact = Boolean(website?.directContact);
 
     return {
-        websiteType: find(config.websiteTypes, answers.websiteTypeId)?.label ?? "",
+        websiteType: website?.label ?? "",
         pageCount: answers.pageCount,
         features: config.features.filter((item) => answers.featureIds.includes(item.id)).map((item) => item.label),
         startingPoint: find(config.startingPoints, answers.startingPointId)?.label ?? "",
-        estimate: estimate.total,
-        estimateRange: estimate.range,
+        estimate: isDirectContact ? null : estimate.total,
+        estimateRange: isDirectContact ? null : estimate.range,
         breakdown: estimate.breakdown,
     };
 }
