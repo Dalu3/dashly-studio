@@ -201,6 +201,9 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
         // on layout changes only, not for every moving-fibre render.
         renderer.shadowMap.autoUpdate = false;
         host.appendChild(renderer.domElement);
+        const touchSurface = document.createElement("div");
+        touchSurface.className = styles.interactionSurface!;
+        host.appendChild(touchSurface);
 
         /* Soft, simple lighting: one broad ambient fill plus a single
          * directional light for the shadow pass and the base mesh's own
@@ -244,6 +247,16 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
         let disposed = false;
         let heroInViewport = true;
         let documentVisible = !document.hidden;
+        let webglContextAvailable = true;
+
+        const handleContextLost = (event: Event) => {
+            event.preventDefault();
+            webglContextAvailable = false;
+            renderer.domElement.style.visibility = "hidden";
+            host.dataset.webglUnavailable = "true";
+        };
+
+        renderer.domElement.addEventListener("webglcontextlost", handleContextLost);
 
         // Set by layout() the first time it sees a real (non-zero) host
         // width, and read once below when the fur system is actually built.
@@ -352,7 +365,7 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
         };
 
         const canRender = () =>
-            !disposed && heroInViewport && documentVisible;
+            !disposed && webglContextAvailable && heroInViewport && documentVisible;
 
         const render = () => {
             if (canRender()) {
@@ -478,6 +491,7 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
                         camera,
                         viewportElement: renderer.domElement,
                         pointerTarget: window,
+                        touchTarget: touchSurface,
                         quality,
                         rootColor: FUR_ROOT_COLOR,
                         lightDir,
@@ -691,6 +705,38 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
                 holder.scale.set(scale, scaleY, scale);
                 holder.position.set(0, positionY, 0);
             }
+
+            // Keep the touch-action:none region limited to HELLO itself.
+            // Re-project on every real layout pass so browser chrome,
+            // orientation and offscreen viewport changes cannot leave stale
+            // touch coordinates or a misplaced gesture target behind.
+            holder.updateMatrixWorld(true);
+            const interactionBounds = new Box3();
+            for (const fur of furHandles) {
+                interactionBounds.expandByObject(fur.baseMesh);
+            }
+            const minNdc = new Vector2(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
+            const maxNdc = new Vector2(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
+            const projectedCorner = new Vector3();
+            for (const x of [interactionBounds.min.x, interactionBounds.max.x]) {
+                for (const y of [interactionBounds.min.y, interactionBounds.max.y]) {
+                    for (const z of [interactionBounds.min.z, interactionBounds.max.z]) {
+                        projectedCorner.set(x, y, z).project(camera);
+                        minNdc.x = Math.min(minNdc.x, projectedCorner.x);
+                        minNdc.y = Math.min(minNdc.y, projectedCorner.y);
+                        maxNdc.x = Math.max(maxNdc.x, projectedCorner.x);
+                        maxNdc.y = Math.max(maxNdc.y, projectedCorner.y);
+                    }
+                }
+            }
+            const left = ((minNdc.x + 1) * 0.5) * w;
+            const right = ((maxNdc.x + 1) * 0.5) * w;
+            const top = ((1 - maxNdc.y) * 0.5) * h;
+            const bottom = ((1 - minNdc.y) * 0.5) * h;
+            touchSurface.style.left = `${left}px`;
+            touchSurface.style.top = `${top}px`;
+            touchSurface.style.width = `${right - left}px`;
+            touchSurface.style.height = `${bottom - top}px`;
 
             if (shadowReceiverChanged) {
                 shadowPlane.position.z = shadowZ;
@@ -923,6 +969,7 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
                 "visibilitychange",
                 handleDocumentVisibility,
             );
+            renderer.domElement.removeEventListener("webglcontextlost", handleContextLost);
             cancelHeroResume(render);
 
             for (const fur of furHandles) {
@@ -944,6 +991,7 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
             }
 
             renderer.dispose();
+            touchSurface.remove();
             renderer.domElement.remove();
         };
     }, []);

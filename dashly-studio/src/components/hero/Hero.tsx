@@ -59,10 +59,7 @@ export interface HeroProps {
 export function Hero({ children, onReady }: HeroProps) {
     const reducedMotion = usePrefersReducedMotion();
     const [shouldMountModel, setShouldMountModel] = useState(false);
-    const enhancementAllowed = useMemo(
-        () => !reducedMotion && canEnhanceHero(),
-        [reducedMotion],
-    );
+    const enhancementAllowed = useMemo(canEnhanceHero, []);
     const handleModelReady = useCallback(() => onReady?.(), [onReady]);
 
     useEffect(() => {

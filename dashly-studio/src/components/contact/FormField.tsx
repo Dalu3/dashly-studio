@@ -8,6 +8,7 @@ export interface FormFieldProps {
     id: string;
     name: string;
     label: string;
+    className?: string;
     placeholder?: string;
     value: string;
     onChange: ChangeEventHandler<HTMLInputElement | HTMLTextAreaElement>;
@@ -34,6 +35,7 @@ export function FormField({
     id,
     name,
     label,
+    className,
     placeholder,
     value,
     onChange,
@@ -49,7 +51,7 @@ export function FormField({
     const hasError = Boolean(error);
 
     return (
-        <div className={styles.field}>
+        <div className={cn(styles.field, className)}>
             <label className={styles.label} htmlFor={id}>
                 {label}
             </label>

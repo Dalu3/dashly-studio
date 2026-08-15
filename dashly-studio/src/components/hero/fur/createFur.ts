@@ -44,6 +44,8 @@ export interface CreateFurOptions {
      *  `pointer-events: none` canvas can still react without ever
      *  intercepting a click meant for the page. */
     pointerTarget?: EventTarget;
+    /** Touch hit surface restricted to the projected model bounds. */
+    touchTarget?: HTMLElement;
     quality: FurQualityPreset;
     rootColor?: string;
     tipColor?: string;
@@ -207,6 +209,7 @@ export function createFur(
     const cursor: CursorInteractionHandle = createCursorInteraction({
         camera: options.camera,
         domElement: options.pointerTarget ?? window,
+        touchElement: options.touchTarget,
         viewportElement: options.viewportElement,
         raycastTargets: [baseMesh],
         // supportMaterial deliberately excluded — the base mesh's geometry

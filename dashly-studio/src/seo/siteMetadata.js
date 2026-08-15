@@ -437,30 +437,10 @@ export function getPageMetadataByPath(pathname = "/") {
     );
 }
 
-function getOrganizationSchema() {
-    return {
-        "@type": "Organization",
-        "@id": `${SITE_URL}/#organization`,
-        name: SITE_NAME,
-        url: `${SITE_URL}/`,
-        image: `${SITE_URL}${SITE_IMAGE}`,
-        logo: `${SITE_URL}/favicon.png`,
-        email: SITE_EMAIL,
-        sameAs: SOCIAL_LINKS,
-        address: {
-            "@type": "PostalAddress",
-            addressLocality: "Aberdeen",
-            addressRegion: "Scotland",
-            addressCountry: "GB",
-        },
-        areaServed: serviceAreas,
-    };
-}
-
 function getProfessionalServiceSchema() {
     return {
-        "@type": ["ProfessionalService", "LocalBusiness"],
-        "@id": `${SITE_URL}/#professional-service`,
+        "@type": "ProfessionalService",
+        "@id": `${SITE_URL}/#business`,
         name: SITE_NAME,
         url: `${SITE_URL}/`,
         image: `${SITE_URL}${SITE_IMAGE}`,
@@ -494,29 +474,15 @@ export function getHomeSchema() {
             inLanguage: "en-GB",
             description: homePage.description,
             publisher: {
-                "@id": `${SITE_URL}/#organization`,
+                "@id": `${SITE_URL}/#business`,
             },
         },
-        getOrganizationSchema(),
         getProfessionalServiceSchema(),
-        {
-            "@type": "FAQPage",
-            "@id": `${SITE_URL}/#faq`,
-            mainEntity: faqItems.map((item) => ({
-                "@type": "Question",
-                name: item.question,
-                acceptedAnswer: {
-                    "@type": "Answer",
-                    text: item.answer,
-                },
-            })),
-        },
     ];
 }
 
 export function getServicePageSchema(page) {
     return [
-        getOrganizationSchema(),
         getProfessionalServiceSchema(),
         {
             "@type": "Service",
@@ -524,7 +490,7 @@ export function getServicePageSchema(page) {
             name: page.schemaName,
             serviceType: page.schemaName,
             provider: {
-                "@id": `${SITE_URL}/#professional-service`,
+                "@id": `${SITE_URL}/#business`,
             },
             areaServed: serviceAreas,
             url: `${SITE_URL}${page.path}`,

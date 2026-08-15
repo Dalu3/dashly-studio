@@ -87,6 +87,26 @@
     padding: var(--space-md);
 }
 
+/* Small-laptop composition: the 1024px layout already has enough room for
+   the copy and form to sit side by side. Keep the tracks fluid until the
+   wider desktop composition takes over at 80rem. */
+@media (min-width: 64rem) {
+    .container {
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+        align-items: start;
+        gap: var(--space-2xl);
+    }
+
+    .intro {
+        align-self: start;
+        margin-top: var(--space-0);
+    }
+
+    .headingLine {
+        white-space: normal;
+    }
+}
+
 @media (min-width: 80rem) {
     .container {
         max-width: var(--content-max-width-wide);
@@ -108,6 +128,10 @@
             var(--measure-default),
             calc(100% + var(--faq-column-gap))
         );
+    }
+
+    .headingLine {
+        white-space: nowrap;
     }
 
 }
@@ -184,8 +208,10 @@
     }
 }
 
-/* Pair short fields from tablet upward; long fields and actions stay full-width. */
-@media (min-width: 48rem) and (max-width: 63.999rem), (min-width: 80rem) {
+/* Pair the short contact fields from tablet upward. Fields that are meant to
+   span the card mark themselves with .fullWidth, so hidden inputs or status
+   messages cannot change the layout through child-position selectors. */
+@media (min-width: 48rem) {
     .card {
         display: grid;
         grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -193,12 +219,16 @@
         row-gap: var(--space-sm);
     }
 
-    .card > *:nth-child(5),
-    .card > *:nth-child(6),
     .submit,
-    .status {
+    .status,
+    .estimateSummary,
+    .fullWidth {
         grid-column: 1 / -1;
     }
+}
+
+.fullWidth {
+    grid-column: 1 / -1;
 }
 .estimateSummary {
     display: flex;

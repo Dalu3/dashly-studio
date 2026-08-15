@@ -44,21 +44,6 @@
                 href="https://fonts.googleapis.com/css2?family=Sora:wght@200;400;500;600;700&display=swap"
             />
         </noscript>
-        <!--
-            Starts the hello.glb fetch as soon as the browser parses <head>,
-            instead of waiting for the JS module chain (App.jsx's dynamic
-            import -> preloadHello.ts -> GLTFLoader.load) to kick it off.
-            `as="fetch"` + `crossorigin` match how GLTFLoader actually
-            requests it (via fetch), which is required for the preload to be
-            reused rather than triggering a second request.
-        -->
-        <link
-            rel="preload"
-            href="/models/hello.glb"
-            as="fetch"
-            type="model/gltf-binary"
-            crossorigin
-        />
         <meta property="og:locale" content="en_GB" />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="Dashly Studio" />
@@ -84,8 +69,8 @@
                 padding: 0;
             }
         </style>
-      <script type="module" crossorigin src="/assets/index-C1dztu7B.js"></script>
-      <link rel="stylesheet" crossorigin href="/assets/index-BQbl9rkX.css">
+      <script type="module" crossorigin src="/assets/index-DghIGepI.js"></script>
+      <link rel="stylesheet" crossorigin href="/assets/index-BwzAjw9e.css">
     </head>
 
     <body>

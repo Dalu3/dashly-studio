@@ -12,7 +12,8 @@
     inset: 0;
     z-index: var(--z-raised);
 
-    /* No interaction yet — that is a later stage. */
+    /* Desktop remains click-through; the child touch surface selectively
+       opts only the projected HELLO bounds back into hit testing. */
     pointer-events: none;
 }
 
@@ -20,4 +21,14 @@
     display: block;
     width: 100%;
     height: 100%;
+}
+
+/* This transparent input surface is positioned from the model's projected
+   bounds at runtime. Only a gesture that starts on HELLO opts into direct
+   manipulation; the rest of the Hero keeps native page scrolling. */
+.interactionSurface {
+    position: absolute;
+    z-index: var(--z-raised);
+    touch-action: none;
+    pointer-events: auto;
 }

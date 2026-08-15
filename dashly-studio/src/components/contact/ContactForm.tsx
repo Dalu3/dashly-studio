@@ -112,6 +112,7 @@ function validateForm(values: FormValues): FormErrors {
  */
 export function ContactForm() {
     const formRef = useRef<HTMLFormElement>(null);
+    const errorSummaryRef = useRef<HTMLDivElement>(null);
     const [formValues, setFormValues] = useState<FormValues>(INITIAL_FORM_VALUES);
     const [errors, setErrors] = useState<FormErrors>(INITIAL_ERRORS);
     const [touched, setTouched] =
@@ -120,6 +121,7 @@ export function ContactForm() {
     const [statusMessage, setStatusMessage] = useState("");
     const [isError, setIsError] = useState(false);
     const [showStatus, setShowStatus] = useState(false);
+    const [formErrorSummary, setFormErrorSummary] = useState("");
     const [estimateSummary, setEstimateSummary] = useState<Record<string, unknown> | null>(null);
 
     useEffect(() => {
@@ -130,9 +132,9 @@ export function ContactForm() {
             const estimatorType = String(summary.websiteType ?? "");
             const projectType: ProjectType = estimatorType === "Landing Page"
                 ? "Landing Page"
-                : estimatorType === "Catalogue Website"
+                : estimatorType === "Catalogue Web"
                   ? "Catalogue Web"
-                  : estimatorType === "E-commerce"
+                  : estimatorType === "E-Commerce"
                     ? "E-commerce"
                     : "Multi-Page Web";
             setFormValues((current) => ({
@@ -153,6 +155,12 @@ export function ContactForm() {
         const timer = setTimeout(() => setShowStatus(false), 4000);
         return () => clearTimeout(timer);
     }, [showStatus]);
+
+    useEffect(() => {
+        if (formErrorSummary) {
+            errorSummaryRef.current?.focus();
+        }
+    }, [formErrorSummary]);
 
     useEffect(() => {
         const handleProjectTypeSelect = (event: Event) => {
@@ -228,7 +236,14 @@ export function ContactForm() {
         });
         setErrors(nextErrors);
 
-        if (hasErrors || isSubmitting || !formRef.current) {
+        if (hasErrors) {
+            setFormErrorSummary("Please correct the highlighted fields before sending your enquiry.");
+            return;
+        }
+
+        setFormErrorSummary("");
+
+        if (isSubmitting || !formRef.current) {
             return;
         }
 
@@ -258,6 +273,16 @@ export function ContactForm() {
 
     return (
         <form ref={formRef} className={styles.card} onSubmit={handleSubmit} noValidate>
+            {formErrorSummary && (
+                <div
+                    ref={errorSummaryRef}
+                    className={cn(styles.status, styles.statusError)}
+                    role="alert"
+                    tabIndex={-1}
+                >
+                    {formErrorSummary}
+                </div>
+            )}
             {estimateSummary && (
                 <div className={styles.estimateSummary} aria-label="Your saved estimate">
                     <span>Saved estimate</span>
@@ -315,6 +340,7 @@ export function ContactForm() {
                 id="contact-timeline"
                 name="timeline"
                 label="Timeline"
+                className={styles.fullWidth}
                 placeholder="e.g. Flexible"
                 value={formValues.timeline}
                 onChange={handleChange}
@@ -325,6 +351,7 @@ export function ContactForm() {
                 id="contact-message"
                 name="message"
                 label="Message"
+                className={styles.fullWidth}
                 placeholder="Tell us about your idea"
                 multiline
                 required

@@ -6,46 +6,12 @@ import { PROJECT_TYPE_SELECT_EVENT } from "../constants/projectTypes";
 import { navigateToHash } from "../utils/scrollToHash";
 import { openEstimator } from "./estimator/estimatorEvents";
 import { SECTION_PREWARM_ROOT_MARGIN } from "../constants/performance";
-
-const packages = [
-    {
-        title: "Landing page",
-        description:
-            "A one-page website designed to turn visitors into customers with a clear message and strong call to action.",
-    },
-    {
-        title: "Multi-Page Web",
-        description:
-            "A complete business website with dedicated pages for your services, company, portfolio, contact information and more.",
-    },
-    {
-        title: "Catalogue Web",
-        description:
-            "Display your products or services in a structured online catalogue without online payments. Perfect for browsing and enquiries.",
-    },
-    {
-        title: "E-Commerce",
-        description:
-            "Sell products online with a secure store, product management, shopping cart and payment integration.",
-    },
-    {
-        title: "Web Application",
-        description:
-            "A tailored digital product that brings your workflow, customers and business tools together in one place.",
-    },
-];
+import { SERVICE_OFFERINGS } from "../data/services";
 
 const READING_COPY =
     "Choose the option closest to your idea, or answer five quick questions to receive a personalised project estimate.";
 const READING_WORDS = READING_COPY.split(" ");
 
-const PACKAGE_PROJECT_TYPES = {
-    "Landing page": "Landing Page",
-    "Multi-Page Web": "Multi-Page Web",
-    "Catalogue Web": "Catalogue Web",
-    "E-Commerce": "E-commerce",
-    "Web Application": "Web Application",
-};
 
 function ReadingCopy({ readingCopyRef }) {
     const measureRef = useRef(null);
@@ -139,8 +105,8 @@ export default function Packages() {
     const [isRevealed, setIsRevealed] = useState(false);
     const [activePackageIndex, setActivePackageIndex] = useState(-1);
 
-    const selectPackage = (title) => {
-        const projectType = PACKAGE_PROJECT_TYPES[title];
+    const selectPackage = (service) => {
+        const projectType = service.projectType;
 
         if (!projectType) {
             return;
@@ -154,13 +120,13 @@ export default function Packages() {
         navigateToHash(null, "#contact");
     };
 
-    const handlePackageKeyDown = (event, title) => {
+    const handlePackageKeyDown = (event, service) => {
         if (event.key !== "Enter" && event.key !== " ") {
             return;
         }
 
         event.preventDefault();
-        selectPackage(title);
+        selectPackage(service);
     };
 
     useEffect(() => {
@@ -365,20 +331,20 @@ export default function Packages() {
                 </header>
 
                 <div className="packages-list">
-                    {packages.map((pkg, index) => (
+                    {SERVICE_OFFERINGS.map((pkg, index) => (
                         <article
                             className={`package-row${activePackageIndex === index ? " package-row--active" : ""}`}
                             data-package-index={index}
-                            key={pkg.title}
+                            key={pkg.id}
                             role="button"
                             tabIndex={0}
-                            onClick={() => selectPackage(pkg.title)}
-                            onKeyDown={(event) => handlePackageKeyDown(event, pkg.title)}
+                            onClick={() => selectPackage(pkg)}
+                            onKeyDown={(event) => handlePackageKeyDown(event, pkg)}
                             ref={(row) => {
                                 packageRowsRef.current[index] = row;
                             }}
                         >
-                            <h3>{pkg.title}</h3>
+                            <h3>{pkg.label}</h3>
                             <p>{pkg.description}</p>
                         </article>
                     ))}

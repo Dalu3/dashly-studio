@@ -3,10 +3,8 @@
     margin: 120px auto 20px auto;
     padding: 20px var(--container-gutter);
     color: #000;
-    border-radius: 12px;
     background-color: #f6f6f6;
     font-family: "Sora", sans-serif;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 /* Laptop type scale (--bp-lg/64rem and up): page title=H2, section
@@ -31,6 +29,7 @@
 
 .privacy-container ul {
     padding-left: 20px;
+    margin-block-end: var(--space-md);
 }
 @media (min-width: 769px) and (max-width: 63.999rem) {
     .privacy-container h1 {

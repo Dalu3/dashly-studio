@@ -16,11 +16,14 @@ const mobileLinks = [
 function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isMenuClosing, setIsMenuClosing] = useState(false);
-    const [scrollPhase, setScrollPhase] = useState("top");
-    const scrollPhaseRef = useRef("top");
+    const initialScrollPhase = window.location.pathname === "/" ? "top" : "floating";
+    const [scrollPhase, setScrollPhase] = useState(initialScrollPhase);
+    const scrollPhaseRef = useRef(initialScrollPhase);
     const scrollPositionRef = useRef({ x: 0, y: 0 });
     const pendingLogoScrollRef = useRef(false);
     const pendingHashScrollRef = useRef(null);
+    const menuRef = useRef(null);
+    const menuTriggerRef = useRef(null);
 
     useLayoutEffect(() => {
         if (!isMenuOpen && !isMenuClosing) {
@@ -57,16 +60,52 @@ function Header() {
     }, [isMenuOpen, isMenuClosing]);
 
     useEffect(() => {
+        if (!isMenuOpen || !menuRef.current) {
+            return undefined;
+        }
+
+        const menu = menuRef.current;
+        const focusableSelector =
+            'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
+        const focusable = () => [...menu.querySelectorAll(focusableSelector)];
+        const firstFocusable = focusable()[0];
+        firstFocusable?.focus();
+
+        const trapFocus = (event) => {
+            if (event.key !== "Tab") return;
+
+            const items = focusable();
+            if (!items.length) return;
+
+            const first = items[0];
+            const last = items[items.length - 1];
+
+            if (event.shiftKey && document.activeElement === first) {
+                event.preventDefault();
+                last.focus();
+            } else if (!event.shiftKey && document.activeElement === last) {
+                event.preventDefault();
+                first.focus();
+            }
+        };
+
+        document.addEventListener("keydown", trapFocus);
+        return () => document.removeEventListener("keydown", trapFocus);
+    }, [isMenuOpen]);
+
+    useEffect(() => {
         let frameId = 0;
 
         const commitScrolledState = () => {
             frameId = 0;
-            const nextPhase =
-                window.scrollY >= window.innerHeight
-                    ? "floating"
-                    : window.scrollY > 0
-                      ? "scrolling"
-                      : "top";
+            const isSecondaryPage = window.location.pathname !== "/";
+            const nextPhase = isSecondaryPage
+                ? "floating"
+                : window.scrollY >= window.innerHeight
+                  ? "floating"
+                  : window.scrollY > 0
+                    ? "scrolling"
+                    : "top";
 
             if (nextPhase !== scrollPhaseRef.current) {
                 scrollPhaseRef.current = nextPhase;
@@ -145,6 +184,7 @@ function Header() {
     const closeMobileMenu = () => {
         setIsMenuOpen(false);
         setIsMenuClosing(true);
+        window.requestAnimationFrame(() => menuTriggerRef.current?.focus());
     };
 
     const handleMenuTransitionEnd = (event) => {
@@ -188,6 +228,7 @@ function Header() {
                 <button
                     type="button"
                     className={`hamburger ${isMenuOpen ? "hamburger--open" : ""}`}
+                    ref={menuTriggerRef}
                     aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
                     aria-expanded={isMenuOpen}
                     aria-controls="mobile-navigation"
@@ -222,12 +263,13 @@ function Header() {
             {createPortal(
                 <aside
                     id="mobile-navigation"
+                    ref={menuRef}
                     className={`mobile-menu ${isMenuOpen ? "mobile-menu--open" : ""}`}
                     aria-hidden={!isMenuOpen}
                     inert={isMenuOpen ? undefined : ""}
                     onTransitionEnd={handleMenuTransitionEnd}
                 >
-                    <div className="mobile-menu__top" aria-hidden="true">
+                    <div className="mobile-menu__top">
                         <a
                             href="/"
                             className="mobile-menu__logo"

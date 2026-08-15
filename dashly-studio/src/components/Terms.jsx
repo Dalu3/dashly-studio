@@ -42,17 +42,11 @@ export default function Terms() {
                 <h2>2. Eligibility</h2>
                 <p>
                     You may use this Site only if you have the legal capacity to do
-                    so.
-                </p>
-                <p>
-                    If you use the Site on behalf of a company, organisation or
+                    so. If you use the Site on behalf of a company, organisation or
                     other entity, you confirm that you have authority to act on its
-                    behalf where relevant.
-                </p>
-                <p>
-                    Our Site and services are primarily intended for individuals
-                    and organisations seeking professional web design, development
-                    or related digital services.
+                    behalf where relevant. Our Site and services are primarily
+                    intended for individuals and organisations seeking professional
+                    web design, development or related digital services.
                 </p>
             </section>
 

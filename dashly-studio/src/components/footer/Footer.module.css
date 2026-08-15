@@ -555,17 +555,17 @@
     }
 
     .bottom {
-        align-items: center;
+        align-items: flex-start;
         gap: var(--space-md);
     }
 
     .copyright {
-        text-align: center;
+        text-align: left;
     }
 
     .legal {
         width: auto;
         column-gap: var(--footer-responsive-legal-column-gap);
-        justify-content: center;
+        justify-content: flex-start;
     }
 }

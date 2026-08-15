@@ -40,6 +40,7 @@ export default function FAQ() {
                 <div className="faq-list">
                     {faqItems.map((item, i) => {
                         const isOpen = activeIndex === i;
+                        const questionId = `${idPrefix}-faq-question-${i}`;
                         const answerId = `${idPrefix}-faq-answer-${i}`;
 
                         return (
@@ -48,6 +49,7 @@ export default function FAQ() {
                                 className={`faq-item ${isOpen ? "active" : ""}`}
                             >
                                 <button
+                                    id={questionId}
                                     className="faq-question"
                                     onClick={() => toggleFAQ(i)}
                                     type="button"
@@ -66,6 +68,8 @@ export default function FAQ() {
                                 <div
                                     id={answerId}
                                     className="faq-answer"
+                                    role="region"
+                                    aria-labelledby={questionId}
                                     aria-hidden={!isOpen}
                                 >
                                     <div className="faq-answer-inner">

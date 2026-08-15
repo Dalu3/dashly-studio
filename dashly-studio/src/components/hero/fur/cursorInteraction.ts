@@ -58,6 +58,9 @@ export interface CursorInteractionOptions {
      *  `pointer-events: none` canvas can still react to the cursor without
      *  ever intercepting a click meant for the page. */
     domElement: EventTarget;
+    /** Touch-only hit surface covering the projected word. It owns touch
+     *  pointer capture without making the whole Hero block native scroll. */
+    touchElement?: HTMLElement;
     /** The element whose bounding box defines pointer -> NDC conversion —
      *  usually the renderer's canvas. */
     viewportElement: HTMLElement;
@@ -145,8 +148,15 @@ function springStep(
 export function createCursorInteraction(
     options: CursorInteractionOptions,
 ): CursorInteractionHandle {
-    const { camera, domElement, viewportElement, raycastTargets, materials, frameLoop } =
-        options;
+    const {
+        camera,
+        domElement,
+        touchElement,
+        viewportElement,
+        raycastTargets,
+        materials,
+        frameLoop,
+    } = options;
 
     const pointerNdc = new Vector2(2, 2);
     const raycaster = new Raycaster();
@@ -195,6 +205,7 @@ export function createCursorInteraction(
     let pendingClientY = 0;
     let pendingEventTime = 0;
     let hasPendingMove = false;
+    let activeTouchPointerId: number | null = null;
 
     const applyUniforms = () => {
         for (const material of materials) {
@@ -406,9 +417,8 @@ export function createCursorInteraction(
         ripplePointVelocity.lengthSq() >= 1e-9 ||
         ripplePoint.distanceToSquared(targetPoint) >= 1e-11;
 
-    const queuePointerSample = (event: Event) => {
+    const queuePointerSample = (event: PointerEvent) => {
         if (
-            !(event instanceof PointerEvent) ||
             document.hidden ||
             !visible
         ) {
@@ -422,19 +432,19 @@ export function createCursorInteraction(
         startLoop();
     };
 
-    // Touch devices do not emit a hover move before contact. Sampling the
-    // initial pointerdown lets a finger press bend the fur immediately, then
-    // pointermove continues the same interaction as a laptop mouse. These
-    // listeners stay passive: the page can still scroll normally.
     const handlePointerDown = (event: Event) => {
-        queuePointerSample(event);
+        if (event instanceof PointerEvent && event.pointerType !== "touch") {
+            queuePointerSample(event);
+        }
     };
 
     const handlePointerMove = (event: Event) => {
-        queuePointerSample(event);
+        if (event instanceof PointerEvent && event.pointerType !== "touch") {
+            queuePointerSample(event);
+        }
     };
 
-    const handlePointerLeave = () => {
+    const resetInteraction = () => {
         hasPendingMove = false;
         targetStrength = 0;
         hasLastHit = false;
@@ -444,8 +454,55 @@ export function createCursorInteraction(
         startLoop();
     };
 
-    const handlePointerEnd = () => {
-        handlePointerLeave();
+    const handlePointerLeave = (event: Event) => {
+        if (!(event instanceof PointerEvent) || event.pointerType !== "touch") {
+            resetInteraction();
+        }
+    };
+
+    const handlePointerEnd = (event: Event) => {
+        if (!(event instanceof PointerEvent) || event.pointerType !== "touch") {
+            resetInteraction();
+        }
+    };
+
+    const handleTouchPointerDown = (event: PointerEvent) => {
+        if (event.pointerType !== "touch" || activeTouchPointerId !== null) {
+            return;
+        }
+
+        activeTouchPointerId = event.pointerId;
+        touchElement?.setPointerCapture(event.pointerId);
+        event.preventDefault();
+        queuePointerSample(event);
+    };
+
+    const handleTouchPointerMove = (event: PointerEvent) => {
+        if (event.pointerId !== activeTouchPointerId) {
+            return;
+        }
+
+        event.preventDefault();
+        queuePointerSample(event);
+    };
+
+    const finishTouchPointer = (event: PointerEvent) => {
+        if (event.pointerId !== activeTouchPointerId) {
+            return;
+        }
+
+        activeTouchPointerId = null;
+        if (touchElement?.hasPointerCapture(event.pointerId)) {
+            touchElement.releasePointerCapture(event.pointerId);
+        }
+        resetInteraction();
+    };
+
+    const handleLostPointerCapture = (event: PointerEvent) => {
+        if (event.pointerId === activeTouchPointerId) {
+            activeTouchPointerId = null;
+            resetInteraction();
+        }
     };
 
     // Pointer events are listened to on window because the canvas is
@@ -507,16 +564,48 @@ export function createCursorInteraction(
     domElement.addEventListener("pointercancel", handlePointerEnd, {
         passive: true,
     });
+    touchElement?.addEventListener("pointerdown", handleTouchPointerDown);
+    touchElement?.addEventListener("pointermove", handleTouchPointerMove);
+    touchElement?.addEventListener("pointerup", finishTouchPointer);
+    touchElement?.addEventListener("pointercancel", finishTouchPointer);
+    touchElement?.addEventListener(
+        "lostpointercapture",
+        handleLostPointerCapture,
+    );
     document.addEventListener("visibilitychange", handleVisibilityChange);
 
     return {
         dispose: () => {
             disposed = true;
+            if (
+                activeTouchPointerId !== null &&
+                touchElement?.hasPointerCapture(activeTouchPointerId)
+            ) {
+                touchElement.releasePointerCapture(activeTouchPointerId);
+            }
+            activeTouchPointerId = null;
             domElement.removeEventListener("pointerdown", handlePointerDown);
             domElement.removeEventListener("pointermove", handlePointerMove);
             domElement.removeEventListener("pointerleave", handlePointerLeave);
             domElement.removeEventListener("pointerup", handlePointerEnd);
             domElement.removeEventListener("pointercancel", handlePointerEnd);
+            touchElement?.removeEventListener(
+                "pointerdown",
+                handleTouchPointerDown,
+            );
+            touchElement?.removeEventListener(
+                "pointermove",
+                handleTouchPointerMove,
+            );
+            touchElement?.removeEventListener("pointerup", finishTouchPointer);
+            touchElement?.removeEventListener(
+                "pointercancel",
+                finishTouchPointer,
+            );
+            touchElement?.removeEventListener(
+                "lostpointercapture",
+                handleLostPointerCapture,
+            );
             document.removeEventListener(
                 "visibilitychange",
                 handleVisibilityChange,
