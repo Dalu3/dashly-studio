@@ -91,7 +91,7 @@ export const FUR_QUALITY: Record<FurQualityName, FurQualityPreset> = {
     },
     mobile: {
         name: "mobile",
-        density: 2.25e6,
+        density: 3e6,
         minDpr: 2,
         maxDpr: 2,
         maxPhysicalPixels: 2.5e6,
@@ -113,7 +113,7 @@ export const FUR_QUALITY: Record<FurQualityName, FurQualityPreset> = {
     // mobile framebuffer budget; larger mobile canvases step down normally.
     "mobile-low": {
         name: "mobile-low",
-        density: 1.75e6,
+        density: 2.3e6,
         minDpr: 2,
         maxDpr: 2,
         maxPhysicalPixels: 1.75e6,

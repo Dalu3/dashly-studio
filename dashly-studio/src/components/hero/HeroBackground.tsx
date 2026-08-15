@@ -39,6 +39,11 @@ export function HeroBackground({ staticOnly = false }: HeroBackgroundProps) {
                     ref={setPlaybackRate}
                 >
                     <source
+                        media="(max-width: 47.999rem)"
+                        src="/videos/hero-background-loop-mobile.webm"
+                        type="video/webm"
+                    />
+                    <source
                         src="/videos/hero-background-loop.webm"
                         type="video/webm"
                     />

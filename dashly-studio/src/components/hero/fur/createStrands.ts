@@ -26,7 +26,7 @@ import { createStrandMaterial, type StrandMaterial } from "./createStrandMateria
  */
 
 /** Rings along a strand's length, root (t=0) to tip (t=1). 5 keeps a visible
- *  taper and a touch of curl at a cost of only 10 vertices / 8 triangles per
+ *  taper and a touch of curl at a cost of only 12 vertices / 10 triangles per
  *  strand — cheap enough that instance count, not per-strand complexity, is
  *  the knob that matters for performance. */
 const SEGMENTS = 5;

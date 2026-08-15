@@ -203,7 +203,11 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
         host.appendChild(renderer.domElement);
         const touchSurface = document.createElement("div");
         touchSurface.className = styles.interactionSurface!;
-        host.appendChild(touchSurface);
+        // This must be a sibling after Hero content. The content layer covers
+        // the whole Hero for layout, even where it is visually transparent;
+        // placing the local touch target inside this canvas host would leave
+        // it below that layer in the parent's stacking order.
+        (host.parentElement ?? host).appendChild(touchSurface);
 
         /* Soft, simple lighting: one broad ambient fill plus a single
          * directional light for the shadow pass and the base mesh's own
