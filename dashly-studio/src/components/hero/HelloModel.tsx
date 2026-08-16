@@ -78,7 +78,7 @@ export interface HelloModelDebugHandle {
 
 export interface HelloModelProps {
     className?: string;
-    onReady?: (handles: HelloModelHandles) => void;
+    onReady?: (handles: HelloModelHandles | null) => void;
     debug?: boolean;
 }
 
@@ -189,11 +189,32 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
         const camera = new PerspectiveCamera(CAMERA_FOV, 1, 0.1, 100);
         camera.position.set(0, 0, CAMERA_Z);
 
-        const renderer = new WebGLRenderer({
-            antialias: true,
-            alpha: true,
-            powerPreference: "high-performance",
-        });
+        // WebGL is an optional visual enhancement. Probe support before
+        // constructing Three's renderer so browsers with WebGL disabled do
+        // not emit a renderer error or leave the app waiting on the loader.
+        const probeCanvas = document.createElement("canvas");
+        const webglContext =
+            probeCanvas.getContext("webgl2") ?? probeCanvas.getContext("webgl");
+
+        if (!webglContext) {
+            host.dataset.webglUnavailable = "true";
+            onReadyRef.current?.(null);
+            return undefined;
+        }
+
+        let renderer: WebGLRenderer;
+
+        try {
+            renderer = new WebGLRenderer({
+                antialias: true,
+                alpha: true,
+                powerPreference: "high-performance",
+            });
+        } catch {
+            host.dataset.webglUnavailable = "true";
+            onReadyRef.current?.(null);
+            return undefined;
+        }
         renderer.setClearAlpha(0);
         renderer.shadowMap.enabled = true;
         renderer.shadowMap.type = PCFShadowMap;

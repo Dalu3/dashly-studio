@@ -202,7 +202,7 @@ export const pricingConfig = {
 };
 
 export const initialEstimatorAnswers = {
-    websiteTypeId: "landing",
+    websiteTypeId: "",
     pageCount: 1,
     featureIds: [],
     startingPointId: "",

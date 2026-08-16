@@ -18,6 +18,17 @@ const STEPS = [
 
 const focusableSelector = "button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex='-1'])";
 const money = (value) => new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(value);
+const includedHeading = (website) => website.directContact ? "Features can include" : "What’s included";
+
+function IncludedFeatures({ website }) {
+    return <>
+        <ul className={styles.includedList}>
+            {(website.includedFeatures ?? website.possibleFeatures)?.map((feature) => <li key={feature}>{feature}</li>)}
+        </ul>
+        {website.hasProductTemplate && <p className={styles.productPagesNote}>{pricingConfig.productPagesNote}</p>}
+        {website.directContact && <p className={styles.productPagesNote}>Every web application is different. Features, timeline and pricing are tailored to your project.</p>}
+    </>;
+}
 
 function Option({ type = "radio", name, item, checked, onChange, priceLabel, recommended = false, feature = false }) {
     return (
@@ -29,6 +40,41 @@ function Option({ type = "radio", name, item, checked, onChange, priceLabel, rec
             </span>
             {priceLabel && <span className={styles.price}>{priceLabel}</span>}
         </label>
+    );
+}
+
+function WebsiteOption({ item, checked, onChange, priceLabel }) {
+    return (
+        <div className={`${styles.option} ${styles.websiteOption}`} data-selected={checked || undefined} data-control="radio">
+            <div
+                className={styles.websiteOptionControl}
+                onClick={onChange}
+            >
+                <input
+                    type="radio"
+                    name="website"
+                    value={item.id}
+                    checked={checked}
+                    aria-label={`${item.label}, ${priceLabel}`}
+                    onChange={() => {}}
+                    onClick={(event) => {
+                        event.stopPropagation();
+                        onChange();
+                    }}
+                />
+                <span className={styles.optionCopy}>
+                    <span className={styles.optionTitle}><strong>{item.label}</strong></span>
+                    {item.description && <span>{item.description}</span>}
+                </span>
+                <span className={styles.price}>{priceLabel}</span>
+            </div>
+            <div className={styles.websiteIncluded} aria-hidden={!checked}>
+                <div className={styles.websiteIncludedContent}>
+                    <span className={styles.websiteIncludedHeading} role="heading" aria-level="3">{includedHeading(item)}</span>
+                    <IncludedFeatures website={item} />
+                </div>
+            </div>
+        </div>
     );
 }
 
@@ -85,15 +131,16 @@ function PageExplanation({ website }) {
 }
 
 function ProjectSummary({ website, maxHeight, stablePosition = false, allowScroll = true, showScrollAffordance = true, showEstimate = false, detailsRef: detailsRefProp, scrollParentRef, estimate, answers }) {
-    const isDesktop = useBreakpointUp("lg");
+    const isPanelLayout = useBreakpointUp("md");
     const [isOpen, setIsOpen] = useState(false);
     const [summaryCanScroll, setSummaryCanScroll] = useState(false);
     const [summaryAtStart, setSummaryAtStart] = useState(true);
     const [summaryAtEnd, setSummaryAtEnd] = useState(true);
+    const [summaryHintVisible, setSummaryHintVisible] = useState(true);
     const localDetailsRef = useRef(null);
     const detailsRef = detailsRefProp ?? localDetailsRef;
-    const summaryOpen = isDesktop || isOpen;
-    const summaryStyle = isDesktop && allowScroll && maxHeight ? { "--summary-max-height": `${maxHeight}px` } : undefined;
+    const summaryOpen = isPanelLayout || isOpen;
+    const summaryStyle = isPanelLayout && maxHeight ? { "--summary-max-height": `${maxHeight}px` } : undefined;
     const selectedExtras = pricingConfig.features.filter((feature) => (
         feature.appliesTo.includes(website.id)
         && answers?.featureIds?.includes(feature.id)
@@ -102,18 +149,26 @@ function ProjectSummary({ website, maxHeight, stablePosition = false, allowScrol
     useEffect(() => {
         const details = detailsRef.current;
 
-        if (!details || !isDesktop || !allowScroll || !maxHeight) {
+        if (!details || !isPanelLayout || !allowScroll || !maxHeight) {
             setSummaryCanScroll(false);
             setSummaryAtStart(true);
             setSummaryAtEnd(true);
+            setSummaryHintVisible(true);
             return undefined;
         }
 
+        let previousScrollTop = details.scrollTop;
         const syncSummaryScrollHint = () => {
             const canScroll = details.scrollHeight > details.clientHeight + 1;
+            const atStart = details.scrollTop <= 1;
+            const atEnd = details.scrollTop + details.clientHeight >= details.scrollHeight - 1;
+            const isScrollingUp = details.scrollTop < previousScrollTop;
+
             setSummaryCanScroll(canScroll);
-            setSummaryAtStart(details.scrollTop <= 1);
-            setSummaryAtEnd(details.scrollTop + details.clientHeight >= details.scrollHeight - 1);
+            setSummaryAtStart(atStart);
+            setSummaryAtEnd(atEnd);
+            setSummaryHintVisible(atStart || (isScrollingUp && !atEnd));
+            previousScrollTop = details.scrollTop;
         };
 
         syncSummaryScrollHint();
@@ -145,11 +200,11 @@ function ProjectSummary({ website, maxHeight, stablePosition = false, allowScrol
             details.removeEventListener("wheel", handleWheel);
             resizeObserver.disconnect();
         };
-    }, [allowScroll, detailsRef, isDesktop, maxHeight, scrollParentRef, website.id]);
+    }, [allowScroll, detailsRef, isPanelLayout, maxHeight, scrollParentRef, website.id]);
 
     return (
         <aside className={`${styles.projectSummary}${stablePosition ? ` ${styles.projectSummaryStable}` : ""}`} aria-label={`${website.label} package details`}>
-            <details className={`${styles.summaryDetails}${allowScroll ? "" : ` ${styles.summaryDetailsStatic}`}`} style={summaryStyle} open={summaryOpen} onToggle={(event) => { if (!isDesktop) setIsOpen(event.currentTarget.open); }}>
+            <details className={`${styles.summaryDetails}${allowScroll ? "" : ` ${styles.summaryDetailsStatic}`}`} data-website-type={website.id} style={summaryStyle} open={summaryOpen} onToggle={(event) => { if (!isPanelLayout) setIsOpen(event.currentTarget.open); }}>
                 <summary>
                     <span>{website.label}</span>
                     <span className={styles.summaryToggle}>{summaryOpen ? "Hide included" : "View included"}</span>
@@ -159,14 +214,12 @@ function ProjectSummary({ website, maxHeight, stablePosition = false, allowScrol
                         <h3>{website.label}</h3>
                     </div>
                     <section className={styles.summarySection} aria-labelledby="package-features-heading">
-                        <h4 id="package-features-heading">{website.directContact ? "Features can include" : "What’s included"}</h4>
-                        <div ref={detailsRef} className={styles.summaryIncludedScroll} data-summary-scroll={summaryCanScroll || undefined} data-summary-scrolled={!summaryAtStart || undefined}>
-                            <ul className={styles.includedList}>
-                                {(website.includedFeatures ?? website.possibleFeatures)?.map((feature) => <li key={feature}>{feature}</li>)}
-                            </ul>
-                            {website.hasProductTemplate && <p className={styles.productPagesNote}>{pricingConfig.productPagesNote}</p>}
-                            {website.directContact && <p className={styles.productPagesNote}>Every web application is different.{" "}Features, timeline and pricing are tailored to your project.</p>}
-                            {showScrollAffordance && summaryCanScroll && !summaryAtEnd && <div className={styles.summaryScrollHint} aria-hidden="true"><span>Scroll to see more</span><img className={styles.summaryScrollArrow} src={arrowIcon} alt="" width="1080" height="1350" /></div>}
+                        <h4 id="package-features-heading">{includedHeading(website)}</h4>
+                        <div className={styles.summaryIncludedViewport}>
+                            <div ref={detailsRef} className={styles.summaryIncludedScroll} data-summary-scroll={summaryCanScroll || undefined} data-summary-scrolled={!summaryAtStart || undefined}>
+                                <IncludedFeatures website={website} />
+                            </div>
+                            {showScrollAffordance && summaryCanScroll && !summaryAtEnd && <div className={styles.summaryScrollHint} data-hidden={!summaryHintVisible || undefined} aria-hidden="true"><span>Scroll to see more</span><img className={styles.summaryScrollArrow} src={arrowIcon} alt="" width="1080" height="1350" /></div>}
                         </div>
                     </section>
                     {showEstimate && estimate && <section className={styles.summaryEstimate} aria-labelledby="estimate-heading">
@@ -197,8 +250,9 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
     const [showResult, setShowResult] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
     const [showScrollHint, setShowScrollHint] = useState(false);
-    const [websiteOptionsHeight, setWebsiteOptionsHeight] = useState(null);
     const [summaryPanelHeight, setSummaryPanelHeight] = useState(null);
+    const [websiteOptionsHeight, setWebsiteOptionsHeight] = useState(null);
+    const isTabletUp = useBreakpointUp("md");
     const websiteOptionsRef = useRef(null);
     const summaryDetailsRef = useRef(null);
     const forwardedBodyScrollRef = useRef(null);
@@ -218,9 +272,17 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
         "--included-width": String(Math.max(4, Math.min(100, includedRatio))) + "%",
         "--selected-width": String(Math.max(0, Math.min(100, selectedRatio))) + "%",
     };
-    const websiteSummaryHeight = websiteOptionsHeight && summaryPanelHeight
-        ? Math.min(websiteOptionsHeight, summaryPanelHeight)
-        : websiteOptionsHeight ?? summaryPanelHeight;
+
+    useEffect(() => {
+        if (currentStep !== 0 || !isTabletUp || answers.websiteTypeId) return;
+
+        const firstWebsite = pricingConfig.websiteTypes[0];
+        if (!firstWebsite) return;
+
+        setAnswers((current) => current.websiteTypeId
+            ? current
+            : { ...current, websiteTypeId: firstWebsite.id, featureIds: [] });
+    }, [answers.websiteTypeId, currentStep, isTabletUp, setAnswers]);
 
     const requestClose = useCallback((afterClose) => {
         afterCloseRef.current = afterClose ?? null;
@@ -287,7 +349,7 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
             const canScroll = body.scrollHeight > body.clientHeight;
             const isAtEnd = body.scrollTop + body.clientHeight >= body.scrollHeight - 1;
 
-            setShowScrollHint(currentStep === 1 && canScroll && !isAtEnd);
+            setShowScrollHint(currentStep === 0 && canScroll && !isAtEnd);
         };
         const handleBodyWheel = (event) => {
             if (event.deltaY >= 0 || !summaryDetailsRef.current) return;
@@ -333,7 +395,7 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
     useEffect(() => {
         const options = websiteOptionsRef.current;
 
-        if (!options || currentStep !== 0 || showResult) {
+        if (!options || !website || currentStep !== 0 || showResult || !isTabletUp) {
             setWebsiteOptionsHeight(null);
             return undefined;
         }
@@ -342,9 +404,16 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
         syncHeight();
         const resizeObserver = new ResizeObserver(syncHeight);
         resizeObserver.observe(options);
+        const layoutFrame = window.requestAnimationFrame(syncHeight);
+        let isMounted = true;
+        document.fonts?.ready.then(() => { if (isMounted) syncHeight(); });
 
-        return () => resizeObserver.disconnect();
-    }, [currentStep, showResult, website?.id]);
+        return () => {
+            isMounted = false;
+            window.cancelAnimationFrame(layoutFrame);
+            resizeObserver.disconnect();
+        };
+    }, [currentStep, isTabletUp, showResult, website]);
 
     useEffect(() => {
         const body = bodyRef.current;
@@ -381,6 +450,11 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
 
     const update = (patch) => setAnswers((current) => ({ ...current, ...patch }));
     const selectWebsite = (id) => {
+        if (id === answers.websiteTypeId) {
+            setAnswers((current) => ({ ...current, websiteTypeId: "", featureIds: [] }));
+            return;
+        }
+
         const allowedFeatureIds = pricingConfig.features
             .filter((feature) => feature.appliesTo.includes(id))
             .map((feature) => feature.id);
@@ -440,11 +514,11 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
             {step.id === "website" && <div className={styles.websiteChoiceLayout}>
                 <fieldset ref={websiteOptionsRef} className={styles.optionGroup}>
                     <legend className="visually-hidden">Website type</legend>
-                    {pricingConfig.websiteTypes.map((item) => <Option key={item.id} name="website" item={item} checked={answers.websiteTypeId === item.id} onChange={() => selectWebsite(item.id)} priceLabel={item.directContact ? "Tailored scope" : `From ${money(item.basePrice)}`} />)}
+                    {pricingConfig.websiteTypes.map((item) => <WebsiteOption key={item.id} item={item} checked={answers.websiteTypeId === item.id} onChange={() => selectWebsite(item.id)} priceLabel={item.directContact ? "Tailored scope" : `From ${money(item.basePrice)}`} />)}
                 </fieldset>
-                {website && <ProjectSummary
+                {website && isTabletUp && <ProjectSummary
                     website={website}
-                    maxHeight={['landing', 'business'].includes(website.id) ? websiteSummaryHeight : summaryPanelHeight}
+                    maxHeight={websiteOptionsHeight}
                     allowScroll={!['landing', 'business'].includes(website.id)}
                     showEstimate={false}
                     detailsRef={summaryDetailsRef}
@@ -460,6 +534,7 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
                 </div>
                 <div className={styles.pageSlider} style={pageSliderStyle}>
                     <span className={styles.pageSliderTrack} aria-hidden="true"><span className={styles.pageSliderIncluded} /><span className={styles.pageSliderSelected} /></span>
+                    <span className={styles.pageSliderThumb} aria-hidden="true" />
                     <input
                         className={styles.range}
                         type="range"

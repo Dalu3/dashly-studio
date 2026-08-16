@@ -25,6 +25,7 @@
 import cvWebWork from "@/assets/work/cv-web-work.webp";
 import forPeopleWork from "@/assets/work/forpeople-work.webp";
 import privateDocWork from "@/assets/work/private-doc-work.webp";
+import { PROJECT_METADATA } from "@/data/projects.js";
 
 export interface Project {
     /** Stable identity for React's reconciliation. */
@@ -48,37 +49,20 @@ export interface Project {
     imageAlt?: string;
 }
 
-export const PROJECTS: Project[] = [
-    {
-        id: "digital-cv",
-        title: "Digital CV",
-        description: "Interactive personal portfolio website.",
-        imageAlt: "Digital CV interactive personal portfolio website",
-        url: "https://darialysunets.com/",
-        image: cvWebWork,
-        width: 630,
-        height: 380,
-    },
-    {
-        id: "for-people",
-        title: "Healthcare Platform",
-        description: "Custom healthcare website with a tailored CMS.",
-        mobileDescription: "Custom healthcare website with tailored CMS.",
-        imageAlt: "Healthcare Platform custom website with a tailored CMS",
-        url: "https://forpeople.com.ua/",
-        image: forPeopleWork,
-        width: 630,
-        height: 380,
-    },
-    {
-        id: "private-practice",
-        title: "Private Practice",
-        description: "Responsive practice website for a Ukrainian doctor.",
-        mobileDescription: "Responsive practice website for a doctor.",
-        imageAlt: "Private Practice responsive website for a Ukrainian doctor",
-        url: "https://anastasiiaponomarenko.com/",
-        image: privateDocWork,
-        width: 630,
-        height: 380,
-    },
-];
+const projectImages: Record<string, string> = {
+    "digital-cv": cvWebWork,
+    "for-people": forPeopleWork,
+    "private-practice": privateDocWork,
+};
+
+export const PROJECTS: Project[] = PROJECT_METADATA.map((project) => ({
+    id: project.id,
+    title: project.title,
+    description: project.description,
+    mobileDescription: project.mobileDescription,
+    imageAlt: project.imageAlt,
+    url: project.href,
+    image: projectImages[project.id],
+    width: project.width,
+    height: project.height,
+}));

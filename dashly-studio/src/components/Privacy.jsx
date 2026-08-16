@@ -494,9 +494,9 @@ export default function Privacy() {
                     static files.
                 </p>
                 <p>
-                    <strong>Google Fonts</strong> delivers the Sora web font. When
-                    your browser requests the font, Google may receive technical
-                    information such as your IP address and browser details.
+                    <strong>Sora web font</strong> is self-hosted by Dashly Studio
+                    and served from this website. The website does not request the
+                    Sora font from Google Fonts.
                 </p>
                 <p>
                     <strong>Google Analytics 4</strong> is loaded only when you
@@ -792,9 +792,8 @@ export default function Privacy() {
                 <p>Website: dashly.studio</p>
                 <p>Location: Scotland, United Kingdom</p>
                 <p>
-                    If Dashly Studio operates as a trading name rather than a
-                    separate legal entity, the name of the legal data controller
-                    should also be provided here.
+                    Dashly Studio is the data controller for personal information
+                    processed through this website.
                 </p>
             </section>
 

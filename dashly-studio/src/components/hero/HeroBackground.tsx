@@ -16,6 +16,23 @@ export function HeroBackground({ staticOnly = false }: HeroBackgroundProps) {
     const setPlaybackRate = useCallback((video: HTMLVideoElement | null) => {
         if (video) {
             video.playbackRate = VIDEO_PLAYBACK_RATE;
+
+            // The video is muted and inline, so playback is allowed by the
+            // browser autoplay policy. Calling play explicitly after the
+            // source is attached also recovers browsers that do not restart
+            // autoplay after a delayed source selection.
+            const resumePlayback = () => {
+                void video.play().catch(() => {
+                    // Autoplay can still be blocked by a browser setting; the
+                    // poster remains a valid visual fallback in that case.
+                });
+            };
+
+            if (video.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+                resumePlayback();
+            } else {
+                video.addEventListener("canplay", resumePlayback, { once: true });
+            }
         }
     }, []);
 
@@ -36,7 +53,7 @@ export function HeroBackground({ staticOnly = false }: HeroBackgroundProps) {
                     loop
                     muted
                     playsInline
-                    preload="metadata"
+                    preload="auto"
                     width="1920"
                     height="1080"
                     poster="/videos/hero-background-poster.webp"

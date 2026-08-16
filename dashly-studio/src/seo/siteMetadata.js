@@ -3,7 +3,7 @@ export const SITE_NAME = "Dashly Studio";
 export const SITE_EMAIL = "dashly.studio.webdev@gmail.com";
 export const SITE_IMAGE = "/og-image.jpg";
 export const SITE_IMAGE_ALT =
-    "Dashly Studio preview for web design and website development in Aberdeen and across the UK";
+    "Dashly Studio website design preview, based in Aberdeen, Scotland and serving businesses worldwide";
 export const PAGE_ROBOTS_INDEX =
     "index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1";
 export const PAGE_ROBOTS_NOINDEX = "noindex,follow";
@@ -27,7 +27,7 @@ export const faqItems = [
 ];
 
 export const homeContent = {
-    heroSubtitle: "Dashly Studio is a web design and development studio helping businesses build a stronger online presence",
+    heroSubtitle: "Dashly Studio is a web design and development studio based in Aberdeen, Scotland, serving businesses worldwide",
     heroTitleLines: ["We create websites", "That perform"],
     packagesIntro: "Choose the type of website you need, then move into a build that is designed to rank, load quickly, and turn visits into enquiries.",
     stagesIntro: "A clear process keeps your website project moving from planning to launch without guesswork, missed pages, or weak structure.",
@@ -50,8 +50,8 @@ export const homePage = {
 };
 
 export const legalPages = {
-    privacy: { key: "privacy", kind: "legal", path: "/privacy/", title: "Privacy Policy | Dashly Studio", description: "Privacy policy for Dashly Studio, a web design and website development studio serving Aberdeen and businesses across the UK.", robots: PAGE_ROBOTS_NOINDEX, indexable: false },
-    terms: { key: "terms", kind: "legal", path: "/terms/", title: "Terms and Conditions | Dashly Studio", description: "Terms and conditions for Dashly Studio, a web design and website development studio serving Aberdeen and businesses across the UK.", robots: PAGE_ROBOTS_NOINDEX, indexable: false },
+    privacy: { key: "privacy", kind: "legal", path: "/privacy/", title: "Privacy Policy | Dashly Studio", description: "Privacy policy for Dashly Studio, a web design and website development studio based in Aberdeen, Scotland and serving businesses worldwide.", robots: PAGE_ROBOTS_NOINDEX, indexable: false },
+    terms: { key: "terms", kind: "legal", path: "/terms/", title: "Terms and Conditions | Dashly Studio", description: "Terms and conditions for Dashly Studio, a web design and website development studio based in Aberdeen, Scotland and serving businesses worldwide.", robots: PAGE_ROBOTS_NOINDEX, indexable: false },
 };
 
 export const notFoundPage = {

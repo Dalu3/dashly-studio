@@ -18,6 +18,8 @@ import {
     staticPages,
 } from "../src/seo/siteMetadata.js";
 import { SERVICE_OFFERINGS } from "../src/data/services.js";
+import { PROJECT_METADATA } from "../src/data/projects.js";
+import { PROCESS_STAGES } from "../src/data/stages.js";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDirectory, "..");
@@ -133,7 +135,7 @@ function renderSiteNavigation() {
 
 function renderSiteFooter() {
     return `<footer>
-    <p>Dashly Studio — web design and development for businesses in Aberdeen and across the UK.</p>
+    <p>Dashly Studio — web design and development studio based in Aberdeen, Scotland, serving businesses worldwide.</p>
     <nav aria-label="Footer navigation">
         ${renderLink("/#work", "Work")}
         ${renderLink("/#packages", "Services")}
@@ -151,79 +153,13 @@ function renderSiteFooter() {
 </footer>`;
 }
 
-const HOME_PROJECTS = [
-    {
-        id: "digital-cv",
-        title: "Digital CV",
-        description: "Interactive personal portfolio website.",
-        imageAlt: "Digital CV interactive personal portfolio website",
-        assetBase: "cv-web-work",
-        width: 630,
-        height: 380,
-        href: "https://darialysunets.com/",
-    },
-    {
-        id: "for-people",
-        title: "Healthcare Platform",
-        description: "Custom healthcare website with a tailored CMS.",
-        imageAlt: "Healthcare Platform custom website with a tailored CMS",
-        assetBase: "forpeople-work",
-        width: 630,
-        height: 380,
-        href: "https://forpeople.com.ua/",
-    },
-    {
-        id: "private-practice",
-        title: "Private Practice",
-        description: "Responsive website for a Ukrainian doctor.",
-        imageAlt: "Private Practice responsive website for a Ukrainian doctor",
-        assetBase: "private-doc-work",
-        width: 630,
-        height: 380,
-        href: "https://anastasiiaponomarenko.com/",
-    },
-];
-
 let HOME_PROJECT_ASSETS = new Map();
-
-const HOME_STAGES = [
-    {
-        title: "Discovery Call",
-        description:
-            "We start by understanding your business, goals, audience, and vision for the website.",
-    },
-    {
-        title: "Strategy & Planning",
-        description:
-            "We define the website structure, user journey, features, and roadmap before design begins.",
-    },
-    {
-        title: "Wireframes",
-        description:
-            "We organise page layouts and content to create a clear user experience and logical navigation.",
-    },
-    {
-        title: "UI/UX Design",
-        description:
-            "We turn the structure into a modern interface that reflects your brand and builds trust.",
-    },
-    {
-        title: "Development & Testing",
-        description:
-            "We develop a fast, responsive website and test every page, interaction, and feature.",
-    },
-    {
-        title: "Launch & Support",
-        description:
-            "After approval, we launch the website and provide support, updates, and improvements.",
-    },
-];
 
 function renderHomeFallback() {
     const services = SERVICE_OFFERINGS.map(
         (service) => `<li><h3>${escapeHtml(service.label)}</h3><p>${escapeHtml(service.description)}</p></li>`,
     ).join("\n");
-    const projects = HOME_PROJECTS.map(
+    const projects = PROJECT_METADATA.map(
         (project) => {
             const imageSrc = HOME_PROJECT_ASSETS.get(project.id);
             const image = imageSrc
@@ -233,7 +169,7 @@ function renderHomeFallback() {
             return `<article>${image}<h3>${escapeHtml(project.title)}</h3><p>${escapeHtml(project.description)}</p><p>${renderLink(project.href, `View ${project.title}`)}</p></article>`;
         },
     ).join("\n");
-    const stages = HOME_STAGES.map(
+    const stages = PROCESS_STAGES.map(
         (stage, index) =>
             `<li><article><p>Stage ${index + 1}</p><h3>${escapeHtml(stage.title)}</h3><p>${escapeHtml(stage.description)}</p></article></li>`,
     ).join("\n");
@@ -280,7 +216,7 @@ function renderHomeFallback() {
 function renderLegalFallback(page) {
     const isPrivacy = page.key === "privacy";
     const sections = isPrivacy
-        ? `<section><h2>Privacy at Dashly Studio</h2><p>We collect the details you provide in an enquiry, such as your name, email address, project requirements, budget and timeline, to respond to you and prepare an estimate.</p><p>GitHub Pages hosts this website, Google Fonts delivers the Sora web font, Google Analytics 4 is loaded only with analytics consent, and EmailJS processes contact-form enquiries.</p><p>We store your cookie consent choice in your browser&apos;s local storage so the website can remember it. Video and WebGL visual assets run in your browser and do not add a separate tracking provider.</p><p>You can contact us to ask about your information, request corrections or discuss how it is used.</p></section>`
+        ? `<section><h2>Privacy at Dashly Studio</h2><p>We collect the details you provide in an enquiry, such as your name, email address, project requirements, budget and timeline, to respond to you and prepare an estimate.</p><p>GitHub Pages hosts this website, the Sora web font is self-hosted by Dashly Studio, Google Analytics 4 is loaded only with analytics consent, and EmailJS processes contact-form enquiries.</p><p>We store your cookie consent choice in your browser&apos;s local storage so the website can remember it. Video and WebGL visual assets run in your browser and do not add a separate tracking provider.</p><p>Dashly Studio is the data controller for personal information processed through this website. You can contact us to ask about your information, request corrections or discuss how it is used.</p></section>`
         : `<section><h2>Using this website</h2><p>These Terms govern your use of the Dashly Studio website. Project services, scope and deliverables are agreed separately in a proposal, quotation, statement of work or contract.</p><h2>Estimates and enquiries</h2><p>Any website estimate is indicative only and does not create a contract. Final scope, pricing and timing are confirmed separately in writing.</p><h2>Privacy</h2><p>Please also review our ${renderLink("/privacy/", "Privacy Policy")}.</p><h2>Contact</h2><p>For questions about these Terms, contact ${renderLink(`mailto:${SITE_EMAIL}`, SITE_EMAIL)}.</p></section>`;
 
     return `<main id="main-content" tabindex="-1">
@@ -529,7 +465,7 @@ async function resolveHomeProjectAssets() {
     const files = await fs.readdir(assetDirectory);
 
     HOME_PROJECT_ASSETS = new Map(
-        HOME_PROJECTS.map((project) => {
+        PROJECT_METADATA.map((project) => {
             const filename = files.find(
                 (file) =>
                     file.startsWith(`${project.assetBase}-`) &&

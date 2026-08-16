@@ -10,6 +10,7 @@ import developmentImage from "../assets/process/stage-5-development.webp";
 import launchImage from "../assets/process/stage-6-launch.webp";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
 import { SECTION_PREWARM_ROOT_MARGIN } from "../constants/performance";
+import { PROCESS_STAGES } from "../data/stages.js";
 
 const DESKTOP_MEDIA_QUERY = "(min-width: 64rem)";
 const ROUTE_VIEW_BOX = "0 0 1004 963";
@@ -18,62 +19,20 @@ const ROUTE_VIEW_BOX = "0 0 1004 963";
 const ROUTE_PATH =
     "M0.183594 1.48877C152.684 20.2111 509.781 55.2137 718.164 45.4455C926.547 35.6772 957.443 79.8015 950.464 102.599C934.847 153.617 361.758 240.832 274.018 279.881C274.018 279.881 229.491 293.896 206.405 311.765C199.004 317.494 193.814 319.998 188.515 327.714C183.095 335.608 179.989 350.704 179.989 350.704C176.487 368.061 195.337 403.703 225.887 413.169C261.353 424.158 968.624 516.759 968.624 516.759C968.624 516.759 1118.65 567.157 781.615 646.188C444.579 725.218 381.671 723.207 162.605 817.13C82.8268 851.335 150.496 886.598 225.887 898.727C420.078 929.97 757.805 952.93 957.396 961.211";
 
-const stages = [
-    {
-        title: "Discovery Call",
-        description:
-            "We create page layouts and organise content to ensure a smooth user experience and logical navigation.",
-        image: discoveryImage,
-        imageWidth: 2731,
-        imageHeight: 4096,
-        className: styles.stage1,
-    },
-    {
-        title: "Strategy & Planning",
-        description:
-            "We define the website structure, user journey, features, and a clear roadmap before design begins.",
-        image: strategyImage,
-        imageWidth: 4000,
-        imageHeight: 2667,
-        className: styles.stage2,
-    },
-    {
-        title: "Wireframes",
-        description:
-            "We create page layouts and organise content to ensure a smooth user experience and logical navigation.",
-        image: wireframesImage,
-        imageWidth: 4096,
-        imageHeight: 2731,
-        className: styles.stage3,
-    },
-    {
-        title: "UI/UX Design",
-        description:
-            "We transform the wireframes into a modern, engaging interface that reflects your brand and builds trust.",
-        image: designImage,
-        imageWidth: 4096,
-        imageHeight: 2731,
-        className: styles.stage4,
-    },
-    {
-        title: "Development & Testing",
-        description:
-            "We develop a fast, responsive website and carefully test every page, interaction, and feature before launch.",
-        image: developmentImage,
-        imageWidth: 4096,
-        imageHeight: 2300,
-        className: styles.stage5,
-    },
-    {
-        title: "Launch & Support",
-        description:
-            "Once everything is approved, we launch your website and provide ongoing support, updates, and improvements.",
-        image: launchImage,
-        imageWidth: 4096,
-        imageHeight: 2731,
-        className: styles.stage6,
-    },
+const stageMedia = [
+    [discoveryImage, 2731, 4096, styles.stage1],
+    [strategyImage, 4000, 2667, styles.stage2],
+    [wireframesImage, 4096, 2731, styles.stage3],
+    [designImage, 4096, 2731, styles.stage4],
+    [developmentImage, 4096, 2300, styles.stage5],
+    [launchImage, 4096, 2731, styles.stage6],
 ];
+
+const stages = PROCESS_STAGES.map((stage, index) => {
+    const [image, imageWidth, imageHeight, className] = stageMedia[index];
+
+    return { ...stage, image, imageWidth, imageHeight, className };
+});
 
 function clamp(value, min = 0, max = 1) {
     return Math.min(max, Math.max(min, value));

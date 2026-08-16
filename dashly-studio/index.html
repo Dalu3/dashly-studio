@@ -23,7 +23,9 @@
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
         <link rel="preload" href="/videos/hero-background-poster.webp" as="image" type="image/webp" fetchpriority="high" />
-        <link rel="preload" href="/fonts/sora-400.woff2" as="font" type="font/woff2" crossorigin />
+        <!-- Only Hero/header weights are critical for the first viewport. The
+             regular and medium weights remain available through @font-face and
+             load on demand when below-the-fold UI needs them. -->
         <link rel="preload" href="/fonts/sora-600.woff2" as="font" type="font/woff2" crossorigin />
         <link rel="preload" href="/fonts/sora-700.woff2" as="font" type="font/woff2" crossorigin />
         <meta property="og:locale" content="en_GB" />
@@ -45,7 +47,7 @@
         <meta property="og:image:type" content="image/jpeg" />
         <meta
             property="og:image:alt"
-            content="Dashly Studio preview for web design and website development in Aberdeen and across the UK"
+            content="Dashly Studio website design preview, based in Aberdeen, Scotland and serving businesses worldwide"
         />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
@@ -64,7 +66,7 @@
         />
         <meta
             name="twitter:image:alt"
-            content="Dashly Studio preview for web design and website development in Aberdeen and across the UK"
+            content="Dashly Studio website design preview, based in Aberdeen, Scotland and serving businesses worldwide"
         />
         <script type="application/ld+json" data-route-schema="true">
             {}
