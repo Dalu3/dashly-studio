@@ -3,10 +3,10 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Web Design & Development UK | Dashly Studio</title>
+        <title>Web Design &amp; Development Studio in Scotland | Dashly Studio</title>
         <meta
             name="description"
-            content="Web design and website development for small businesses in Aberdeen and across the UK. Fast, conversion-focused websites built to turn visitors into enquiries."
+            content="Dashly Studio is a Scotland-based web design and development studio creating custom websites for businesses worldwide."
         />
         <meta
             name="robots"
@@ -18,48 +18,24 @@
         <meta name="format-detection" content="telephone=no" />
         <link rel="canonical" href="https://dashly.studio/" />
         <link rel="alternate" hreflang="en-gb" href="https://dashly.studio/" />
-        <link rel="icon" href="/favicon.png" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" sizes="any" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <!--
-            Weight 300 dropped: nothing in the codebase references
-            --font-weight-light (grepped across src/**/*.css|jsx|tsx), so it
-            was pure unused payload on every load.
-
-            Loaded as non-render-blocking: `media="print"` makes the browser
-            fetch it without waiting for it before first paint, then the
-            `onload` swap applies it once it has arrived. `<noscript>` keeps
-            the normal blocking behaviour for the rare case JS is disabled,
-            so the fonts still load either way.
-        -->
-        <link
-            rel="preload"
-            as="style"
-            href="https://fonts.googleapis.com/css2?family=Sora:wght@200;400;500;600;700&display=swap"
-        />
-        <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Sora:wght@200;400;500;600;700&display=swap"
-            media="print"
-            onload="this.media='all'"
-        />
-        <noscript>
-            <link
-                rel="stylesheet"
-                href="https://fonts.googleapis.com/css2?family=Sora:wght@200;400;500;600;700&display=swap"
-            />
-        </noscript>
+        <link rel="preload" href="/videos/hero-background-poster.webp" as="image" type="image/webp" fetchpriority="high" />
+        <link rel="preload" href="/fonts/sora-400.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="/fonts/sora-600.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="/fonts/sora-700.woff2" as="font" type="font/woff2" crossorigin />
         <meta property="og:locale" content="en_GB" />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="Dashly Studio" />
         <meta
             property="og:title"
-            content="Web Design Aberdeen & UK for Small Businesses | Dashly Studio"
+            content="Web Design & Development Studio in Scotland | Dashly Studio"
         />
         <meta
             property="og:description"
-            content="Web design and website development for small businesses in Aberdeen and across the UK. Fast, conversion-focused websites built to turn visitors into enquiries."
+            content="Dashly Studio is a Scotland-based web design and development studio creating custom websites for businesses worldwide."
         />
         <meta property="og:url" content="https://dashly.studio/" />
         <meta
@@ -76,11 +52,11 @@
         <meta name="twitter:card" content="summary_large_image" />
         <meta
             name="twitter:title"
-            content="Web Design Aberdeen & UK for Small Businesses | Dashly Studio"
+            content="Web Design & Development Studio in Scotland | Dashly Studio"
         />
         <meta
             name="twitter:description"
-            content="Web design and website development for small businesses in Aberdeen and across the UK. Fast, conversion-focused websites built to turn visitors into enquiries."
+            content="Dashly Studio is a Scotland-based web design and development studio creating custom websites for businesses worldwide."
         />
         <meta
             name="twitter:image"

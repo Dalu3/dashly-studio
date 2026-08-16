@@ -1,3 +1,5 @@
+import { SOCIAL_LINKS } from "@/seo/siteMetadata.js";
+
 export interface FooterNavLink {
     label: string;
     href: string;
@@ -31,16 +33,16 @@ export const FOOTER_SOCIAL_LINKS: readonly FooterSocialLink[] = [
     {
         platform: "instagram",
         label: "Instagram",
-        href: "https://www.instagram.com/dashly__studio?igsh=bDhteTk3cTNwbHZs&utm_source=qr",
+        href: SOCIAL_LINKS[0]!,
     },
     {
         platform: "facebook",
         label: "Facebook",
-        href: "https://www.facebook.com/share/1CJ437vchm/?mibextid=wwXIfr",
+        href: SOCIAL_LINKS[1]!,
     },
     {
         platform: "linkedin",
         label: "LinkedIn",
-        href: "https://www.linkedin.com/company/dashly-studio/",
+        href: SOCIAL_LINKS[2]!,
     },
 ];

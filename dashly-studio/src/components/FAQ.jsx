@@ -35,10 +35,10 @@ export default function FAQ() {
             aria-labelledby="faq-title"
         >
             <div className="faq-container">
-                <div className="faq-intro">
+                <header className="faq-intro">
                     <h2 id="faq-title">FAQ</h2>
                     <p>Everything You Need to Know</p>
-                </div>
+                </header>
                 <div className="faq-list">
                     {faqItems.map((item, i) => {
                         const isOpen = activeIndex === i;
@@ -50,23 +50,25 @@ export default function FAQ() {
                                 key={item.question}
                                 className={`faq-item ${isOpen ? "active" : ""}`}
                             >
-                                <button
-                                    id={questionId}
-                                    className="faq-question"
-                                    onClick={() => toggleFAQ(i)}
-                                    type="button"
-                                    aria-expanded={isOpen}
-                                    aria-controls={answerId}
-                                >
-                                    <span className="faq-question-text">
-                                        {item.question}
-                                    </span>
-                                    <span className="faq-icon" aria-hidden="true">
-                                        <svg viewBox="0 0 16 10" focusable="false">
-                                            <path d="m1 1 7 7 7-7" />
-                                        </svg>
-                                    </span>
-                                </button>
+                                <h3>
+                                    <button
+                                        id={questionId}
+                                        className="faq-question"
+                                        onClick={() => toggleFAQ(i)}
+                                        type="button"
+                                        aria-expanded={isOpen}
+                                        aria-controls={answerId}
+                                    >
+                                        <span className="faq-question-text">
+                                            {item.question}
+                                        </span>
+                                        <span className="faq-icon" aria-hidden="true">
+                                            <svg viewBox="0 0 16 10" focusable="false">
+                                                <path d="m1 1 7 7 7-7" />
+                                            </svg>
+                                        </span>
+                                    </button>
+                                </h3>
                                 <div
                                     id={answerId}
                                     className="faq-answer"

@@ -1,4 +1,4 @@
-import arrowIcon from "../../assets/arrow.webp";
+import arrowIcon from "../../assets/arrow.svg";
 import styles from "./TextArrowAction.module.css";
 
 export function TextArrowAction({
@@ -13,7 +13,14 @@ export function TextArrowAction({
             {...props}
         >
             <span>{children}</span>
-            <img className={styles.arrow} src={arrowIcon} alt="" aria-hidden="true" />
+            <img
+                className={styles.arrow}
+                src={arrowIcon}
+                alt=""
+                width="1080"
+                height="1350"
+                aria-hidden="true"
+            />
         </Element>
     );
 }

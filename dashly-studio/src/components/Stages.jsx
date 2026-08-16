@@ -576,6 +576,8 @@ export default function Stages() {
                         className={styles.routeAsset}
                         src={routeAsset}
                         alt=""
+                        width="1004"
+                        height="963"
                         aria-hidden="true"
                     />
                     <svg
@@ -603,7 +605,12 @@ export default function Stages() {
                         ref={arrowRef}
                         aria-hidden="true"
                     >
-                        <img src={arrowAsset} alt="" />
+                        <img
+                            src={arrowAsset}
+                            alt=""
+                            width="54"
+                            height="38"
+                        />
                     </span>
 
                     {stages.map((stage, index) => (

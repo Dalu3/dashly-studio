@@ -136,7 +136,8 @@ function Header() {
 
         if (hash === "#estimator") {
             if (window.location.pathname !== "/") {
-                window.location.assign("/#estimator");
+                window.history.pushState({}, "", "/#estimator");
+                window.dispatchEvent(new PopStateEvent("popstate"));
                 return;
             }
 

@@ -8,10 +8,71 @@
  * Scale ratio: ~1.25 (major third) at mobile, widening to ~1.333 at desktop.
  */
 
+@font-face {
+    font-family: "Sora";
+    font-style: normal;
+    font-weight: 200;
+    font-display: swap;
+    src: url("/fonts/sora-200.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Sora";
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url("/fonts/sora-300.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Sora";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("/fonts/sora-400.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Sora";
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url("/fonts/sora-500.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Sora";
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url("/fonts/sora-600.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Sora";
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url("/fonts/sora-700.woff2") format("woff2");
+}
+
+/* Match Sora's 970/290 vertical font metrics before the local font is ready. */
+@font-face {
+    font-family: "Sora Fallback";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: local("Arial"), local("Helvetica Neue"), local("Helvetica");
+    size-adjust: 100%;
+    ascent-override: 97%;
+    descent-override: 29%;
+    line-gap-override: 0%;
+}
+
 :root {
     /* ---- Families ------------------------------------------------------- */
-    --font-family-sans: "Sora", ui-sans-serif, system-ui, -apple-system,
-        "Segoe UI", sans-serif;
+    --font-family-sans: "Sora", "Sora Fallback", ui-sans-serif, system-ui,
+        -apple-system, "Segoe UI", sans-serif;
     --font-family-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo,
         monospace;
 

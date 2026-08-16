@@ -7,7 +7,13 @@ export function MainPage() {
     return (
         <div className="hero-copy" id="main">
             <div className="hero-copy__message">
-                <h1>
+                <span
+                    className="hero-copy__grid-sizer"
+                    aria-hidden="true"
+                >
+                    {homeContent.heroTitleLines[1]}
+                </span>
+                <h1 id="hero-title">
                     {homeContent.heroTitleLines.map((line) => (
                         <span key={line}>{line}</span>
                     ))}

@@ -16,7 +16,7 @@ export default function Contact() {
             aria-labelledby="contact-heading"
         >
             <div className={styles.container}>
-                <div className={styles.intro}>
+                <header className={styles.intro}>
                     <h2 id="contact-heading" className={styles.heading}>
                         <span className={styles.headingLine}>HAVE A PROJECT</span>
                         <span className={cn(styles.headingLine, styles.headingAccent)}>
@@ -27,7 +27,7 @@ export default function Contact() {
                         We&rsquo;d love to hear about your idea. Fill out the form and
                         we&rsquo;ll get back to you within one business day.
                     </p>
-                </div>
+                </header>
 
                 <ContactForm />
             </div>

@@ -1,7 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 
 import "./Packages.css";
-import arrowImage from "../assets/arrow.webp";
+import arrowImage from "../assets/arrow.svg";
 import { PROJECT_TYPE_SELECT_EVENT } from "../constants/projectTypes";
 import { navigateToHash } from "../utils/scrollToHash";
 import { openEstimator } from "./estimator/estimatorEvents";
@@ -118,15 +118,6 @@ export default function Packages() {
             }),
         );
         navigateToHash(null, "#contact");
-    };
-
-    const handlePackageKeyDown = (event, service) => {
-        if (event.key !== "Enter" && event.key !== " ") {
-            return;
-        }
-
-        event.preventDefault();
-        selectPackage(service);
     };
 
     useEffect(() => {
@@ -336,16 +327,18 @@ export default function Packages() {
                             className={`package-row${activePackageIndex === index ? " package-row--active" : ""}`}
                             data-package-index={index}
                             key={pkg.id}
-                            role="button"
-                            tabIndex={0}
-                            onClick={() => selectPackage(pkg)}
-                            onKeyDown={(event) => handlePackageKeyDown(event, pkg)}
                             ref={(row) => {
                                 packageRowsRef.current[index] = row;
                             }}
                         >
-                            <h3>{pkg.label}</h3>
+                            <h3 id={`package-title-${pkg.id}`}>{pkg.label}</h3>
                             <p>{pkg.description}</p>
+                            <button
+                                type="button"
+                                className="package-row__action"
+                                aria-labelledby={`package-title-${pkg.id}`}
+                                onClick={() => selectPackage(pkg)}
+                            />
                         </article>
                     ))}
                 </div>
@@ -354,18 +347,20 @@ export default function Packages() {
                     <p className="packages-estimate__desktop-copy">
                         Five questions and you&rsquo;ll have a price.
                     </p>
-                    <a
-                        href="#estimator"
-                        onClick={(event) => { event.preventDefault(); openEstimator(event.currentTarget); }}
+                    <button
+                        type="button"
+                        onClick={(event) => openEstimator(event.currentTarget)}
                     >
                         Get My Estimate
                         <img
                             src={arrowImage}
                             className="packages-estimate__icon"
                             alt=""
+                            width="1080"
+                            height="1350"
                             aria-hidden="true"
                         />
-                    </a>
+                    </button>
                     <p className="packages-estimate__mobile-caption">
                         Answer 5 quick questions to get a tailored estimate.
                     </p>

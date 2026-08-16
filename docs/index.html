@@ -3,8 +3,8 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Web Design Aberdeen &amp; UK for Small Businesses | Dashly Studio</title>
-        <meta name="description" content="Web design and website development for small businesses in Aberdeen and across the UK. Fast, conversion-focused websites built to turn visitors into enquiries." />
+        <title>Web Design &amp; Development Studio in Scotland | Dashly Studio</title>
+        <meta name="description" content="Dashly Studio is a Scotland-based web design and development studio creating custom websites for businesses worldwide." />
         <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" />
         <meta name="application-name" content="Dashly Studio" />
         <meta name="author" content="Dashly Studio" />
@@ -12,55 +12,31 @@
         <meta name="format-detection" content="telephone=no" />
         <link rel="canonical" href="https://dashly.studio/" />
         <link rel="alternate" hreflang="en-gb" href="https://dashly.studio/" />
-        <link rel="icon" href="/favicon.png" />
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="icon" href="/favicon.ico" type="image/x-icon" sizes="any" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
         <link rel="manifest" href="/site.webmanifest" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <!--
-            Weight 300 dropped: nothing in the codebase references
-            --font-weight-light (grepped across src/**/*.css|jsx|tsx), so it
-            was pure unused payload on every load.
-
-            Loaded as non-render-blocking: `media="print"` makes the browser
-            fetch it without waiting for it before first paint, then the
-            `onload` swap applies it once it has arrived. `<noscript>` keeps
-            the normal blocking behaviour for the rare case JS is disabled,
-            so the fonts still load either way.
-        -->
-        <link
-            rel="preload"
-            as="style"
-            href="https://fonts.googleapis.com/css2?family=Sora:wght@200;400;500;600;700&display=swap"
-        />
-        <link
-            rel="stylesheet"
-            href="https://fonts.googleapis.com/css2?family=Sora:wght@200;400;500;600;700&display=swap"
-            media="print"
-            onload="this.media='all'"
-        />
-        <noscript>
-            <link
-                rel="stylesheet"
-                href="https://fonts.googleapis.com/css2?family=Sora:wght@200;400;500;600;700&display=swap"
-            />
-        </noscript>
+        <link rel="preload" href="/videos/hero-background-poster.webp" as="image" type="image/webp" fetchpriority="high" />
+        <link rel="preload" href="/fonts/sora-400.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="/fonts/sora-600.woff2" as="font" type="font/woff2" crossorigin />
+        <link rel="preload" href="/fonts/sora-700.woff2" as="font" type="font/woff2" crossorigin />
         <meta property="og:locale" content="en_GB" />
         <meta property="og:type" content="website" />
         <meta property="og:site_name" content="Dashly Studio" />
-        <meta property="og:title" content="Web Design Aberdeen &amp; UK for Small Businesses | Dashly Studio" />
-        <meta property="og:description" content="Web design and website development for small businesses in Aberdeen and across the UK. Fast, conversion-focused websites built to turn visitors into enquiries." />
+        <meta property="og:title" content="Web Design &amp; Development Studio in Scotland | Dashly Studio" />
+        <meta property="og:description" content="Dashly Studio is a Scotland-based web design and development studio creating custom websites for businesses worldwide." />
         <meta property="og:url" content="https://dashly.studio/" />
-        <meta property="og:image" content="https://dashly.studio/og-image.png" />
-        <meta property="og:image:type" content="image/png" />
+        <meta property="og:image" content="https://dashly.studio/og-image.jpg" />
+        <meta property="og:image:type" content="image/jpeg" />
         <meta property="og:image:alt" content="Dashly Studio preview for web design and website development in Aberdeen and across the UK" />
         <meta property="og:image:width" content="1200" />
         <meta property="og:image:height" content="630" />
         <meta name="twitter:card" content="summary_large_image" />
-        <meta name="twitter:title" content="Web Design Aberdeen &amp; UK for Small Businesses | Dashly Studio" />
-        <meta name="twitter:description" content="Web design and website development for small businesses in Aberdeen and across the UK. Fast, conversion-focused websites built to turn visitors into enquiries." />
-        <meta name="twitter:image" content="https://dashly.studio/og-image.png" />
+        <meta name="twitter:title" content="Web Design &amp; Development Studio in Scotland | Dashly Studio" />
+        <meta name="twitter:description" content="Dashly Studio is a Scotland-based web design and development studio creating custom websites for businesses worldwide." />
+        <meta name="twitter:image" content="https://dashly.studio/og-image.jpg" />
         <meta name="twitter:image:alt" content="Dashly Studio preview for web design and website development in Aberdeen and across the UK" />
-        <script type="application/ld+json" data-route-schema="true">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://dashly.studio/#website","url":"https://dashly.studio/","name":"Dashly Studio","inLanguage":"en-GB","description":"Web design and website development for small businesses in Aberdeen and across the UK. Fast, conversion-focused websites built to turn visitors into enquiries.","publisher":{"@id":"https://dashly.studio/#business"}},{"@type":"ProfessionalService","@id":"https://dashly.studio/#business","name":"Dashly Studio","url":"https://dashly.studio/","image":"https://dashly.studio/og-image.png","email":"dashly.studio.webdev@gmail.com","priceRange":"GBP 600+","areaServed":[{"@type":"City","name":"Aberdeen"},{"@type":"AdministrativeArea","name":"Scotland"},{"@type":"Country","name":"United Kingdom"}],"address":{"@type":"PostalAddress","addressLocality":"Aberdeen","addressRegion":"Scotland","addressCountry":"GB"},"serviceType":["Web Design","Website Development","Landing Page Design"],"description":"Dashly Studio is a web design and website development studio in Aberdeen creating responsive business websites for startups and small businesses across the UK.","sameAs":["https://www.instagram.com/dashly__studio?igsh=bDhteTk3cTNwbHZs&utm_source=qr","https://www.facebook.com/share/1GEhgHVJGC/?mibextid=wwXIfr","https://www.linkedin.com/company/dashly-studio/"]}]}</script>
+        <script type="application/ld+json" data-route-schema="true">{"@context":"https://schema.org","@graph":[{"@type":"WebSite","@id":"https://dashly.studio/#website","url":"https://dashly.studio/","name":"Dashly Studio","inLanguage":"en-GB","description":"Dashly Studio is a Scotland-based web design and development studio creating custom websites for businesses worldwide.","publisher":{"@id":"https://dashly.studio/#organization"}},{"@type":"ProfessionalService","@id":"https://dashly.studio/#organization","name":"Dashly Studio","url":"https://dashly.studio/","description":"Dashly Studio is a web design and development studio helping businesses build a stronger online presence.","areaServed":[{"@type":"City","name":"Aberdeen"},{"@type":"AdministrativeArea","name":"Scotland"},{"@type":"Country","name":"United Kingdom"}],"serviceType":["Web design","Website development","Landing page design"],"sameAs":["https://www.instagram.com/dashly__studio?igsh=bDhteTk3cTNwbHZs&utm_source=qr","https://www.facebook.com/share/1CJ437vchm/?mibextid=wwXIfr","https://www.linkedin.com/company/dashly-studio/"]},{"@type":"FAQPage","@id":"https://dashly.studio/#faq","url":"https://dashly.studio/#faq","name":"Frequently asked questions","mainEntity":[{"@type":"Question","name":"How long will my project take?","acceptedAnswer":{"@type":"Answer","text":"Most projects take one to three months, depending on the scope, complexity, and how quickly feedback and content are provided. We’ll confirm a clear timeline before work begins."}},{"@type":"Question","name":"How much will my website cost?","acceptedAnswer":{"@type":"Answer","text":"Website costs depend on the scope, number of pages and features you need. Use our Price Estimator to answer five quick questions and get an initial estimate for your project."}},{"@type":"Question","name":"What’s included in the price?","acceptedAnswer":{"@type":"Answer","text":"Your project can include strategy, custom UI/UX design, responsive development, mobile and tablet optimisation, animations and interactions, contact forms, CMS integration, SEO setup, performance optimisation, analytics, domain and hosting setup, testing, and launch support. The exact features depend on your project, and everything included will be clearly outlined in your quote before we start."}},{"@type":"Question","name":"Do you create custom websites from scratch?","acceptedAnswer":{"@type":"Answer","text":"Yes. We design and develop custom websites around your business, rather than relying on generic templates. This gives us more control over the design, performance and functionality of your site."}},{"@type":"Question","name":"Will the website be SEO-friendly from launch?","acceptedAnswer":{"@type":"Answer","text":"Yes. We build websites with clear heading structure, metadata, mobile responsiveness, and technical foundations that support Google visibility."}},{"@type":"Question","name":"Can I update the website without a developer?","acceptedAnswer":{"@type":"Answer","text":"Yes. When content editing is part of your project, we’ll provide an easy way to manage routine updates and show you how to use it confidently."}}]}]}</script>
         <style>
             html,
             body {
@@ -69,11 +45,84 @@
                 padding: 0;
             }
         </style>
-      <script type="module" crossorigin src="/assets/index-DghIGepI.js"></script>
-      <link rel="stylesheet" crossorigin href="/assets/index-BwzAjw9e.css">
+      <script type="module" crossorigin src="/assets/index-D6SSzV3d.js"></script>
+      <link rel="stylesheet" crossorigin href="/assets/index-CD8h8ueN.css">
     </head>
 
     <body>
+        <div id="static-page-content"><a class="skip-to-main-content" href="#main-content">Skip to main content</a><header>
+    <a href="/" aria-label="Dashly Studio home">Dashly Studio</a>
+    <nav aria-label="Primary">
+        <a href="/#work">Work</a>
+        <a href="/#packages">Services</a>
+        <a href="/#stages">Process</a>
+        <a href="/#faq">FAQ</a>
+        <a href="/#contact">Contact</a>
+    </nav>
+</header><main id="main-content" tabindex="-1">
+    <section aria-labelledby="hero-title">
+        <h1 id="hero-title">We create websites That perform</h1>
+        <p>Dashly Studio is a web design and development studio helping businesses build a stronger online presence</p>
+        <p>Based in Scotland</p>
+        <p>Working Worldwide</p>
+        <p><a href="/#contact">Start a project conversation</a></p>
+    </section>
+    <section id="work" aria-labelledby="work-title">
+        <h2 id="work-title">Selected work</h2>
+        <p>Examples of custom websites and digital experiences created by Dashly Studio.</p>
+        <div><article><img src="/assets/cv-web-work-Cdob68Kh.webp" alt="Digital CV interactive personal portfolio website" width="630" height="380" loading="lazy" decoding="async" /><h3>Digital CV</h3><p>Interactive personal portfolio website.</p><p><a href="https://darialysunets.com/">View Digital CV</a></p></article>
+<article><img src="/assets/forpeople-work-CVka5lkU.webp" alt="Healthcare Platform custom website with a tailored CMS" width="630" height="380" loading="lazy" decoding="async" /><h3>Healthcare Platform</h3><p>Custom healthcare website with a tailored CMS.</p><p><a href="https://forpeople.com.ua/">View Healthcare Platform</a></p></article>
+<article><img src="/assets/private-doc-work-DtDB1n06.webp" alt="Private Practice responsive website for a Ukrainian doctor" width="630" height="380" loading="lazy" decoding="async" /><h3>Private Practice</h3><p>Responsive website for a Ukrainian doctor.</p><p><a href="https://anastasiiaponomarenko.com/">View Private Practice</a></p></article></div>
+    </section>
+    <section id="packages" aria-labelledby="services-title">
+        <h2 id="services-title">The websites we build</h2>
+        <ul><li><h3>Landing Page</h3><p>A one-page website designed to turn visitors into customers with a clear message and strong call to action.</p></li>
+<li><h3>Multi-Page Website</h3><p>A complete business website with dedicated pages for your services, company, portfolio, contact information and more.</p></li>
+<li><h3>Catalogue Website</h3><p>Display your products or services in a structured online catalogue without online payments. Perfect for browsing and enquiries.</p></li>
+<li><h3>E-Commerce</h3><p>Sell products online with a secure store, product management and shopping cart.</p></li>
+<li><h3>Web Application</h3><p>A tailored digital product that brings your workflow, customers and business tools together in one place.</p></li></ul>
+        <p><a href="/#contact">Tell us about your project</a></p>
+    </section>
+    <section id="stages" aria-labelledby="stages-title">
+        <h2 id="stages-title">How we make it work</h2>
+        <p>From strategy to development, every step is shaped around your business and its goals.</p>
+        <ol><li><article><p>Stage 1</p><h3>Discovery Call</h3><p>We start by understanding your business, goals, audience, and vision for the website.</p></article></li>
+<li><article><p>Stage 2</p><h3>Strategy &amp; Planning</h3><p>We define the website structure, user journey, features, and roadmap before design begins.</p></article></li>
+<li><article><p>Stage 3</p><h3>Wireframes</h3><p>We organise page layouts and content to create a clear user experience and logical navigation.</p></article></li>
+<li><article><p>Stage 4</p><h3>UI/UX Design</h3><p>We turn the structure into a modern interface that reflects your brand and builds trust.</p></article></li>
+<li><article><p>Stage 5</p><h3>Development &amp; Testing</h3><p>We develop a fast, responsive website and test every page, interaction, and feature.</p></article></li>
+<li><article><p>Stage 6</p><h3>Launch &amp; Support</h3><p>After approval, we launch the website and provide support, updates, and improvements.</p></article></li></ol>
+    </section>
+    <section id="faq" aria-labelledby="faq-title">
+        <h2 id="faq-title">Frequently asked questions</h2>
+        <article><h3>How long will my project take?</h3><details><summary>Show answer</summary><p>Most projects take one to three months, depending on the scope, complexity, and how quickly feedback and content are provided. We’ll confirm a clear timeline before work begins.</p></details></article>
+<article><h3>How much will my website cost?</h3><details><summary>Show answer</summary><p>Website costs depend on the scope, number of pages and features you need. Use our <a href="/#estimator">Price Estimator</a> to answer five quick questions and get an initial estimate for your project.</p></details></article>
+<article><h3>What’s included in the price?</h3><details><summary>Show answer</summary><p>Your project can include strategy, custom UI/UX design, responsive development, mobile and tablet optimisation, animations and interactions, contact forms, CMS integration, SEO setup, performance optimisation, analytics, domain and hosting setup, testing, and launch support. The exact features depend on your project, and everything included will be clearly outlined in your quote before we start.</p></details></article>
+<article><h3>Do you create custom websites from scratch?</h3><details><summary>Show answer</summary><p>Yes. We design and develop custom websites around your business, rather than relying on generic templates. This gives us more control over the design, performance and functionality of your site.</p></details></article>
+<article><h3>Will the website be SEO-friendly from launch?</h3><details><summary>Show answer</summary><p>Yes. We build websites with clear heading structure, metadata, mobile responsiveness, and technical foundations that support Google visibility.</p></details></article>
+<article><h3>Can I update the website without a developer?</h3><details><summary>Show answer</summary><p>Yes. When content editing is part of your project, we’ll provide an easy way to manage routine updates and show you how to use it confidently.</p></details></article>
+    </section>
+    <section id="contact" aria-labelledby="contact-title">
+        <h2 id="contact-title">Have a project in mind?</h2>
+        <p>Contact Dashly Studio at <a href="mailto:dashly.studio.webdev@gmail.com">dashly.studio.webdev@gmail.com</a>.</p>
+    </section>
+</main><footer>
+    <p>Dashly Studio — web design and development for businesses in Aberdeen and across the UK.</p>
+    <nav aria-label="Footer navigation">
+        <a href="/#work">Work</a>
+        <a href="/#packages">Services</a>
+        <a href="/#stages">Process</a>
+        <a href="/#faq">FAQ</a>
+        <a href="/#contact">Contact</a>
+        <a href="/terms/">Terms and Conditions</a>
+        <a href="/privacy/">Privacy Policy</a>
+    </nav>
+    <nav aria-label="Social links">
+        <a href="https://www.instagram.com/dashly__studio?igsh=bDhteTk3cTNwbHZs&amp;utm_source=qr">Instagram</a>
+        <a href="https://www.facebook.com/share/1CJ437vchm/?mibextid=wwXIfr">Facebook</a>
+        <a href="https://www.linkedin.com/company/dashly-studio/">LinkedIn</a>
+    </nav>
+</footer></div>
         <div id="root"></div>
     </body>
 </html>

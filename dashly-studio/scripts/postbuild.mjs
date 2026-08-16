@@ -12,6 +12,7 @@ import {
     homeContent,
     homePage,
     SITE_EMAIL,
+    SOCIAL_LINKS,
     indexablePages,
     notFoundPage,
     staticPages,
@@ -42,6 +43,10 @@ function upsertTag(html, pattern, tag) {
     }
 
     return html.replace("</head>", `    ${tag}\n    </head>`);
+}
+
+function removeTag(html, pattern) {
+    return html.replace(pattern, "");
 }
 
 function upsertMetaByName(html, name, content) {
@@ -129,34 +134,137 @@ function renderSiteNavigation() {
 function renderSiteFooter() {
     return `<footer>
     <p>Dashly Studio — web design and development for businesses in Aberdeen and across the UK.</p>
-    <nav aria-label="Footer">
+    <nav aria-label="Footer navigation">
+        ${renderLink("/#work", "Work")}
+        ${renderLink("/#packages", "Services")}
+        ${renderLink("/#stages", "Process")}
+        ${renderLink("/#faq", "FAQ")}
+        ${renderLink("/#contact", "Contact")}
         ${renderLink("/terms/", "Terms and Conditions")}
         ${renderLink("/privacy/", "Privacy Policy")}
+    </nav>
+    <nav aria-label="Social links">
+        ${renderLink(SOCIAL_LINKS[0], "Instagram")}
+        ${renderLink(SOCIAL_LINKS[1], "Facebook")}
+        ${renderLink(SOCIAL_LINKS[2], "LinkedIn")}
     </nav>
 </footer>`;
 }
 
+const HOME_PROJECTS = [
+    {
+        id: "digital-cv",
+        title: "Digital CV",
+        description: "Interactive personal portfolio website.",
+        imageAlt: "Digital CV interactive personal portfolio website",
+        assetBase: "cv-web-work",
+        width: 630,
+        height: 380,
+        href: "https://darialysunets.com/",
+    },
+    {
+        id: "for-people",
+        title: "Healthcare Platform",
+        description: "Custom healthcare website with a tailored CMS.",
+        imageAlt: "Healthcare Platform custom website with a tailored CMS",
+        assetBase: "forpeople-work",
+        width: 630,
+        height: 380,
+        href: "https://forpeople.com.ua/",
+    },
+    {
+        id: "private-practice",
+        title: "Private Practice",
+        description: "Responsive website for a Ukrainian doctor.",
+        imageAlt: "Private Practice responsive website for a Ukrainian doctor",
+        assetBase: "private-doc-work",
+        width: 630,
+        height: 380,
+        href: "https://anastasiiaponomarenko.com/",
+    },
+];
+
+let HOME_PROJECT_ASSETS = new Map();
+
+const HOME_STAGES = [
+    {
+        title: "Discovery Call",
+        description:
+            "We start by understanding your business, goals, audience, and vision for the website.",
+    },
+    {
+        title: "Strategy & Planning",
+        description:
+            "We define the website structure, user journey, features, and roadmap before design begins.",
+    },
+    {
+        title: "Wireframes",
+        description:
+            "We organise page layouts and content to create a clear user experience and logical navigation.",
+    },
+    {
+        title: "UI/UX Design",
+        description:
+            "We turn the structure into a modern interface that reflects your brand and builds trust.",
+    },
+    {
+        title: "Development & Testing",
+        description:
+            "We develop a fast, responsive website and test every page, interaction, and feature.",
+    },
+    {
+        title: "Launch & Support",
+        description:
+            "After approval, we launch the website and provide support, updates, and improvements.",
+    },
+];
+
 function renderHomeFallback() {
     const services = SERVICE_OFFERINGS.map(
-        (service) => `<li><strong>${escapeHtml(service.label)}</strong>: ${escapeHtml(service.description)}</li>`,
+        (service) => `<li><h3>${escapeHtml(service.label)}</h3><p>${escapeHtml(service.description)}</p></li>`,
+    ).join("\n");
+    const projects = HOME_PROJECTS.map(
+        (project) => {
+            const imageSrc = HOME_PROJECT_ASSETS.get(project.id);
+            const image = imageSrc
+                ? `<img src="${escapeHtml(imageSrc)}" alt="${escapeHtml(project.imageAlt)}" width="${project.width}" height="${project.height}" loading="lazy" decoding="async" />`
+                : "";
+
+            return `<article>${image}<h3>${escapeHtml(project.title)}</h3><p>${escapeHtml(project.description)}</p><p>${renderLink(project.href, `View ${project.title}`)}</p></article>`;
+        },
+    ).join("\n");
+    const stages = HOME_STAGES.map(
+        (stage, index) =>
+            `<li><article><p>Stage ${index + 1}</p><h3>${escapeHtml(stage.title)}</h3><p>${escapeHtml(stage.description)}</p></article></li>`,
     ).join("\n");
     const faq = faqItems
-        .slice(0, 3)
         .map(
-            (item) => `<details><summary>${escapeHtml(item.question)}</summary><p>${renderFaqAnswer(item)}</p></details>`,
+            (item) => `<article><h3>${escapeHtml(item.question)}</h3><details><summary>Show answer</summary><p>${renderFaqAnswer(item)}</p></details></article>`,
         )
         .join("\n");
 
     return `<main id="main-content" tabindex="-1">
-    <section aria-labelledby="home-title">
-        <h1 id="home-title">${homeContent.heroTitleLines.map(escapeHtml).join(" ")}</h1>
+    <section aria-labelledby="hero-title">
+        <h1 id="hero-title">${homeContent.heroTitleLines.map(escapeHtml).join(" ")}</h1>
         <p>${escapeHtml(homeContent.heroSubtitle)}</p>
+        <p>Based in Scotland</p>
+        <p>Working Worldwide</p>
         <p>${renderLink("/#contact", "Start a project conversation")}</p>
+    </section>
+    <section id="work" aria-labelledby="work-title">
+        <h2 id="work-title">Selected work</h2>
+        <p>Examples of custom websites and digital experiences created by Dashly Studio.</p>
+        <div>${projects}</div>
     </section>
     <section id="packages" aria-labelledby="services-title">
         <h2 id="services-title">The websites we build</h2>
         <ul>${services}</ul>
         <p>${renderLink("/#contact", "Tell us about your project")}</p>
+    </section>
+    <section id="stages" aria-labelledby="stages-title">
+        <h2 id="stages-title">How we make it work</h2>
+        <p>From strategy to development, every step is shaped around your business and its goals.</p>
+        <ol>${stages}</ol>
     </section>
     <section id="faq" aria-labelledby="faq-title">
         <h2 id="faq-title">Frequently asked questions</h2>
@@ -166,29 +274,6 @@ function renderHomeFallback() {
         <h2 id="contact-title">Have a project in mind?</h2>
         <p>Contact Dashly Studio at ${renderLink(`mailto:${SITE_EMAIL}`, SITE_EMAIL)}.</p>
     </section>
-</main>`;
-}
-
-function renderServiceFallback(page) {
-    const sections = page.sections
-        .map(
-            (section) => `<section><h2>${escapeHtml(section.title)}</h2><p>${escapeHtml(section.description)}</p><ul>${section.bullets.map((bullet) => `<li>${escapeHtml(bullet)}</li>`).join("")}</ul></section>`,
-        )
-        .join("\n");
-    const relatedLinks = page.relatedLinks
-        .map(
-            (link) => `<li>${renderLink(link.href, link.label)}: ${escapeHtml(link.description)}</li>`,
-        )
-        .join("");
-
-    return `<main id="main-content" tabindex="-1">
-    <p>${escapeHtml(page.eyebrow)}</p>
-    <h1>${escapeHtml(page.schemaName)}</h1>
-    <p>${escapeHtml(page.lead)}</p>
-    ${sections}
-    <p>${renderLink(page.primaryHref, page.primaryLabel)}</p>
-    <p>${renderLink(page.secondaryHref, page.secondaryLabel)}</p>
-    <section><h2>Related services</h2><ul>${relatedLinks}</ul></section>
 </main>`;
 }
 
@@ -207,14 +292,21 @@ function renderLegalFallback(page) {
 }
 
 function renderNotFoundFallback() {
-    return `<main id="main-content" tabindex="-1"><h1>Page not found</h1><p>The page you are looking for does not exist.</p><p>${renderLink("/", "Return to the Dashly Studio homepage")}</p></main>`;
+    return `<main class="not-found-page" id="main-content" tabindex="-1">
+    <div class="not-found-page__inner">
+        <div class="not-found-page__copy">
+            <p class="not-found-page__eyebrow">404</p>
+            <h1>Page not found</h1>
+            <p>This page took a wrong turn. Let’s get you back to the studio.</p>
+            <a class="not-found-page__action" href="/">Back to homepage <span aria-hidden="true">↗</span></a>
+        </div>
+    </div>
+</main>`;
 }
 
 function renderStaticFallback(page) {
     const content = page.key === "home"
         ? renderHomeFallback()
-        : page.kind === "service"
-            ? renderServiceFallback(page)
         : page.key === "privacy" || page.key === "terms"
             ? renderLegalFallback(page)
             : renderNotFoundFallback();
@@ -235,23 +327,41 @@ function renderHtml(baseHtml, page) {
     const absoluteUrl = new URL(page.path, SITE_URL).toString();
     const absoluteImage = new URL(SITE_IMAGE, SITE_URL).toString();
     const schema = getSchemaForPage(page);
+    const isNotFoundPage = page.key === "notFound";
     let html = baseHtml;
 
     html = replaceTitle(html, page.title);
     html = upsertMetaByName(html, "description", page.description);
     html = upsertMetaByName(html, "robots", page.robots);
-    html = upsertLink(html, "canonical", absoluteUrl);
-    html = upsertTag(
-        html,
-        /<link\s+[^>]*rel=["']alternate["'][^>]*hreflang=["']en-gb["'][^>]*>/i,
-        `<link rel="alternate" hreflang="en-gb" href="${escapeHtml(absoluteUrl)}" />`,
-    );
+    if (isNotFoundPage) {
+        html = removeTag(
+            html,
+            /<link\s+[^>]*rel=["']canonical["'][^>]*>\s*/i,
+        );
+        html = removeTag(
+            html,
+            /<link\s+[^>]*rel=["']alternate["'][^>]*hreflang=["']en-gb["'][^>]*>\s*/i,
+        );
+        html = removeTag(
+            html,
+            /<meta\s+[^>]*property=["']og:url["'][^>]*>\s*/i,
+        );
+    } else {
+        html = upsertLink(html, "canonical", absoluteUrl);
+        html = upsertTag(
+            html,
+            /<link\s+[^>]*rel=["']alternate["'][^>]*hreflang=["']en-gb["'][^>]*>/i,
+            `<link rel="alternate" hreflang="en-gb" href="${escapeHtml(absoluteUrl)}" />`,
+        );
+    }
     html = upsertMetaByProperty(html, "og:locale", "en_GB");
     html = upsertMetaByProperty(html, "og:type", "website");
     html = upsertMetaByProperty(html, "og:site_name", SITE_NAME);
     html = upsertMetaByProperty(html, "og:title", page.title);
     html = upsertMetaByProperty(html, "og:description", page.description);
-    html = upsertMetaByProperty(html, "og:url", absoluteUrl);
+    if (!isNotFoundPage) {
+        html = upsertMetaByProperty(html, "og:url", absoluteUrl);
+    }
     html = upsertMetaByProperty(html, "og:image", absoluteImage);
     html = upsertMetaByProperty(html, "og:image:type", "image/jpeg");
     html = upsertMetaByProperty(html, "og:image:alt", SITE_IMAGE_ALT);
@@ -414,6 +524,23 @@ async function ensureOgImage() {
     }
 }
 
+async function resolveHomeProjectAssets() {
+    const assetDirectory = path.join(distDir, "assets");
+    const files = await fs.readdir(assetDirectory);
+
+    HOME_PROJECT_ASSETS = new Map(
+        HOME_PROJECTS.map((project) => {
+            const filename = files.find(
+                (file) =>
+                    file.startsWith(`${project.assetBase}-`) &&
+                    /\.(avif|webp|png|jpe?g)$/i.test(file),
+            );
+
+            return [project.id, filename ? `/assets/${filename}` : null];
+        }),
+    );
+}
+
 async function writeStaticPages(baseHtml) {
     for (const page of staticPages) {
         const html = renderHtml(baseHtml, page);
@@ -480,7 +607,8 @@ async function syncDocsFolder() {
 async function main() {
     const baseHtml = await fs.readFile(path.join(distDir, "index.html"), "utf8");
 
-await ensureOgImage();
+    await ensureOgImage();
+    await resolveHomeProjectAssets();
     await writeStaticPages(baseHtml);
     await writeRobotsAndSitemap();
     await ensureCnameAndNoJekyll();

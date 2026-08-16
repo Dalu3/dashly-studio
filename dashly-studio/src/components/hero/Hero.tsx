@@ -112,7 +112,7 @@ export function Hero({ children, onReady }: HeroProps) {
     }, [enhancementAllowed]);
 
     return (
-        <section className={styles.root} aria-label="Introduction">
+        <section className={styles.root} aria-labelledby="hero-title">
             <HeroBackground staticOnly={reducedMotion} />
             {shouldMountModel && (
                 <Suspense fallback={null}>

@@ -1,9 +1,12 @@
 import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import "./App.css";
+import "./components/NotFound.css";
 import Header from "./components/Header.jsx";
 import Footer from "./components/footer/Footer";
 import Loader from "./components/Loader.jsx";
 import CookieConsent from "./components/CookieConsent.jsx";
+import HomePage from "./components/HomePage.jsx";
+import { TextArrowAction } from "./components/ui/TextArrowAction.jsx";
 import { scrollToHash } from "./utils/scrollToHash";
 import { CookieConsentProvider } from "./context/CookieConsentContext.jsx";
 import { trackAnalyticsPageView } from "./utils/consentScripts";
@@ -11,14 +14,12 @@ import { useCookieConsent } from "./context/useCookieConsent.js";
 import { openEstimator } from "./components/estimator/estimatorEvents.js";
 import {
     getPageMetadataByPath,
-    notFoundPage,
     normalizePathname,
 } from "./seo/siteMetadata.js";
+import { syncRouteMetadata } from "./seo/routeMetadata.js";
 
-const HomePage = lazy(() => import("./components/HomePage.jsx"));
 const Privacy = lazy(() => import("./components/Privacy.jsx"));
 const Terms = lazy(() => import("./components/Terms.jsx"));
-const ServicePage = lazy(() => import("./components/ServicePage.jsx"));
 
 function LegalRouteFallback({ title }) {
     return (
@@ -33,20 +34,31 @@ function AnalyticsPageTracker({ pathname, routeKey }) {
     const lastTrackedRouteKey = useRef(null);
 
     useEffect(() => {
-        if (
-            !consent?.preferences.analytics ||
-            lastTrackedRouteKey.current === routeKey
-        ) {
+        if (!consent?.preferences.analytics) {
+            lastTrackedRouteKey.current = null;
             return;
         }
 
-        lastTrackedRouteKey.current = routeKey;
+        if (lastTrackedRouteKey.current === routeKey) return;
 
-        trackAnalyticsPageView({
-            pagePath: pathname,
-            pageLocation: window.location.href,
-            pageTitle: document.title,
-        });
+        const timer = window.setTimeout(() => {
+            if (
+                !consent?.preferences.analytics ||
+                lastTrackedRouteKey.current === routeKey
+            ) {
+                return;
+            }
+
+            lastTrackedRouteKey.current = routeKey;
+
+            trackAnalyticsPageView({
+                pagePath: pathname,
+                pageLocation: window.location.href,
+                pageTitle: document.title,
+            });
+        }, 0);
+
+        return () => window.clearTimeout(timer);
     }, [consent?.preferences.analytics, pathname, routeKey]);
 
     return null;
@@ -59,12 +71,17 @@ function AppFrame({ pathname, onHeroReady }) {
         return (
             <>
                 <Header />
-                <main className="privacy-container" id="main-content" tabIndex={-1}>
-                    <h1>Page not found</h1>
-                    <p>The page you are looking for does not exist.</p>
-                    <p>
-                        <a href="/">Return to the Dashly Studio homepage</a>
-                    </p>
+                <main className="not-found-page" id="main-content" tabIndex={-1}>
+                    <div className="not-found-page__inner">
+                        <div className="not-found-page__copy">
+                            <p className="not-found-page__eyebrow">404</p>
+                            <h1>Page not found</h1>
+                            <p>This page took a wrong turn. Let’s get you back to the studio.</p>
+                            <TextArrowAction className="not-found-page__action" href="/">
+                                Back to homepage
+                            </TextArrowAction>
+                        </div>
+                    </div>
                 </main>
                 <Footer />
             </>
@@ -95,24 +112,10 @@ function AppFrame({ pathname, onHeroReady }) {
         );
     }
 
-    if (page.kind === "service") {
-        return (
-            <>
-                <Header />
-                <Suspense fallback={<LegalRouteFallback title={page.schemaName} />}>
-                    <ServicePage page={page} />
-                </Suspense>
-                <Footer />
-            </>
-        );
-    }
-
     return (
         <>
             <Header />
-            <Suspense fallback={null}>
-                <HomePage onHeroReady={onHeroReady} />
-            </Suspense>
+            <HomePage onHeroReady={onHeroReady} />
             <Footer />
         </>
     );
@@ -123,20 +126,15 @@ function App() {
     const didReload = window.performance
         ?.getEntriesByType("navigation")
         .some((entry) => entry.type === "reload");
-    const shouldReturnLegalPageToHomeOnReload =
-        didReload && getPageMetadataByPath(initialPathname)?.kind === "legal";
     const [route, setRoute] = useState(() => ({
-        pathname: shouldReturnLegalPageToHomeOnReload ? "/" : initialPathname,
-        search: shouldReturnLegalPageToHomeOnReload ? "" : window.location.search,
+        pathname: initialPathname,
+        search: window.location.search,
     }));
     const { pathname, search } = route;
     const startsOnHomeRoute = useRef(
         getPageMetadataByPath(pathname)?.key === "home",
     );
     const shouldResetScrollOnReload = useRef(didReload);
-    const shouldReturnLegalPageToHomeOnReloadRef = useRef(
-        shouldReturnLegalPageToHomeOnReload,
-    );
     const [isReady, setIsReady] = useState(() => !startsOnHomeRoute.current);
     const [showLoader, setShowLoader] = useState(
         () => startsOnHomeRoute.current,
@@ -205,10 +203,6 @@ function App() {
     }, [isReady, showLoader]);
 
     useLayoutEffect(() => {
-        if (shouldReturnLegalPageToHomeOnReloadRef.current) {
-            window.history.replaceState({}, "", "/");
-        }
-
         window.history.scrollRestoration = "manual";
 
         if (shouldResetScrollOnReload.current) {
@@ -220,11 +214,7 @@ function App() {
     }, []);
 
     useEffect(() => {
-        const page = getPageMetadataByPath(pathname) ?? notFoundPage;
-        document.title = page.title;
-
-        const robots = document.querySelector('meta[name="robots"]');
-        robots?.setAttribute("content", page.robots);
+        syncRouteMetadata(pathname);
     }, [pathname]);
 
     useEffect(() => {
@@ -311,7 +301,11 @@ function App() {
                     onFadeOutEnd={() => setShowLoader(false)}
                 />
             )}
-            {isReady && <CookieConsent />}
+            {/* Keep the fixed consent UI in the first render. The loader still
+                covers it visually on the home route, but it cannot become a
+                late LCP candidate when the WebGL readiness gate takes several
+                seconds on mobile. */}
+            <CookieConsent />
         </CookieConsentProvider>
     );
 }

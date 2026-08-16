@@ -26,6 +26,8 @@ export function HeroBackground({ staticOnly = false }: HeroBackgroundProps) {
                     className={styles.poster}
                     src="/videos/hero-background-poster.webp"
                     alt=""
+                    width="1920"
+                    height="1080"
                 />
             ) : (
                 <video
@@ -35,6 +37,8 @@ export function HeroBackground({ staticOnly = false }: HeroBackgroundProps) {
                     muted
                     playsInline
                     preload="metadata"
+                    width="1920"
+                    height="1080"
                     poster="/videos/hero-background-poster.webp"
                     ref={setPlaybackRate}
                 >

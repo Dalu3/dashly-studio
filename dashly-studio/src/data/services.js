@@ -16,7 +16,7 @@ export const SERVICE_OFFERINGS = [
     },
     {
         id: "multi-page",
-        label: "Multi-Page Web",
+        label: "Multi-Page Website",
         description:
             "A complete business website with dedicated pages for your services, company, portfolio, contact information and more.",
         projectType: "Multi-Page Web",
@@ -24,7 +24,7 @@ export const SERVICE_OFFERINGS = [
     },
     {
         id: "catalogue",
-        label: "Catalogue Web",
+        label: "Catalogue Website",
         description:
             "Display your products or services in a structured online catalogue without online payments. Perfect for browsing and enquiries.",
         projectType: "Catalogue Web",

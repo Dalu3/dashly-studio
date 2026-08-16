@@ -1,7 +1,6 @@
 import { markHeroScrollActivity } from "../components/hero/heroResumeScheduler";
 
 export const VIEWPORT_CHECK_EVENT = "dashly:viewport-check";
-const LAZY_SECTION_REQUEST_EVENT = "dashly:load-home-section";
 
 const DEFAULT_SCROLL_DURATION = 420;
 const DESKTOP_NATIVE_SCROLL_MEDIA_QUERY =
@@ -323,12 +322,7 @@ export function scrollToHash(hash, options) {
     const id = HASH_TARGET_ALIASES[requestedId] ?? requestedId;
     const element = document.getElementById(id);
 
-    if (!element) {
-        window.dispatchEvent(
-            new CustomEvent(LAZY_SECTION_REQUEST_EVENT, { detail: id }),
-        );
-        return false;
-    }
+    if (!element) return false;
 
     return scrollToElement(element, options);
 }
@@ -366,14 +360,14 @@ export function navigateToHash(event, hash, pathname = "/") {
     }
 
     let attempts = 0;
-    const scrollWhenSectionIsMounted = () => {
+    const scrollWhenTargetIsReady = () => {
         if (scrollToHash(hash) || attempts >= 120) {
             return;
         }
 
         attempts += 1;
-        requestAnimationFrame(scrollWhenSectionIsMounted);
+        requestAnimationFrame(scrollWhenTargetIsReady);
     };
 
-    requestAnimationFrame(scrollWhenSectionIsMounted);
+    requestAnimationFrame(scrollWhenTargetIsReady);
 }

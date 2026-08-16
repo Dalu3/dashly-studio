@@ -52,7 +52,8 @@ export const PROJECTS: Project[] = [
     {
         id: "digital-cv",
         title: "Digital CV",
-        description: "Interactive personal portfolio",
+        description: "Interactive personal portfolio website.",
+        imageAlt: "Digital CV interactive personal portfolio website",
         url: "https://darialysunets.com/",
         image: cvWebWork,
         width: 630,
@@ -61,8 +62,9 @@ export const PROJECTS: Project[] = [
     {
         id: "for-people",
         title: "Healthcare Platform",
-        description: "Custom-built website with a tailored CMS",
-        mobileDescription: "Custom website with tailored CMS",
+        description: "Custom healthcare website with a tailored CMS.",
+        mobileDescription: "Custom healthcare website with tailored CMS.",
+        imageAlt: "Healthcare Platform custom website with a tailored CMS",
         url: "https://forpeople.com.ua/",
         image: forPeopleWork,
         width: 630,
@@ -71,8 +73,9 @@ export const PROJECTS: Project[] = [
     {
         id: "private-practice",
         title: "Private Practice",
-        description: "Responsive website for a Ukrainian doctor",
-        mobileDescription: "Responsive website for a doctor",
+        description: "Responsive practice website for a Ukrainian doctor.",
+        mobileDescription: "Responsive practice website for a doctor.",
+        imageAlt: "Private Practice responsive website for a Ukrainian doctor",
         url: "https://anastasiiaponomarenko.com/",
         image: privateDocWork,
         width: 630,

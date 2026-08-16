@@ -361,7 +361,7 @@ export function ContactForm() {
                 name="timeline"
                 label="When do you need the website?"
                 className={styles.fullWidth}
-                placeholder="e.g. Within 1–2 months, flexible, or before 1 June"
+                placeholder="Within 2-3 months/flexible/need immediately"
                 value={formValues.timeline}
                 onChange={handleChange}
                 onBlur={handleBlur}
