@@ -111,6 +111,12 @@
     -webkit-overflow-scrolling: touch;
 }
 
+@media (min-width: 48rem) {
+    .bodyStepTwo {
+        overflow: hidden;
+    }
+}
+
 .contentLayout {
     display: grid;
     width: 100%;
@@ -893,7 +899,9 @@
 .pageSlider {
     position: relative;
     display: grid;
+    width: calc(100% - var(--space-md));
     min-height: var(--space-lg);
+    margin-inline: calc(var(--space-md) / 2);
     align-items: center;
 }
 
@@ -940,7 +948,6 @@
     background: var(--color-action-accent-bg);
     pointer-events: none;
     transform: translate(-50%, -50%);
-    transition: left var(--duration-normal) var(--ease-standard);
 }
 
 .pageSlider .range {

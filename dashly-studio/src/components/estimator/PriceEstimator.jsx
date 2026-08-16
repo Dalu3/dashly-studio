@@ -252,10 +252,13 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
     const [showScrollHint, setShowScrollHint] = useState(false);
     const [summaryPanelHeight, setSummaryPanelHeight] = useState(null);
     const [websiteOptionsHeight, setWebsiteOptionsHeight] = useState(null);
+    const [pageSliderPosition, setPageSliderPosition] = useState(() => Number(answers.pageCount));
     const isTabletUp = useBreakpointUp("md");
     const websiteOptionsRef = useRef(null);
     const summaryDetailsRef = useRef(null);
     const forwardedBodyScrollRef = useRef(null);
+    const pageSliderRef = useRef(null);
+    const isDraggingPageSliderRef = useRef(false);
     const estimate = useMemo(() => calculateEstimate(answers, pricingConfig), [answers]);
     const step = STEPS[currentStep];
     const website = pricingConfig.websiteTypes.find((item) => item.id === answers.websiteTypeId);
@@ -266,12 +269,18 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
         ? ((Math.min(includedPages, pageRange.maximum) - pageRange.minimum) / (pageRange.maximum - pageRange.minimum)) * 100
         : 100;
     const selectedRatio = pageRange.maximum > pageRange.minimum
-        ? ((estimate.pageCount - pageRange.minimum) / (pageRange.maximum - pageRange.minimum)) * 100
+        ? ((pageSliderPosition - pageRange.minimum) / (pageRange.maximum - pageRange.minimum)) * 100
         : 100;
     const pageSliderStyle = {
         "--included-width": String(Math.max(4, Math.min(100, includedRatio))) + "%",
         "--selected-width": String(Math.max(0, Math.min(100, selectedRatio))) + "%",
     };
+
+    useEffect(() => {
+        if (!isDraggingPageSliderRef.current) {
+            setPageSliderPosition(estimate.pageCount);
+        }
+    }, [estimate.pageCount]);
 
     useEffect(() => {
         if (currentStep !== 0 || !isTabletUp || answers.websiteTypeId) return;
@@ -449,6 +458,48 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
     }, [isClosing, onClose]);
 
     const update = (patch) => setAnswers((current) => ({ ...current, ...patch }));
+    const setPageSliderPositionFromPointer = (clientX) => {
+        const slider = pageSliderRef.current;
+        if (!slider) return null;
+
+        const { left, width } = slider.getBoundingClientRect();
+        const ratio = width > 0 ? Math.min(1, Math.max(0, (clientX - left) / width)) : 0;
+        const position = pageRange.minimum + ratio * (pageRange.maximum - pageRange.minimum);
+
+        setPageSliderPosition(position);
+        return position;
+    };
+    const updatePageCount = (position) => {
+        if (position === null) return;
+
+        const pageCount = Math.round(position);
+        setAnswers((current) => current.pageCount === pageCount ? current : { ...current, pageCount });
+    };
+    const handlePageSliderPointerDown = (event) => {
+        isDraggingPageSliderRef.current = true;
+        event.currentTarget.setPointerCapture?.(event.pointerId);
+        updatePageCount(setPageSliderPositionFromPointer(event.clientX));
+    };
+    const handlePageSliderPointerMove = (event) => {
+        if (isDraggingPageSliderRef.current) {
+            updatePageCount(setPageSliderPositionFromPointer(event.clientX));
+        }
+    };
+    const handlePageSliderPointerEnd = (event) => {
+        if (event.type !== "pointercancel") {
+            updatePageCount(setPageSliderPositionFromPointer(event.clientX));
+        }
+        isDraggingPageSliderRef.current = false;
+        event.currentTarget.releasePointerCapture?.(event.pointerId);
+    };
+    const handlePageSliderChange = (event) => {
+        const pageCount = Number(event.target.value);
+
+        if (!isDraggingPageSliderRef.current) {
+            setPageSliderPosition(pageCount);
+        }
+        updatePageCount(pageCount);
+    };
     const selectWebsite = (id) => {
         if (id === answers.websiteTypeId) {
             setAnswers((current) => ({ ...current, websiteTypeId: "", featureIds: [] }));
@@ -532,7 +583,7 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
                     <span className={styles.rangeLabel}>Pages <PageInfo website={website} /></span>
                     <strong>{estimate.pageCount === pageRange.maximum ? pageRange.maximum + "+" : estimate.pageCount}</strong>
                 </div>
-                <div className={styles.pageSlider} style={pageSliderStyle}>
+                <div ref={pageSliderRef} className={styles.pageSlider} style={pageSliderStyle}>
                     <span className={styles.pageSliderTrack} aria-hidden="true"><span className={styles.pageSliderIncluded} /><span className={styles.pageSliderSelected} /></span>
                     <span className={styles.pageSliderThumb} aria-hidden="true" />
                     <input
@@ -541,7 +592,11 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
                         min={pageRange.minimum}
                         max={pageRange.maximum}
                         value={estimate.pageCount}
-                        onChange={(event) => update({ pageCount: Number(event.target.value) })}
+                        onChange={handlePageSliderChange}
+                        onPointerDown={handlePageSliderPointerDown}
+                        onPointerMove={handlePageSliderPointerMove}
+                        onPointerUp={handlePageSliderPointerEnd}
+                        onPointerCancel={handlePageSliderPointerEnd}
                         aria-label="Number of pages"
                         aria-valuetext={estimate.pageCount + " pages, " + includedPages + " included, " + estimate.extraPages + " additional"}
                     />
@@ -565,7 +620,7 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
                     <button type="button" className={styles.close} onClick={() => requestClose()} aria-label="Close price estimator">×</button>
                 </header>
                 <div className={styles.bodyRegion}>
-                    <div ref={bodyRef} className={styles.body}>
+                    <div ref={bodyRef} className={`${styles.body}${currentStep === 1 ? ` ${styles.bodyStepTwo}` : ""}`}>
                         <div className={`${styles.contentLayout} ${step?.id === "website" && !showResult ? styles.websiteContentLayout : ""}`}>
                             <div className={styles.contentColumn}>{content}</div>
                             {website && step?.id !== "website" && !showResult && <ProjectSummary website={website} maxHeight={summaryPanelHeight} stablePosition showScrollAffordance={currentStep === 1} showEstimate detailsRef={summaryDetailsRef} scrollParentRef={bodyRef} estimate={estimate} answers={answers} />}
