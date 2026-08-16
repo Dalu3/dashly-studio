@@ -44,12 +44,12 @@ function Option({ type = "radio", name, item, checked, onChange, priceLabel, rec
     );
 }
 
-function WebsiteOption({ item, checked, onChange, priceLabel }) {
+function WebsiteOption({ item, checked, onChange, priceLabel, headerRef }) {
     return (
-        <div className={`${styles.option} ${styles.websiteOption}`} data-selected={checked || undefined} data-control="radio">
+        <div className={`${styles.option} ${styles.websiteOption}`} data-website-option={item.id} data-selected={checked || undefined} data-control="radio" onClick={onChange}>
             <div
+                ref={headerRef}
                 className={styles.websiteOptionControl}
-                onClick={onChange}
             >
                 <input
                     type="radio"
@@ -132,7 +132,10 @@ function PageExplanation({ website }) {
 }
 
 function ProjectSummary({ website, maxHeight, stablePosition = false, allowScroll = true, showScrollAffordance = true, showEstimate = false, detailsRef: detailsRefProp, scrollParentRef, estimate }) {
-    const isPanelLayout = useBreakpointUp("md");
+    // The side panel needs the desktop modal's full content width. Below xl the
+    // same details stay in the normal estimator flow instead of becoming a
+    // cramped, independently scrolling column.
+    const isPanelLayout = useBreakpointUp("xl");
     const [isOpen, setIsOpen] = useState(false);
     const [summaryCanScroll, setSummaryCanScroll] = useState(false);
     const [summaryAtStart, setSummaryAtStart] = useState(true);
@@ -260,12 +263,14 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
     const [summaryPanelHeight, setSummaryPanelHeight] = useState(null);
     const [websiteOptionsHeight, setWebsiteOptionsHeight] = useState(null);
     const [pageSliderPosition, setPageSliderPosition] = useState(() => Number(answers.pageCount));
-    const isTabletUp = useBreakpointUp("md");
+    const isPanelLayout = useBreakpointUp("xl");
     const websiteOptionsRef = useRef(null);
     const summaryDetailsRef = useRef(null);
     const forwardedBodyScrollRef = useRef(null);
     const pageSliderRef = useRef(null);
     const isDraggingPageSliderRef = useRef(false);
+    const websiteOptionHeaderRefs = useRef({});
+    const pendingWebsiteScrollRef = useRef(null);
     const estimate = useMemo(() => calculateEstimate(answers, pricingConfig), [answers]);
     const step = STEPS[currentStep];
     const website = pricingConfig.websiteTypes.find((item) => item.id === answers.websiteTypeId);
@@ -290,7 +295,7 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
     }, [estimate.pageCount]);
 
     useEffect(() => {
-        if (currentStep !== 0 || !isTabletUp || answers.websiteTypeId) return;
+        if (currentStep !== 0 || !isPanelLayout || answers.websiteTypeId) return;
 
         const firstWebsite = pricingConfig.websiteTypes[0];
         if (!firstWebsite) return;
@@ -298,7 +303,7 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
         setAnswers((current) => current.websiteTypeId
             ? current
             : { ...current, websiteTypeId: firstWebsite.id, featureIds: [] });
-    }, [answers.websiteTypeId, currentStep, isTabletUp, setAnswers]);
+    }, [answers.websiteTypeId, currentStep, isPanelLayout, setAnswers]);
 
     const requestClose = useCallback((afterClose) => {
         afterCloseRef.current = afterClose ?? null;
@@ -357,7 +362,7 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
 
             if (forwardedScroll && Math.abs(currentScrollTop - forwardedScroll.top) <= 1) {
                 forwardedBodyScrollRef.current = null;
-            } else if (scrollDelta > 0 && summaryDetailsRef.current) {
+            } else if (isPanelLayout && scrollDelta > 0 && summaryDetailsRef.current) {
                 summaryDetailsRef.current.scrollTop = Math.max(0, summaryDetailsRef.current.scrollTop - scrollDelta);
             }
 
@@ -369,7 +374,7 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
             setShowBodyScrollHint(shouldShowBodyScrollHint && canScroll && !isAtEnd);
         };
         const handleBodyWheel = (event) => {
-            if (event.deltaY >= 0 || !summaryDetailsRef.current) return;
+            if (!isPanelLayout || event.deltaY >= 0 || !summaryDetailsRef.current) return;
             if (event.target instanceof Node && summaryDetailsRef.current.contains(event.target)) return;
 
             const details = summaryDetailsRef.current;
@@ -407,12 +412,73 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
             body.removeEventListener("wheel", handleBodyWheel);
             resizeObserver.disconnect();
         };
-    }, [currentStep, showResult]);
+    }, [currentStep, isPanelLayout, showResult]);
+
+    useEffect(() => {
+        const selectedWebsiteId = answers.websiteTypeId;
+
+        if (
+            !selectedWebsiteId
+            || pendingWebsiteScrollRef.current !== selectedWebsiteId
+            || currentStep !== 0
+            || isPanelLayout
+            || showResult
+        ) return undefined;
+
+        const body = bodyRef.current;
+        const header = websiteOptionHeaderRefs.current[selectedWebsiteId];
+        const card = header?.closest(`[data-website-option="${selectedWebsiteId}"]`);
+        const reveal = card?.querySelector(`.${styles.websiteIncluded}`);
+
+        if (!body || !header || !reveal) return undefined;
+
+        let userInterrupted = false;
+        const markUserInterruption = () => { userInterrupted = true; };
+        const scrollToCardHeader = () => {
+            if (userInterrupted || pendingWebsiteScrollRef.current !== selectedWebsiteId) return;
+
+            const bodyRect = body.getBoundingClientRect();
+            const headerRect = header.getBoundingClientRect();
+            const bodyPaddingTop = Number.parseFloat(window.getComputedStyle(body).paddingTop) || 0;
+            const targetScrollTop = body.scrollTop + headerRect.top - bodyRect.top - bodyPaddingTop;
+            const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+            body.scrollTo({ top: Math.max(0, targetScrollTop), behavior: reducedMotion ? "auto" : "smooth" });
+            pendingWebsiteScrollRef.current = null;
+        };
+        const handleRevealTransitionEnd = (event) => {
+            if (event.target === reveal && event.propertyName === "grid-template-rows") {
+                scrollToCardHeader();
+            }
+        };
+
+        body.addEventListener("wheel", markUserInterruption, { passive: true });
+        body.addEventListener("touchstart", markUserInterruption, { passive: true });
+        body.addEventListener("pointerdown", markUserInterruption, { passive: true });
+
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            const frame = window.requestAnimationFrame(scrollToCardHeader);
+            return () => {
+                window.cancelAnimationFrame(frame);
+                body.removeEventListener("wheel", markUserInterruption);
+                body.removeEventListener("touchstart", markUserInterruption);
+                body.removeEventListener("pointerdown", markUserInterruption);
+            };
+        }
+
+        reveal.addEventListener("transitionend", handleRevealTransitionEnd);
+        return () => {
+            reveal.removeEventListener("transitionend", handleRevealTransitionEnd);
+            body.removeEventListener("wheel", markUserInterruption);
+            body.removeEventListener("touchstart", markUserInterruption);
+            body.removeEventListener("pointerdown", markUserInterruption);
+        };
+    }, [answers.websiteTypeId, currentStep, isPanelLayout, showResult]);
 
     useEffect(() => {
         const options = websiteOptionsRef.current;
 
-        if (!options || !website || currentStep !== 0 || showResult || !isTabletUp) {
+        if (!options || !website || currentStep !== 0 || showResult || !isPanelLayout) {
             setWebsiteOptionsHeight(null);
             return undefined;
         }
@@ -430,12 +496,12 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
             window.cancelAnimationFrame(layoutFrame);
             resizeObserver.disconnect();
         };
-    }, [currentStep, isTabletUp, showResult, website]);
+    }, [currentStep, isPanelLayout, showResult, website]);
 
     useEffect(() => {
         const body = bodyRef.current;
 
-        if (!body || showResult) {
+        if (!body || showResult || !isPanelLayout) {
             setSummaryPanelHeight(null);
             return undefined;
         }
@@ -450,7 +516,7 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
         resizeObserver.observe(body);
 
         return () => resizeObserver.disconnect();
-    }, [currentStep, showResult]);
+    }, [currentStep, isPanelLayout, showResult]);
 
     useEffect(() => {
         if (!isClosing) return undefined;
@@ -510,6 +576,7 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
     };
     const selectWebsite = (id) => {
         if (id === answers.websiteTypeId) {
+            pendingWebsiteScrollRef.current = null;
             setAnswers((current) => ({ ...current, websiteTypeId: "", featureIds: [] }));
             return;
         }
@@ -518,12 +585,17 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
             .filter((feature) => feature.appliesTo.includes(id))
             .map((feature) => feature.id);
 
+        if (window.matchMedia("(max-width: 79.999rem)").matches) {
+            pendingWebsiteScrollRef.current = id;
+        }
+
         setAnswers((current) => ({
             ...current,
             websiteTypeId: id,
             pageCount: pricingConfig.pageRange.minimum,
             featureIds: current.featureIds.filter((featureId) => allowedFeatureIds.includes(featureId)),
         }));
+
     };
     const toggleFeature = (id) => setAnswers((current) => ({
         ...current,
@@ -577,9 +649,12 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
             {step.id === "website" && <div className={styles.websiteChoiceLayout}>
                 <fieldset ref={websiteOptionsRef} className={styles.optionGroup}>
                     <legend className="visually-hidden">Website type</legend>
-                    {pricingConfig.websiteTypes.map((item) => <WebsiteOption key={item.id} item={item} checked={answers.websiteTypeId === item.id} onChange={() => selectWebsite(item.id)} priceLabel={item.directContact ? "Tailored scope" : `From ${money(item.basePrice)}`} />)}
+                    {pricingConfig.websiteTypes.map((item) => <WebsiteOption key={item.id} item={item} checked={answers.websiteTypeId === item.id} onChange={() => selectWebsite(item.id)} priceLabel={item.directContact ? "Tailored scope" : `From ${money(item.basePrice)}`} headerRef={(node) => {
+                        if (node) websiteOptionHeaderRefs.current[item.id] = node;
+                        else delete websiteOptionHeaderRefs.current[item.id];
+                    }} />)}
                 </fieldset>
-                {website && isTabletUp && <ProjectSummary
+                {website && isPanelLayout && <ProjectSummary
                     website={website}
                     maxHeight={websiteOptionsHeight}
                     allowScroll={!['landing', 'business'].includes(website.id)}

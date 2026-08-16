@@ -116,7 +116,7 @@
     grid-template-rows: minmax(0, 1fr);
 }
 
-@media (min-width: 48rem) {
+@media (min-width: 80rem) {
     .bodyStepTwo {
         overflow: hidden;
     }
@@ -522,14 +522,19 @@
 .scrollHint {
     position: absolute;
     right: var(--container-gutter);
-    bottom: var(--space-0);
+    bottom: calc(var(--space-3xs) * -1);
     left: var(--container-gutter);
     display: flex;
     min-height: var(--space-2xl);
     align-items: end;
     justify-content: center;
     padding-block-end: var(--space-xs);
-    background: linear-gradient(to bottom, transparent, var(--color-surface-raised));
+    background: linear-gradient(
+        to bottom,
+        color-mix(in srgb, var(--color-surface-raised) 78%, transparent) 0%,
+        var(--color-surface-raised) 48%,
+        var(--color-surface-raised) 100%
+    );
     color: var(--color-text-secondary);
     font-size: var(--type-small);
     font-weight: var(--font-weight-medium);
@@ -550,6 +555,12 @@
     flex: 0 0 auto;
     object-fit: contain;
     transform: rotate(135deg);
+}
+
+/* The hint reaches the body edge, so the footer divider must not cut across
+   its opaque lower fade while there is real content left to explore. */
+.bodyRegion:has(.scrollHint) + .actions {
+    border-top-color: transparent;
 }
 
 .step {
@@ -666,6 +677,7 @@
     display: block;
     min-height: 0;
     padding: var(--space-0);
+    -webkit-tap-highlight-color: transparent;
 }
 
 .websiteOptionControl {
@@ -676,13 +688,16 @@
     min-height: calc(var(--space-xl) + var(--space-lg));
     padding: var(--space-xs) var(--space-sm);
     cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
 }
 
 .websiteIncluded {
     display: grid;
     grid-template-rows: 0fr;
     overflow: hidden;
-    transition: grid-template-rows var(--duration-slow) var(--ease-standard);
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition-faq-reveal);
 }
 
 .websiteIncludedContent {
@@ -691,16 +706,22 @@
     gap: var(--space-xs);
     padding: var(--space-0) var(--space-sm);
     overflow: hidden;
-    opacity: 0;
-    transition: opacity var(--duration-normal) var(--ease-standard), padding-block var(--duration-slow) var(--ease-standard);
+    transition: padding-block var(--duration-slow) var(--ease-standard);
 }
 
-.websiteOption[data-selected] .websiteIncluded { grid-template-rows: minmax(0, 1fr); }
+.websiteOption[data-selected] .websiteIncluded {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    visibility: visible;
+    transition:
+        grid-template-rows var(--duration-slow) var(--ease-standard),
+        opacity var(--duration-fast) var(--ease-standard),
+        visibility 0s linear 0s;
+}
 
 .websiteOption[data-selected] .websiteIncludedContent {
     padding-block: var(--space-sm);
     border-top: 1px solid var(--color-border-subtle);
-    opacity: 1;
 }
 
 .websiteOptionControl {
@@ -1015,6 +1036,7 @@
     background: transparent;
     accent-color: var(--color-action-accent-bg);
     cursor: pointer;
+    touch-action: none;
 }
 
 .pageSlider .range::-webkit-slider-runnable-track {
@@ -1206,6 +1228,39 @@
         text-wrap: balance;
     }
 
+    .step[data-step="website"] .description {
+        width: min(100%, calc((var(--container-narrow) / 2) - var(--space-lg) - var(--space-sm)));
+    }
+
+    .websiteOptionControl {
+        grid-template-areas:
+            "control title price"
+            "control description description";
+        row-gap: var(--space-3xs);
+    }
+
+    .websiteOptionControl input {
+        grid-area: control;
+    }
+
+    .websiteOptionControl .optionCopy {
+        display: contents;
+    }
+
+    .websiteOptionControl .optionTitle {
+        grid-area: title;
+    }
+
+    .websiteOptionControl .optionCopy > span:not(.optionTitle) {
+        grid-area: description;
+    }
+
+    .websiteOptionControl .price {
+        grid-area: price;
+        align-self: start;
+        font-size: var(--type-small);
+    }
+
     .stepCount {
         font-size: var(--type-control);
         font-weight: var(--font-weight-medium);
@@ -1245,116 +1300,9 @@
         text-align: end;
     }
 
-    .websiteIncluded { display: none; }
-
-    .websiteOptionControl { align-items: center; }
-
-    .websiteOptionControl input { margin-top: var(--space-0); }
-
-    .websiteChoiceLayout {
-        grid-template-columns: minmax(0, 1fr) minmax(18rem, 22rem);
-        align-items: start;
-    }
-
-    .summaryDetails {
-        display: flex;
-        height: var(--summary-height, auto);
-        max-height: var(--summary-max-height, none);
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-    .summaryDetails::details-content {
-        display: flex;
-        flex: 1 1 auto;
-        flex-direction: column;
-        min-height: 0;
-        overflow: hidden;
-    }
-
-    .summaryDetails summary { display: none; }
-
-    .summaryContent {
-        height: auto;
-        min-height: 0;
-        flex: 1 1 auto;
-        padding: var(--space-md);
-        border-top: 0;
-    }
-
-    .projectSummary {
-        position: sticky;
-        top: var(--space-0);
-        align-self: start;
-    }
-
-    .websiteChoiceLayout > .projectSummary {
-        position: static;
-        display: grid;
-        min-height: 0;
-        align-self: stretch;
-        grid-template-rows: minmax(0, 1fr);
-        contain: size;
-    }
-
-    .websiteChoiceLayout > .projectSummary .summaryDetails {
-        display: flex;
-        height: 100%;
-        min-height: var(--summary-max-height, auto);
-        max-height: none;
-        min-height: 0;
-        box-sizing: border-box;
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-    .websiteChoiceLayout > .projectSummary .summaryDetails::details-content {
-        display: flex;
-        height: auto;
-        min-height: 0;
-        flex: 1 1 auto;
-        flex-direction: column;
-        overflow: hidden;
-    }
-
-    .websiteChoiceLayout > .projectSummary .summaryContent {
-        height: auto;
-        min-height: 0;
-        flex: 1 1 auto;
-    }
-
-    .websiteChoiceLayout > .projectSummary .summaryDetails.summaryDetailsStatic {
-        height: auto;
-        min-height: 0;
-        max-height: none;
-        overflow: visible;
-        align-self: start;
-    }
-
-    .websiteChoiceLayout > .projectSummary:has(.summaryDetailsStatic) {
-        position: sticky;
-        top: var(--space-0);
-        align-self: start;
-        display: block;
-        contain: none;
-    }
-
-    .websiteChoiceLayout > .projectSummary .summaryDetailsStatic .summaryIncludedViewport {
-        flex: 0 0 auto;
-    }
-
-    .websiteChoiceLayout > .projectSummary .summaryDetailsStatic .summaryIncludedScroll {
-        height: auto;
-        flex: 0 0 auto;
-    }
-
-    .websiteChoiceLayout > .projectSummary .summaryDetails[data-website-type="business"] .summaryContent {
-        padding-bottom: var(--space-sm);
-    }
-
 }
 
-@media (min-width: 64rem) {
+@media (min-width: 80rem) {
     .dialog { height: 88dvh; max-height: 88dvh; }
     .topbar,
     .actions { padding-inline: var(--space-xl); }
@@ -1469,7 +1417,7 @@
     .reset { padding-inline: var(--space-xs); }
 }
 
-@media (max-width: 47.999rem) {
+@media (max-width: 79.999rem) {
     .summaryDetails {
         display: block;
         max-height: none;
