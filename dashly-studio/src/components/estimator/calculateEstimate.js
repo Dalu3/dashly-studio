@@ -25,7 +25,10 @@ export function calculateEstimate(answers, config) {
         .map((feature) => ({ id: `feature-${feature.id}`, label: feature.label, amount: feature.price }));
     const featuresPrice = featureLines.reduce((sum, item) => sum + item.amount, 0);
     const subtotal = basePrice + extraPagesPrice + featuresPrice;
-    const startingPointAdjustment = Math.round(subtotal * ((startingPoint?.multiplier ?? 1) - 1));
+    const configuredStartingPointAdjustment = startingPoint?.priceAdjustments?.[website?.id];
+    const startingPointAdjustment = Number.isFinite(configuredStartingPointAdjustment)
+        ? configuredStartingPointAdjustment
+        : Math.round(subtotal * ((startingPoint?.multiplier ?? 1) - 1));
     const total = subtotal + startingPointAdjustment;
     const { minimumMultiplier, maximumMultiplier, rounding } = config.estimateRange;
     const range = {

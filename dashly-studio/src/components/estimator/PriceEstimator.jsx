@@ -18,6 +18,7 @@ const STEPS = [
 
 const focusableSelector = "button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex='-1'])";
 const money = (value) => new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(value);
+const featurePriceLabel = (feature) => feature.priceLabel ?? (Number.isFinite(feature.price) ? "+" + money(feature.price) : "Quoted separately");
 const includedHeading = (website) => website.directContact ? "Features can include" : "What’s included";
 
 function IncludedFeatures({ website }) {
@@ -130,21 +131,38 @@ function PageExplanation({ website }) {
     );
 }
 
-function ProjectSummary({ website, maxHeight, stablePosition = false, allowScroll = true, showScrollAffordance = true, showEstimate = false, detailsRef: detailsRefProp, scrollParentRef, estimate, answers }) {
+function ProjectSummary({ website, maxHeight, stablePosition = false, allowScroll = true, showScrollAffordance = true, showEstimate = false, detailsRef: detailsRefProp, scrollParentRef, estimate }) {
     const isPanelLayout = useBreakpointUp("md");
     const [isOpen, setIsOpen] = useState(false);
     const [summaryCanScroll, setSummaryCanScroll] = useState(false);
     const [summaryAtStart, setSummaryAtStart] = useState(true);
     const [summaryAtEnd, setSummaryAtEnd] = useState(true);
-    const [summaryHintVisible, setSummaryHintVisible] = useState(true);
+    const [summaryNeedsHeightLimit, setSummaryNeedsHeightLimit] = useState(false);
     const localDetailsRef = useRef(null);
     const detailsRef = detailsRefProp ?? localDetailsRef;
     const summaryOpen = isPanelLayout || isOpen;
-    const summaryStyle = isPanelLayout && maxHeight ? { "--summary-max-height": `${maxHeight}px` } : undefined;
-    const selectedExtras = pricingConfig.features.filter((feature) => (
-        feature.appliesTo.includes(website.id)
-        && answers?.featureIds?.includes(feature.id)
-    ));
+    const summaryStyle = isPanelLayout && maxHeight ? {
+        "--summary-max-height": `${maxHeight}px`,
+        ...(summaryNeedsHeightLimit ? { "--summary-height": `${maxHeight}px` } : {}),
+    } : undefined;
+    useEffect(() => {
+        const details = detailsRef.current;
+
+        if (!details || !isPanelLayout || !allowScroll || !maxHeight) {
+            setSummaryNeedsHeightLimit(false);
+            return undefined;
+        }
+
+        const syncSummaryHeight = () => {
+            setSummaryNeedsHeightLimit(details.scrollHeight > maxHeight + 1);
+        };
+
+        syncSummaryHeight();
+        const resizeObserver = new ResizeObserver(syncSummaryHeight);
+        resizeObserver.observe(details);
+
+        return () => resizeObserver.disconnect();
+    }, [allowScroll, detailsRef, isPanelLayout, maxHeight, showEstimate, website.id]);
 
     useEffect(() => {
         const details = detailsRef.current;
@@ -153,22 +171,17 @@ function ProjectSummary({ website, maxHeight, stablePosition = false, allowScrol
             setSummaryCanScroll(false);
             setSummaryAtStart(true);
             setSummaryAtEnd(true);
-            setSummaryHintVisible(true);
             return undefined;
         }
 
-        let previousScrollTop = details.scrollTop;
         const syncSummaryScrollHint = () => {
             const canScroll = details.scrollHeight > details.clientHeight + 1;
             const atStart = details.scrollTop <= 1;
             const atEnd = details.scrollTop + details.clientHeight >= details.scrollHeight - 1;
-            const isScrollingUp = details.scrollTop < previousScrollTop;
 
             setSummaryCanScroll(canScroll);
             setSummaryAtStart(atStart);
             setSummaryAtEnd(atEnd);
-            setSummaryHintVisible(atStart || (isScrollingUp && !atEnd));
-            previousScrollTop = details.scrollTop;
         };
 
         syncSummaryScrollHint();
@@ -200,7 +213,7 @@ function ProjectSummary({ website, maxHeight, stablePosition = false, allowScrol
             details.removeEventListener("wheel", handleWheel);
             resizeObserver.disconnect();
         };
-    }, [allowScroll, detailsRef, isPanelLayout, maxHeight, scrollParentRef, website.id]);
+    }, [allowScroll, detailsRef, isPanelLayout, maxHeight, scrollParentRef, showScrollAffordance, website.id]);
 
     return (
         <aside className={`${styles.projectSummary}${stablePosition ? ` ${styles.projectSummaryStable}` : ""}`} aria-label={`${website.label} package details`}>
@@ -219,19 +232,13 @@ function ProjectSummary({ website, maxHeight, stablePosition = false, allowScrol
                             <div ref={detailsRef} className={styles.summaryIncludedScroll} data-summary-scroll={summaryCanScroll || undefined} data-summary-scrolled={!summaryAtStart || undefined}>
                                 <IncludedFeatures website={website} />
                             </div>
-                            {showScrollAffordance && summaryCanScroll && !summaryAtEnd && <div className={styles.summaryScrollHint} data-hidden={!summaryHintVisible || undefined} aria-hidden="true"><span>Scroll to see more</span><img className={styles.summaryScrollArrow} src={arrowIcon} alt="" width="1080" height="1350" /></div>}
+                            {showScrollAffordance && summaryCanScroll && !summaryAtEnd && <div className={styles.summaryScrollHint} aria-hidden="true">
+                                <span>Scroll to explore</span>
+                                <img className={styles.summaryScrollArrow} src={arrowIcon} alt="" width="1080" height="1350" />
+                            </div>}
                         </div>
                     </section>
-                    {showEstimate && estimate && <section className={styles.summaryEstimate} aria-labelledby="estimate-heading">
-                        <h4 id="estimate-heading">Your estimate</h4>
-                        <div className={styles.summaryEstimateRows}>
-                            <div><span>Included pages</span><strong>{Math.min(estimate.pageCount, website.includedPages ?? estimate.pageCount)}</strong></div>
-                            <div><span>Additional pages</span><strong>{estimate.extraPages}</strong></div>
-                            {selectedExtras.length > 0 && <div><span>Selected extras</span><strong>{selectedExtras.length}</strong></div>}
-                        </div>
-                        {selectedExtras.length > 0 && <ul className={styles.summaryExtrasList} aria-label="Selected extras">
-                            {selectedExtras.map((feature) => <li key={feature.id}><span>{feature.label}</span><strong>{Number.isFinite(feature.price) ? "+" + money(feature.price) : "Quoted separately"}</strong></li>)}
-                        </ul>}
+                    {showEstimate && estimate && <section className={styles.summaryEstimate}>
                         <div className={styles.summaryEstimateTotal}>
                             <span>Current estimate</span>
                             <strong>{website.directContact ? "Tailored scope" : money(estimate.total)}</strong>
@@ -249,7 +256,7 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
     const afterCloseRef = useRef(null);
     const [showResult, setShowResult] = useState(false);
     const [isClosing, setIsClosing] = useState(false);
-    const [showScrollHint, setShowScrollHint] = useState(false);
+    const [showBodyScrollHint, setShowBodyScrollHint] = useState(false);
     const [summaryPanelHeight, setSummaryPanelHeight] = useState(null);
     const [websiteOptionsHeight, setWebsiteOptionsHeight] = useState(null);
     const [pageSliderPosition, setPageSliderPosition] = useState(() => Number(answers.pageCount));
@@ -336,8 +343,8 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
     useEffect(() => {
         const body = bodyRef.current;
 
-        if (!body || showResult) {
-            setShowScrollHint(false);
+        if (!body) {
+            setShowBodyScrollHint(false);
             return undefined;
         }
 
@@ -358,7 +365,8 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
             const canScroll = body.scrollHeight > body.clientHeight;
             const isAtEnd = body.scrollTop + body.clientHeight >= body.scrollHeight - 1;
 
-            setShowScrollHint(currentStep === 0 && canScroll && !isAtEnd);
+            const shouldShowBodyScrollHint = currentStep === 0 || currentStep === 2 || showResult;
+            setShowBodyScrollHint(shouldShowBodyScrollHint && canScroll && !isAtEnd);
         };
         const handleBodyWheel = (event) => {
             if (event.deltaY >= 0 || !summaryDetailsRef.current) return;
@@ -548,15 +556,19 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
         requestClose(() => navigateToHash(null, "#contact"));
     };
     const progress = showResult ? 100 : ((currentStep + 1) / STEPS.length) * 100;
+    const estimateDisplayReduction = website?.id === "landing" ? 50 : 150;
+    const estimateDisplayMinimum = Math.max(0, estimate.total - estimateDisplayReduction);
+    const estimateDisplay = `${money(estimateDisplayMinimum)}–${money(estimate.total)}`;
     const content = showResult ? (
         <div className={styles.result}>
-            <p className={styles.eyebrow}>Initial estimate</p>
-            <h2 id="estimator-heading" tabIndex="-1">Estimated investment</h2>
-            <p className={styles.total}>{money(estimate.range.minimum)}–{money(estimate.range.maximum)}</p>
+            <div className={styles.resultHeading}>
+                <h2 id="estimator-heading" tabIndex="-1">Estimated investment</h2>
+                <p className={styles.total}>{estimateDisplay}</p>
+            </div>
             <div className={styles.breakdown} aria-label="Estimate breakdown">
                 {estimate.breakdown.map((item) => <div key={item.id}><span>{item.label}</span><strong>{item.amount < 0 ? "−" : "+"}{money(Math.abs(item.amount))}</strong></div>)}
             </div>
-            <p className={styles.disclaimer}>This is an initial estimate based on your selections. We&rsquo;ll confirm the final scope and price after a free consultation. Managed hosting and technical maintenance are available from £35/month. Domain registration and third-party platform fees are billed separately or at cost.</p>
+            <p className={styles.disclaimer}>This is an initial estimate based on your selections. We&rsquo;ll confirm the final scope and price after a free consultation. Managed hosting and technical maintenance are available from £35/month. Domain and any third-party service costs are charged separately.</p>
         </div>
     ) : (
         <div className={styles.step} data-step={step.id}>
@@ -604,8 +616,8 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
                 <div className={styles.pageSliderLegend} aria-hidden="true"><span>Included: {includedPages}</span><span>Additional pages: {estimate.extraPages}</span></div>
                 {website && <PageExplanation website={website} />}
             </div>}
-            {step.id === "features" && <fieldset className={`${styles.optionGroup} ${styles.featureGrid}`}><legend className="visually-hidden">Available features</legend>{availableFeatures.map((item) => <Option key={item.id} type="checkbox" name="features" item={item} checked={answers.featureIds.includes(item.id)} onChange={() => toggleFeature(item.id)} priceLabel={Number.isFinite(item.price) ? `+${money(item.price)}` : "Quoted separately"} recommended={item.recommendedFor.includes(answers.websiteTypeId)} feature />)}</fieldset>}
-            {step.id === "starting-point" && <fieldset className={styles.optionGroup}><legend className="visually-hidden">Starting point</legend>{pricingConfig.startingPoints.map((item) => <Option key={item.id} name="starting-point" item={item} checked={answers.startingPointId === item.id} onChange={() => update({ startingPointId: item.id })} priceLabel={item.multiplier < 1 ? "Less design work" : item.multiplier > 1 ? "Rebuild scope" : "Included"} />)}</fieldset>}
+            {step.id === "features" && <fieldset className={`${styles.optionGroup} ${styles.featureGrid}`}><legend className="visually-hidden">Available features</legend>{availableFeatures.map((item) => <Option key={item.id} type="checkbox" name="features" item={item} checked={answers.featureIds.includes(item.id)} onChange={() => toggleFeature(item.id)} priceLabel={featurePriceLabel(item)} recommended={item.recommendedFor.includes(answers.websiteTypeId)} feature />)}</fieldset>}
+            {step.id === "starting-point" && <fieldset className={styles.optionGroup}><legend className="visually-hidden">Starting point</legend>{pricingConfig.startingPoints.map((item) => <Option key={item.id} name="starting-point" item={item} checked={answers.startingPointId === item.id} onChange={() => update({ startingPointId: item.id })} priceLabel={item.priceLabels?.[website?.id] ?? item.priceLabel ?? (item.multiplier < 1 ? "Less design work" : item.multiplier > 1 ? "Rebuild scope" : "Included")} />)}</fieldset>}
         </div>
     );
 
@@ -620,20 +632,20 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
                     <button type="button" className={styles.close} onClick={() => requestClose()} aria-label="Close price estimator">×</button>
                 </header>
                 <div className={styles.bodyRegion}>
-                    <div ref={bodyRef} className={`${styles.body}${currentStep === 1 ? ` ${styles.bodyStepTwo}` : ""}`}>
-                        <div className={`${styles.contentLayout} ${step?.id === "website" && !showResult ? styles.websiteContentLayout : ""}`}>
+                    <div ref={bodyRef} className={`${styles.body}${currentStep === 1 ? ` ${styles.bodyStepTwo}` : ""}${showResult ? ` ${styles.bodyResult}` : ""}`}>
+                        <div className={`${styles.contentLayout}${showResult ? ` ${styles.resultContentLayout}` : ""} ${step?.id === "website" && !showResult ? styles.websiteContentLayout : ""}`}>
                             <div className={styles.contentColumn}>{content}</div>
-                            {website && step?.id !== "website" && !showResult && <ProjectSummary website={website} maxHeight={summaryPanelHeight} stablePosition showScrollAffordance={currentStep === 1} showEstimate detailsRef={summaryDetailsRef} scrollParentRef={bodyRef} estimate={estimate} answers={answers} />}
+                            {website && step?.id !== "website" && !showResult && <ProjectSummary website={website} maxHeight={summaryPanelHeight} stablePosition showEstimate detailsRef={summaryDetailsRef} scrollParentRef={bodyRef} estimate={estimate} answers={answers} />}
                         </div>
                     </div>
-                    {showScrollHint && <div className={styles.scrollHint} aria-hidden="true"><span className={styles.scrollHintContent}><span>Scroll to see more</span><img className={styles.scrollHintArrow} src={arrowIcon} alt="" width="1080" height="1350" /></span></div>}
+                    {showBodyScrollHint && <div className={styles.scrollHint} aria-hidden="true"><span className={styles.scrollHintContent}><span>Scroll to explore</span><img className={styles.scrollHintArrow} src={arrowIcon} alt="" width="1080" height="1350" /></span></div>}
                 </div>
                 <footer className={styles.actions}>
                     <div className={styles.secondaryActions}>
                         {(currentStep > 0 || showResult) && <button type="button" className={styles.secondary} onClick={back}>Back</button>}
-                        <button type="button" className={styles.reset} onClick={startAgain}>Start again</button>
+                        {(currentStep > 0 || showResult) && <button type="button" className={styles.reset} onClick={startAgain}>Start again</button>}
                     </div>
-                    {showResult ? <TextArrowAction as="button" type="button" className={styles.primary} onClick={talk}>Let&rsquo;s talk</TextArrowAction> : <TextArrowAction as="button" type="button" className={styles.nextAction} onClick={next} disabled={!valid}>{currentStep === 0 && website?.directContact ? "Let’s talk" : currentStep === STEPS.length - 1 ? "See estimate" : "Next"}</TextArrowAction>}
+                    {showResult ? <TextArrowAction as="button" type="button" className={styles.nextAction} onClick={talk}>Let&rsquo;s talk</TextArrowAction> : <TextArrowAction as="button" type="button" className={styles.nextAction} onClick={next} disabled={!valid}>{currentStep === 0 && website?.directContact ? "Let’s talk" : currentStep === STEPS.length - 1 ? "See estimate" : "Next"}</TextArrowAction>}
                 </footer>
             </section>
         </div>,

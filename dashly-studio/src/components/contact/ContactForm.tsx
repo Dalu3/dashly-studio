@@ -99,6 +99,25 @@ function validateField(field: keyof FormValues, rawValue: string): string {
     return "";
 }
 
+function estimatorMessage(summary: Record<string, unknown>): string {
+    const features = Array.isArray(summary.features) ? summary.features.map(String) : [];
+    const estimateRange = summary.estimateRange && typeof summary.estimateRange === "object"
+        ? summary.estimateRange as Record<string, unknown>
+        : null;
+    const rangeText = estimateRange && estimateRange.minimum !== undefined && estimateRange.maximum !== undefined
+        ? `£${estimateRange.minimum}–£${estimateRange.maximum}`
+        : "To be confirmed";
+
+    return [
+        "Estimator selections:",
+        `Website: ${String(summary.websiteType ?? "Not specified")}`,
+        `Pages: ${String(summary.pageCount ?? "Not specified")}`,
+        `Add-ons: ${features.length > 0 ? features.join(", ") : "None"}`,
+        `Starting point: ${String(summary.startingPoint ?? "Not specified")}`,
+        `Estimated range: ${rangeText}`,
+    ].join("\n");
+}
+
 function validateForm(values: FormValues): FormErrors {
     return {
         name: validateField("name", values.name),
@@ -144,10 +163,10 @@ export function ContactForm() {
             const estimatorType = String(summary.websiteType ?? "");
             const projectType: ProjectType = estimatorType === "Landing Page"
                 ? "Landing Page"
-                : estimatorType === "Catalogue Web"
+                : estimatorType === "Catalogue Website"
                   ? "Catalogue Web"
-                  : estimatorType === "E-Commerce"
-                    ? "E-commerce"
+                : estimatorType === "E-Commerce"
+                  ? "E-commerce"
                     : estimatorType === "Web Application"
                       ? "Web Application"
                       : "Multi-Page Web";
@@ -155,6 +174,7 @@ export function ContactForm() {
                 ...current,
                 projectType,
                 timeline: String(summary.timeline ?? current.timeline),
+                message: projectType === "Web Application" ? "" : estimatorMessage(summary),
             }));
         };
         window.addEventListener(ESTIMATE_HANDOFF_EVENT, handleEstimateHandoff);
@@ -295,12 +315,6 @@ export function ContactForm() {
                     tabIndex={-1}
                 >
                     {formErrorSummary}
-                </div>
-            )}
-            {hasSavedEstimate && (
-                <div className={styles.estimateSummary} aria-label="Your saved estimate">
-                    <span>Saved estimate</span>
-                    <strong>{String(estimateSummary?.websiteType)} · {new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(savedEstimate)}</strong>
                 </div>
             )}
             <input type="hidden" name="estimator_summary" value={estimateSummary ? JSON.stringify(estimateSummary) : ""} />
