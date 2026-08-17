@@ -1,299 +1,370 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
+
 import "./Packages.css";
-import arrowImage from "../assets/arrow.png";
-import { VIEWPORT_CHECK_EVENT, navigateToHash } from "../utils/scrollToHash";
+import arrowImage from "../assets/arrow.svg";
+import { PROJECT_TYPE_SELECT_EVENT } from "../constants/projectTypes";
+import { navigateToHash } from "../utils/scrollToHash";
+import { openEstimator } from "./estimator/estimatorEvents";
+import { SECTION_PREWARM_ROOT_MARGIN } from "../constants/performance";
+import { SERVICE_OFFERINGS } from "../data/services";
 
-const MOBILE_BREAKPOINT = "(max-width: 768px)";
+const READING_COPY =
+    "Choose the option closest to your idea, or answer five quick questions to receive a personalised project estimate.";
+const READING_WORDS = READING_COPY.split(" ");
 
-const packages = [
-    {
-        title: "Landing page",
-        price: "from £600",
-        description:
-            "One-page website designed to convert visitors into taking a specific action: booking a service, signing up, or making a purchase etc.",
-    },
-    {
-        title: "Portfolio Web",
-        price: "from £600",
-        description:
-            "Showcase your work, style, or brand with a clean, responsive portfolio site built to impress, convert, and help you stand out in your industry.",
-    },
-    {
-        title: "Multi-Page Web",
-        price: "from £750",
-        description:
-            "A full-featured website with multiple pages perfect for businesses needing separate sections for services, about, contact, and more.",
-    },
-    {
-        title: "Catalogue Web",
-        price: "from £800",
-        description:
-            "Display your products or services in a clean, organised online catalogue without a payment system. Great for browsing, menus, or list of products.",
-    },
-    {
-        title: "E-commerce",
-        price: "from £1000",
-        description:
-            "A fast, secure online store built to sell, complete with product pages, cart, payment integration, and mobile optimization.",
-    },
-    {
-        title: "Redesign Web",
-        price: "from £600",
-        description:
-            "We’ll redesign your current site to look modern, load faster, and work better, enhancing both the user experience and your results.",
-    },
-];
 
-export default function Packages() {
-    const cardRefs = useRef([]);
-    const gridRef = useRef(null);
-    const animatedCardsRef = useRef(packages.map(() => false));
-    const [isMobileViewport, setIsMobileViewport] = useState(() => {
-        if (typeof window === "undefined") return false;
-        return window.matchMedia(MOBILE_BREAKPOINT).matches;
-    });
-    const [shouldAnimateCards, setShouldAnimateCards] = useState(false);
-    const [visibleCards, setVisibleCards] = useState(() =>
-        packages.map(() => false),
-    );
+function ReadingCopy({ readingCopyRef }) {
+    const measureRef = useRef(null);
+    const [lines, setLines] = useState(null);
 
-    useEffect(() => {
-        if (typeof window === "undefined") return undefined;
+    useLayoutEffect(() => {
+        const measure = measureRef.current;
 
-        const mediaQuery = window.matchMedia(MOBILE_BREAKPOINT);
-        const handleChange = (event) => {
-            setIsMobileViewport(event.matches);
-        };
-
-        setIsMobileViewport(mediaQuery.matches);
-
-        if (mediaQuery.addEventListener) {
-            mediaQuery.addEventListener("change", handleChange);
-            return () => mediaQuery.removeEventListener("change", handleChange);
-        }
-
-        mediaQuery.addListener(handleChange);
-        return () => mediaQuery.removeListener(handleChange);
-    }, []);
-
-    useEffect(() => {
-        if (typeof window === "undefined") {
+        if (!measure) {
             return undefined;
         }
 
-        setShouldAnimateCards(isMobileViewport);
-        return undefined;
-    }, [isMobileViewport]);
+        const measureLines = () => {
+            const words = Array.from(
+                measure.querySelectorAll("[data-reading-word]"),
+            );
+            const nextLines = [];
+            let previousTop = null;
 
-    useEffect(() => {
-        if (typeof window === "undefined" || !shouldAnimateCards) {
-            return undefined;
-        }
+            words.forEach((word) => {
+                const top = Math.round(word.getBoundingClientRect().top);
 
-        const cards = cardRefs.current.filter(Boolean);
-        if (!cards.length) return undefined;
-        let revealFrameId = 0;
-        let revealTimeoutId = 0;
+                if (previousTop === null || Math.abs(top - previousTop) > 1) {
+                    nextLines.push([]);
+                    previousTop = top;
+                }
 
-        const revealCard = (card) => {
-            const index = Number(card.dataset.packageIndex);
+                nextLines[nextLines.length - 1].push(word.textContent ?? "");
+            });
 
-            if (
-                Number.isNaN(index) ||
-                animatedCardsRef.current[index] ||
-                card.classList.contains("animated")
-            ) {
-                return;
-            }
+            setLines((currentLines) => {
+                const current = JSON.stringify(currentLines);
+                const next = JSON.stringify(nextLines);
 
-            animatedCardsRef.current[index] = true;
-
-            setVisibleCards((current) => {
-                if (current[index]) return current;
-
-                const next = [...current];
-                next[index] = true;
-                return next;
+                return current === next ? currentLines : nextLines;
             });
         };
 
-        const revealVisibleCards = () => {
-            const viewportHeight =
-                window.innerHeight || document.documentElement.clientHeight;
+        measureLines();
 
-            cards.forEach((card) => {
-                if (
-                    card.classList.contains("animated") ||
-                    animatedCardsRef.current[
-                        Number(card.dataset.packageIndex)
-                    ]
-                ) {
+        const resizeObserver =
+            "ResizeObserver" in window
+                ? new ResizeObserver(measureLines)
+                : null;
+
+        resizeObserver?.observe(measure);
+
+        const fontsReady = document.fonts?.ready;
+        fontsReady?.then(measureLines).catch(() => {});
+
+        return () => {
+            resizeObserver?.disconnect();
+        };
+    }, []);
+
+    const outputLines = lines ?? [READING_WORDS];
+
+    return (
+        <p ref={readingCopyRef} className="packages-intro__reading-copy">
+            <span
+                ref={measureRef}
+                className="packages-intro__reading-measure"
+                aria-hidden="true"
+            >
+                {READING_WORDS.map((word, index) => (
+                    <span data-reading-word key={`${word}-${index}`}>
+                        {word}
+                        {index < READING_WORDS.length - 1 ? " " : ""}
+                    </span>
+                ))}
+            </span>
+            <span
+                className="packages-intro__reading-output"
+                data-reading-ready={lines ? "true" : "false"}
+            >
+                {outputLines.map((line, index) => (
+                    <span data-reading-line key={`${line.join("-")}-${index}`}>
+                        {line.join(" ")}
+                    </span>
+                ))}
+            </span>
+        </p>
+    );
+}
+
+export default function Packages() {
+    const revealTargetRef = useRef(null);
+    const readingCopyRef = useRef(null);
+    const packageRowsRef = useRef([]);
+    const [isMotionReady, setIsMotionReady] = useState(false);
+    const [isRevealed, setIsRevealed] = useState(false);
+    const [activePackageIndex, setActivePackageIndex] = useState(-1);
+
+    const selectPackage = (service) => {
+        const projectType = service.projectType;
+
+        if (!projectType) {
+            return;
+        }
+
+        window.dispatchEvent(
+            new CustomEvent(PROJECT_TYPE_SELECT_EVENT, {
+                detail: { projectType },
+            }),
+        );
+        navigateToHash(null, "#contact");
+    };
+
+    useEffect(() => {
+        const revealTarget = revealTargetRef.current;
+
+        if (!revealTarget) {
+            return undefined;
+        }
+
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+            setIsMotionReady(true);
+            setIsRevealed(true);
+            return undefined;
+        }
+
+        if (!("IntersectionObserver" in window)) {
+            setIsMotionReady(true);
+            setIsRevealed(true);
+            return undefined;
+        }
+
+        let firstFrame = 0;
+        let revealFrame = 0;
+
+        const observer = new IntersectionObserver(
+            ([entry]) => {
+                if (!entry?.isIntersecting) {
                     return;
                 }
 
-                const rect = card.getBoundingClientRect();
-                const isVisible =
-                    rect.top <= viewportHeight * 0.92 &&
-                    rect.bottom >= viewportHeight * 0.08;
-
-                if (isVisible) {
-                    revealCard(card);
-                }
-            });
-        };
-
-        const forceLayout = () => {
-            gridRef.current?.getBoundingClientRect();
-            cards.forEach((card) => card.getBoundingClientRect());
-        };
-
-        const scheduleRevealVisibleCards = () => {
-            if (revealFrameId) {
-                window.cancelAnimationFrame(revealFrameId);
-            }
-
-            revealFrameId = window.requestAnimationFrame(() => {
-                forceLayout();
-                revealVisibleCards();
-            });
-        };
-
-        let observer;
-
-        if ("IntersectionObserver" in window) {
-            observer = new IntersectionObserver(
-                (entries) => {
-                    entries.forEach((entry) => {
-                        const isVisible =
-                            entry.isIntersecting ||
-                            entry.intersectionRatio > 0;
-
-                        if (
-                            !isVisible ||
-                            entry.target.classList.contains("animated")
-                        ) {
-                            return;
-                        }
-
-                        revealCard(entry.target);
-                        observer?.unobserve(entry.target);
+                // The prepared state is painted in its own frame. Without
+                // this separation, React can batch both states and the
+                // browser has no visible start point from which to animate.
+                setIsMotionReady(true);
+                firstFrame = window.requestAnimationFrame(() => {
+                    revealFrame = window.requestAnimationFrame(() => {
+                        setIsRevealed(true);
                     });
-                },
-                {
-                    threshold: 0.1,
-                },
-            );
-
-            window.requestAnimationFrame(() => {
-                forceLayout();
-                cards.forEach((card) => {
-                    if (!card.classList.contains("animated")) {
-                        observer?.observe(card);
-                    }
                 });
-                scheduleRevealVisibleCards();
-                revealTimeoutId = window.setTimeout(
-                    scheduleRevealVisibleCards,
-                    120,
-                );
-            });
-        } else {
-            window.requestAnimationFrame(() => {
-                scheduleRevealVisibleCards();
-                revealTimeoutId = window.setTimeout(
-                    scheduleRevealVisibleCards,
-                    120,
-                );
-            });
+                observer.disconnect();
+            },
+            // Observe the section rather than the small intro. On mobile the
+            // intro can pass the viewport before 75% of it is visible, which
+            // left the reveal in its static state. This threshold starts the
+            // sequence only once a meaningful portion of the block is on
+            // screen, while remaining reliable at every viewport height.
+            { threshold: 0.12 },
+        );
+
+        observer.observe(revealTarget);
+        return () => {
+            observer.disconnect();
+            window.cancelAnimationFrame(firstFrame);
+            window.cancelAnimationFrame(revealFrame);
+        };
+    }, []);
+
+    useEffect(() => {
+        const section = revealTargetRef.current;
+        const copy = readingCopyRef.current;
+        const rows = packageRowsRef.current.filter(Boolean);
+
+        if (!section || !copy) {
+            return undefined;
         }
 
-        window.addEventListener("scroll", scheduleRevealVisibleCards, {
-            passive: true,
-        });
-        window.addEventListener("resize", scheduleRevealVisibleCards);
-        window.addEventListener("orientationchange", scheduleRevealVisibleCards);
-        window.addEventListener("load", scheduleRevealVisibleCards);
-        window.addEventListener("pageshow", scheduleRevealVisibleCards);
-        window.addEventListener("touchend", scheduleRevealVisibleCards, {
-            passive: true,
-        });
-        window.addEventListener(
-            VIEWPORT_CHECK_EVENT,
-            scheduleRevealVisibleCards,
+        const readingEnabled = !window.matchMedia(
+            "(prefers-reduced-motion: reduce)",
+        ).matches;
+        const rootStyles = window.getComputedStyle(document.documentElement);
+        const readingStart = Number.parseFloat(
+            rootStyles.getPropertyValue("--scroll-reading-start"),
         );
-        document.fonts?.ready?.then(scheduleRevealVisibleCards);
+        const readingEnd = Number.parseFloat(
+            rootStyles.getPropertyValue("--scroll-reading-end"),
+        );
+        let frame = 0;
+        let sectionActive = false;
 
-        return () => {
-            observer?.disconnect();
-            window.clearTimeout(revealTimeoutId);
-            window.cancelAnimationFrame(revealFrameId);
-            window.removeEventListener("scroll", scheduleRevealVisibleCards);
-            window.removeEventListener("resize", scheduleRevealVisibleCards);
-            window.removeEventListener(
-                "orientationchange",
-                scheduleRevealVisibleCards,
-            );
-            window.removeEventListener("load", scheduleRevealVisibleCards);
-            window.removeEventListener("pageshow", scheduleRevealVisibleCards);
-            window.removeEventListener("touchend", scheduleRevealVisibleCards);
-            window.removeEventListener(
-                VIEWPORT_CHECK_EVENT,
-                scheduleRevealVisibleCards,
+        const updateScrollEffects = () => {
+            frame = 0;
+            if (!sectionActive) return;
+
+            const viewportHeight = window.innerHeight;
+
+            if (readingEnabled) {
+                const { top } = copy.getBoundingClientRect();
+                const start = viewportHeight * readingStart;
+                const end = viewportHeight * readingEnd;
+                const progress = Math.min(
+                    1,
+                    Math.max(0, (start - top) / (start - end)),
+                );
+                const lines = copy.querySelectorAll("[data-reading-line]");
+                const lineCount = lines.length || 1;
+
+                lines.forEach((line, index) => {
+                    const lineProgress = Math.min(
+                        1,
+                        Math.max(0, progress * lineCount - index),
+                    );
+                    line.style.setProperty(
+                        "--line-progress",
+                        `${lineProgress * 100}%`,
+                    );
+                });
+            }
+
+            // Read every row exactly once per frame. The previous reducer read
+            // the same rectangles repeatedly while comparing candidates.
+            const visibleRows = rows
+                .map((row) => ({ row, rect: row.getBoundingClientRect() }))
+                .filter(({ rect }) => rect.bottom > 0 && rect.top < viewportHeight);
+
+            if (!visibleRows.length) {
+                setActivePackageIndex(-1);
+                return;
+            }
+
+            const anchor = viewportHeight * 0.45;
+            const closest = visibleRows.reduce((current, candidate) => {
+                const currentDistance = Math.abs(
+                    current.rect.top + current.rect.height / 2 - anchor,
+                );
+                const candidateDistance = Math.abs(
+                    candidate.rect.top + candidate.rect.height / 2 - anchor,
+                );
+
+                return candidateDistance < currentDistance ? candidate : current;
+            });
+            const nextIndex = Number(closest.row.dataset.packageIndex);
+
+            setActivePackageIndex((currentIndex) =>
+                currentIndex === nextIndex ? currentIndex : nextIndex,
             );
         };
-    }, [shouldAnimateCards]);
+
+        const requestUpdate = () => {
+            if (!frame) {
+                frame = window.requestAnimationFrame(updateScrollEffects);
+            }
+        };
+
+        const activateSection = () => {
+            if (sectionActive) return;
+
+            sectionActive = true;
+            window.addEventListener("scroll", requestUpdate, { passive: true });
+            window.addEventListener("resize", requestUpdate);
+            requestUpdate();
+        };
+
+        const deactivateSection = () => {
+            if (!sectionActive) return;
+
+            sectionActive = false;
+            window.removeEventListener("scroll", requestUpdate);
+            window.removeEventListener("resize", requestUpdate);
+            window.cancelAnimationFrame(frame);
+            frame = 0;
+        };
+
+        const observer =
+            "IntersectionObserver" in window
+                ? new IntersectionObserver(
+                      ([entry]) => {
+                          if (entry?.isIntersecting) {
+                              activateSection();
+                          } else {
+                              deactivateSection();
+                          }
+                      },
+                      { rootMargin: SECTION_PREWARM_ROOT_MARGIN, threshold: 0 },
+                  )
+                : null;
+
+        if (observer) {
+            observer.observe(section);
+        } else {
+            activateSection();
+        }
+
+        return () => {
+            deactivateSection();
+            observer?.disconnect();
+        };
+    }, []);
 
     return (
-        <section className="packages-section" id="packages">
-            <h2 className="block-title" id="packages-title">
-                {isMobileViewport ? (
-                    "Choose Your Website Package"
-                ) : (
-                    <>
-                        Choose Your Perfect
-                        <br />
-                        Development Package
-                    </>
-                )}
-            </h2>
-            <div className="packages-grid" ref={gridRef}>
-                {packages.map((pkg, index) => (
-                    <article
-                        key={index}
-                        ref={(element) => {
-                            cardRefs.current[index] = element;
-                        }}
-                        data-package-index={index}
-                        className={`package-card${shouldAnimateCards ? " package-card--mobile" : ""}${visibleCards[index] ? " is-visible animated" : ""}`}
-                        style={
-                            shouldAnimateCards
-                                ? {
-                                      "--package-delay": `${Math.min(index, 2) * 0.12}s`,
-                                  }
-                                : undefined
-                        }
-                    >
-                        <div className="package-header">
-                            <h3>{pkg.title}</h3>
-                            <span className="package-price">{pkg.price}</span>
-                        </div>
-                        <p className="package-description">{pkg.description}</p>
-                        <a
-                            href="#contact"
-                            className="package-cta"
-                            onClick={(event) =>
-                                navigateToHash(event, "#contact")
-                            }
+        <section
+            ref={revealTargetRef}
+            className={`packages-section${isMotionReady ? " packages-section--motion-ready" : ""}${isRevealed ? " packages-section--revealed" : ""}`}
+            id="packages"
+            aria-labelledby="packages-title"
+        >
+            <div className="packages-content">
+                <header className="packages-intro">
+                    <h2 id="packages-title">
+                        The websites <span>we build</span>
+                    </h2>
+                    <ReadingCopy readingCopyRef={readingCopyRef} />
+                </header>
+
+                <div className="packages-list">
+                    {SERVICE_OFFERINGS.map((pkg, index) => (
+                        <article
+                            className={`package-row${activePackageIndex === index ? " package-row--active" : ""}`}
+                            data-package-index={index}
+                            key={pkg.id}
+                            ref={(row) => {
+                                packageRowsRef.current[index] = row;
+                            }}
                         >
-                            Ask a question{" "}
-                            <img
-                                src={arrowImage}
-                                alt="Ask a question"
-                                className="arrow-icon"
+                            <h3 id={`package-title-${pkg.id}`}>{pkg.label}</h3>
+                            <p>{pkg.description}</p>
+                            <button
+                                type="button"
+                                className="package-row__action"
+                                aria-labelledby={`package-title-${pkg.id}`}
+                                onClick={() => selectPackage(pkg)}
                             />
-                        </a>
-                    </article>
-                ))}
+                        </article>
+                    ))}
+                </div>
+
+                <div className="packages-estimate">
+                    <p className="packages-estimate__desktop-copy">
+                        Five questions and you&rsquo;ll have a price.
+                    </p>
+                    <button
+                        type="button"
+                        onClick={(event) => openEstimator(event.currentTarget)}
+                    >
+                        Get My Estimate
+                        <img
+                            src={arrowImage}
+                            className="packages-estimate__icon"
+                            alt=""
+                            width="1080"
+                            height="1350"
+                            aria-hidden="true"
+                        />
+                    </button>
+                    <p className="packages-estimate__mobile-caption">
+                        Answer 5 quick questions to get a tailored estimate.
+                    </p>
+                </div>
             </div>
         </section>
     );

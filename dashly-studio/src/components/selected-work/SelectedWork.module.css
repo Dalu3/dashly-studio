@@ -1,0 +1,121 @@
+/**
+ * Selected work section.
+ *
+ * The custom properties on `.root` are this section's component tokens: every
+ * proportion in the ticker, the carousel and the cards resolves from here, so
+ * matching a Figma tweak is a one-line change rather than a hunt through three
+ * stylesheets.
+ *
+ * Mobile-first throughout, and deliberately free of media queries — clamp()
+ * carries the whole scale from a 320px phone to a 1920px desktop. The
+ * upper bound of each clamp is the design's desktop value.
+ */
+
+.root {
+    /* ---- Ticker ---------------------------------------------------------- */
+    --work-ticker-gap: var(--space-2xl);
+    /* Keep the same marquee/keyframe logic at every viewport size, while
+       giving the shorter mobile copy a longer cycle for calmer movement. */
+    --work-ticker-speed-factor: 2;
+
+    /* ---- Cards ------------------------------------------------------------ */
+    /* 30.625rem = 490px, the card width in the reference. Below that the card
+       is a share of the viewport, so a second card always peeks in and the
+       content reads as draggable without any hint UI. */
+    --work-card-width: clamp(15rem, 78vw, 30.625rem);
+    --work-card-aspect: 12 / 7;
+    --work-card-radius: var(--radius-none);
+    /* 2.25rem = 36px, the gap in the reference, reached at the 1440px design
+       width; below that it tightens with the viewport rather than eating the
+       card. */
+    --work-card-gap: clamp(var(--space-sm), 0.4rem + 2vw, 2.25rem);
+    --work-card-meta-gap: clamp(var(--space-sm), 0.7rem + 0.6vw, var(--space-md));
+    --work-card-perspective: 55rem;
+
+    /* Consumed by DragCarousel.module.css. */
+    --carousel-gap: var(--work-card-gap);
+
+    position: relative;
+    padding-block: var(--space-section-padding);
+    background-color: var(--color-surface-page);
+
+    /* Both moving tracks are wider than the viewport by design. Clip them at
+       the section boundary so their off-canvas geometry cannot widen the
+       document at the tablet breakpoint. Section padding already contains the
+       small vertical perspective movement of the cards. */
+    overflow: clip;
+}
+
+/* The heading is a decorative ticker, so the accessible name is carried by a
+   real, silent <h2> instead. Local copy of the global utility because
+   styles/base/utilities.css is not wired into main.jsx yet. */
+.srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+.ticker {
+    --marquee-gap: var(--work-ticker-gap);
+    --marquee-speed-factor: var(--work-ticker-speed-factor);
+}
+
+@media (max-width: 47.999rem) {
+    .ticker {
+        --marquee-gap: var(--space-sm);
+    }
+}
+
+@media (min-width: 48rem) and (max-width: 63.999rem) {
+    .ticker {
+        --marquee-gap: var(--space-lg);
+    }
+}
+
+.tickerText {
+    display: block;
+    font-family: var(--font-family-sans);
+    font-size: var(--type-h2);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-none);
+    letter-spacing: var(--letter-spacing-tighter);
+    text-transform: uppercase;
+    color: var(--color-text-primary);
+    white-space: nowrap;
+
+    /* Cap height, not the em box, is what should sit on the design's grid — the
+       block padding compensates for the font's internal leading being trimmed
+       by line-height: 1. */
+    padding-block: 0.08em;
+}
+
+.carousel {
+    margin-block-start: clamp(var(--space-lg), 1rem + 3vw, var(--space-2xl));
+}
+
+@media (max-width: 20rem) {
+    .tickerText {
+        font-size: var(--type-h3);
+    }
+}
+
+/* The ticker is decorative, so it uses the existing compact heading token
+   while the real h2 above carries the section's accessible heading. */
+@media (min-width: 64rem) {
+    .ticker {
+        /* Match the Hero display scale while keeping the repeated words close
+           enough to read as a single continuous line. */
+        --marquee-gap: var(--space-lg);
+        --marquee-speed-factor: 1;
+    }
+
+    .tickerText {
+        font-size: var(--font-size-4xl);
+    }
+}

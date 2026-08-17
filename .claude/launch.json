@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dashly-dev",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev", "--prefix", "dashly-studio", "--", "--port", "5180", "--strictPort"],
+      "port": 5180
+    }
+  ]
+}

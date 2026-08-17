@@ -8,10 +8,18 @@ import {
     SITE_NAME,
     SITE_URL,
     getSchemaForPage,
+    faqItems,
+    homeContent,
     homePage,
+    SITE_EMAIL,
+    SOCIAL_LINKS,
     indexablePages,
+    notFoundPage,
     staticPages,
 } from "../src/seo/siteMetadata.js";
+import { SERVICE_OFFERINGS } from "../src/data/services.js";
+import { PROJECT_METADATA } from "../src/data/projects.js";
+import { PROCESS_STAGES } from "../src/data/stages.js";
 
 const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(scriptDirectory, "..");
@@ -37,6 +45,10 @@ function upsertTag(html, pattern, tag) {
     }
 
     return html.replace("</head>", `    ${tag}\n    </head>`);
+}
+
+function removeTag(html, pattern) {
+    return html.replace(pattern, "");
 }
 
 function upsertMetaByName(html, name, content) {
@@ -93,29 +105,201 @@ function replaceSchemaScript(html, schema) {
     );
 }
 
+function renderLink(href, label) {
+    return `<a href="${escapeHtml(href)}">${escapeHtml(label)}</a>`;
+}
+
+function renderFaqAnswer(item) {
+    if (item.answer) {
+        return escapeHtml(item.answer);
+    }
+
+    return `${escapeHtml(item.answerBeforeEstimator ?? "")}${renderLink(
+        "/#estimator",
+        item.estimatorLabel,
+    )}${escapeHtml(item.answerAfterEstimator ?? "")}`;
+}
+
+function renderSiteNavigation() {
+    return `<header>
+    <a href="/" aria-label="Dashly Studio home">Dashly Studio</a>
+    <nav aria-label="Primary">
+        ${renderLink("/#work", "Work")}
+        ${renderLink("/#packages", "Services")}
+        ${renderLink("/#stages", "Process")}
+        ${renderLink("/#faq", "FAQ")}
+        ${renderLink("/#contact", "Contact")}
+    </nav>
+</header>`;
+}
+
+function renderSiteFooter() {
+    return `<footer>
+    <p>Dashly Studio — web design and development studio based in Aberdeen, Scotland, serving businesses worldwide.</p>
+    <nav aria-label="Footer navigation">
+        ${renderLink("/#work", "Work")}
+        ${renderLink("/#packages", "Services")}
+        ${renderLink("/#stages", "Process")}
+        ${renderLink("/#faq", "FAQ")}
+        ${renderLink("/#contact", "Contact")}
+        ${renderLink("/terms/", "Terms and Conditions")}
+        ${renderLink("/privacy/", "Privacy Policy")}
+    </nav>
+    <nav aria-label="Social links">
+        ${renderLink(SOCIAL_LINKS[0], "Instagram")}
+        ${renderLink(SOCIAL_LINKS[1], "Facebook")}
+        ${renderLink(SOCIAL_LINKS[2], "LinkedIn")}
+    </nav>
+</footer>`;
+}
+
+let HOME_PROJECT_ASSETS = new Map();
+
+function renderHomeFallback() {
+    const services = SERVICE_OFFERINGS.map(
+        (service) => `<li><h3>${escapeHtml(service.label)}</h3><p>${escapeHtml(service.description)}</p></li>`,
+    ).join("\n");
+    const projects = PROJECT_METADATA.map(
+        (project) => {
+            const imageSrc = HOME_PROJECT_ASSETS.get(project.id);
+            const image = imageSrc
+                ? `<img src="${escapeHtml(imageSrc)}" alt="${escapeHtml(project.imageAlt)}" width="${project.width}" height="${project.height}" loading="lazy" decoding="async" />`
+                : "";
+
+            return `<article>${image}<h3>${escapeHtml(project.title)}</h3><p>${escapeHtml(project.description)}</p><p>${renderLink(project.href, `View ${project.title}`)}</p></article>`;
+        },
+    ).join("\n");
+    const stages = PROCESS_STAGES.map(
+        (stage, index) =>
+            `<li><article><p>Stage ${index + 1}</p><h3>${escapeHtml(stage.title)}</h3><p>${escapeHtml(stage.description)}</p></article></li>`,
+    ).join("\n");
+    const faq = faqItems
+        .map(
+            (item) => `<article><h3>${escapeHtml(item.question)}</h3><details><summary>Show answer</summary><p>${renderFaqAnswer(item)}</p></details></article>`,
+        )
+        .join("\n");
+
+    return `<main id="main-content" tabindex="-1">
+    <section aria-labelledby="hero-title">
+        <h1 id="hero-title">${homeContent.heroTitleLines.map(escapeHtml).join(" ")}</h1>
+        <p>${escapeHtml(homeContent.heroSubtitle)}</p>
+        <p>Based in Scotland</p>
+        <p>Working Worldwide</p>
+        <p>${renderLink("/#contact", "Start a project conversation")}</p>
+    </section>
+    <section id="work" aria-labelledby="work-title">
+        <h2 id="work-title">Selected work</h2>
+        <p>Examples of custom websites and digital experiences created by Dashly Studio.</p>
+        <div>${projects}</div>
+    </section>
+    <section id="packages" aria-labelledby="services-title">
+        <h2 id="services-title">The websites we build</h2>
+        <ul>${services}</ul>
+        <p>${renderLink("/#contact", "Tell us about your project")}</p>
+    </section>
+    <section id="stages" aria-labelledby="stages-title">
+        <h2 id="stages-title">How we make it work</h2>
+        <p>From strategy to development, every step is shaped around your business and its goals.</p>
+        <ol>${stages}</ol>
+    </section>
+    <section id="faq" aria-labelledby="faq-title">
+        <h2 id="faq-title">Frequently asked questions</h2>
+        ${faq}
+    </section>
+    <section id="contact" aria-labelledby="contact-title">
+        <h2 id="contact-title">Have a project in mind?</h2>
+        <p>Contact Dashly Studio at ${renderLink(`mailto:${SITE_EMAIL}`, SITE_EMAIL)}.</p>
+    </section>
+</main>`;
+}
+
+function renderLegalFallback(page) {
+    const isPrivacy = page.key === "privacy";
+    const sections = isPrivacy
+        ? `<section><h2>Privacy at Dashly Studio</h2><p>We collect the details you provide in an enquiry, such as your name, email address, project requirements, budget and timeline, to respond to you and prepare an estimate.</p><p>GitHub Pages hosts this website, the Sora web font is self-hosted by Dashly Studio, Google Analytics 4 is loaded only with analytics consent, and EmailJS processes contact-form enquiries.</p><p>We store your cookie consent choice in your browser&apos;s local storage so the website can remember it. Video and WebGL visual assets run in your browser and do not add a separate tracking provider.</p><p>Dashly Studio is the data controller for personal information processed through this website. You can contact us to ask about your information, request corrections or discuss how it is used.</p></section>`
+        : `<section><h2>Using this website</h2><p>These Terms govern your use of the Dashly Studio website. Project services, scope and deliverables are agreed separately in a proposal, quotation, statement of work or contract.</p><h2>Estimates and enquiries</h2><p>Any website estimate is indicative only and does not create a contract. Final scope, pricing and timing are confirmed separately in writing.</p><h2>Privacy</h2><p>Please also review our ${renderLink("/privacy/", "Privacy Policy")}.</p><h2>Contact</h2><p>For questions about these Terms, contact ${renderLink(`mailto:${SITE_EMAIL}`, SITE_EMAIL)}.</p></section>`;
+
+    return `<main id="main-content" tabindex="-1">
+    <h1>${escapeHtml(isPrivacy ? "Privacy Policy" : "Terms and Conditions")}</h1>
+    <p>Last updated: 14 August 2026</p>
+    ${sections}
+    <p>${renderLink("/", "Return to the Dashly Studio homepage")}</p>
+</main>`;
+}
+
+function renderNotFoundFallback() {
+    return `<main class="not-found-page" id="main-content" tabindex="-1">
+    <div class="not-found-page__inner">
+        <div class="not-found-page__copy">
+            <p class="not-found-page__eyebrow">404</p>
+            <h1>Page not found</h1>
+            <p>This page took a wrong turn. Let’s get you back to the studio.</p>
+            <a class="not-found-page__action" href="/">Back to homepage <span aria-hidden="true">↗</span></a>
+        </div>
+    </div>
+</main>`;
+}
+
+function renderStaticFallback(page) {
+    const content = page.key === "home"
+        ? renderHomeFallback()
+        : page.key === "privacy" || page.key === "terms"
+            ? renderLegalFallback(page)
+            : renderNotFoundFallback();
+
+    return `<div id="static-page-content"><a class="skip-to-main-content" href="#main-content">Skip to main content</a>${renderSiteNavigation()}${content}${renderSiteFooter()}</div>`;
+}
+
+function injectStaticFallback(html, page) {
+    const fallback = renderStaticFallback(page);
+
+    return html.replace(
+        '<div id="root"></div>',
+        `${fallback}\n        <div id="root"></div>`,
+    );
+}
+
 function renderHtml(baseHtml, page) {
     const absoluteUrl = new URL(page.path, SITE_URL).toString();
     const absoluteImage = new URL(SITE_IMAGE, SITE_URL).toString();
     const schema = getSchemaForPage(page);
+    const isNotFoundPage = page.key === "notFound";
     let html = baseHtml;
 
     html = replaceTitle(html, page.title);
     html = upsertMetaByName(html, "description", page.description);
     html = upsertMetaByName(html, "robots", page.robots);
-    html = upsertLink(html, "canonical", absoluteUrl);
-    html = upsertTag(
-        html,
-        /<link\s+[^>]*rel=["']alternate["'][^>]*hreflang=["']en-gb["'][^>]*>/i,
-        `<link rel="alternate" hreflang="en-gb" href="${escapeHtml(absoluteUrl)}" />`,
-    );
+    if (isNotFoundPage) {
+        html = removeTag(
+            html,
+            /<link\s+[^>]*rel=["']canonical["'][^>]*>\s*/i,
+        );
+        html = removeTag(
+            html,
+            /<link\s+[^>]*rel=["']alternate["'][^>]*hreflang=["']en-gb["'][^>]*>\s*/i,
+        );
+        html = removeTag(
+            html,
+            /<meta\s+[^>]*property=["']og:url["'][^>]*>\s*/i,
+        );
+    } else {
+        html = upsertLink(html, "canonical", absoluteUrl);
+        html = upsertTag(
+            html,
+            /<link\s+[^>]*rel=["']alternate["'][^>]*hreflang=["']en-gb["'][^>]*>/i,
+            `<link rel="alternate" hreflang="en-gb" href="${escapeHtml(absoluteUrl)}" />`,
+        );
+    }
     html = upsertMetaByProperty(html, "og:locale", "en_GB");
     html = upsertMetaByProperty(html, "og:type", "website");
     html = upsertMetaByProperty(html, "og:site_name", SITE_NAME);
     html = upsertMetaByProperty(html, "og:title", page.title);
     html = upsertMetaByProperty(html, "og:description", page.description);
-    html = upsertMetaByProperty(html, "og:url", absoluteUrl);
+    if (!isNotFoundPage) {
+        html = upsertMetaByProperty(html, "og:url", absoluteUrl);
+    }
     html = upsertMetaByProperty(html, "og:image", absoluteImage);
-    html = upsertMetaByProperty(html, "og:image:type", "image/png");
+    html = upsertMetaByProperty(html, "og:image:type", "image/jpeg");
     html = upsertMetaByProperty(html, "og:image:alt", SITE_IMAGE_ALT);
     html = upsertMetaByProperty(html, "og:image:width", "1200");
     html = upsertMetaByProperty(html, "og:image:height", "630");
@@ -125,6 +309,7 @@ function renderHtml(baseHtml, page) {
     html = upsertMetaByName(html, "twitter:image", absoluteImage);
     html = upsertMetaByName(html, "twitter:image:alt", SITE_IMAGE_ALT);
     html = replaceSchemaScript(html, schema);
+    html = injectStaticFallback(html, page);
 
     return html;
 }
@@ -263,8 +448,8 @@ function createOgImageBuffer() {
     ]);
 }
 
-async function ensureOgImagePng() {
-    const outputPath = path.join(distDir, "og-image.png");
+async function ensureOgImage() {
+    const outputPath = path.join(distDir, path.basename(SITE_IMAGE));
 
     try {
         // Prefer a static file copied from /public during the Vite build.
@@ -275,13 +460,29 @@ async function ensureOgImagePng() {
     }
 }
 
+async function resolveHomeProjectAssets() {
+    const assetDirectory = path.join(distDir, "assets");
+    const files = await fs.readdir(assetDirectory);
+
+    HOME_PROJECT_ASSETS = new Map(
+        PROJECT_METADATA.map((project) => {
+            const filename = files.find(
+                (file) =>
+                    file.startsWith(`${project.assetBase}-`) &&
+                    /\.(avif|webp|png|jpe?g)$/i.test(file),
+            );
+
+            return [project.id, filename ? `/assets/${filename}` : null];
+        }),
+    );
+}
+
 async function writeStaticPages(baseHtml) {
     for (const page of staticPages) {
         const html = renderHtml(baseHtml, page);
 
         if (page.path === homePage.path) {
             await fs.writeFile(path.join(distDir, "index.html"), html);
-            await fs.writeFile(path.join(distDir, "404.html"), html);
             continue;
         }
 
@@ -290,6 +491,9 @@ async function writeStaticPages(baseHtml) {
         await fs.mkdir(outputDir, { recursive: true });
         await fs.writeFile(path.join(outputDir, "index.html"), html);
     }
+
+    const notFoundHtml = renderHtml(baseHtml, notFoundPage);
+    await fs.writeFile(path.join(distDir, "404.html"), notFoundHtml);
 }
 
 async function writeRobotsAndSitemap() {
@@ -318,6 +522,20 @@ async function ensureCnameAndNoJekyll() {
 }
 
 async function syncDocsFolder() {
+    // The repo-root /docs folder IS the production site: GitHub Pages serves
+    // main -> /docs. Building on a redesign branch would otherwise wipe and
+    // regenerate it, making it far too easy to commit a half-finished redesign
+    // onto main by accident.
+    //
+    // Default behaviour is unchanged. Set DASHLY_SKIP_DOCS_SYNC=1 (or use
+    // `npm run build:preview`) to build into dist/ only and leave /docs alone.
+    if (process.env.DASHLY_SKIP_DOCS_SYNC === "1") {
+        console.log(
+            "[postbuild] DASHLY_SKIP_DOCS_SYNC=1 — leaving /docs untouched; output is in dist/ only.",
+        );
+        return;
+    }
+
     await fs.rm(docsDir, { recursive: true, force: true });
     await fs.cp(distDir, docsDir, { recursive: true });
 }
@@ -325,7 +543,8 @@ async function syncDocsFolder() {
 async function main() {
     const baseHtml = await fs.readFile(path.join(distDir, "index.html"), "utf8");
 
-    await ensureOgImagePng();
+    await ensureOgImage();
+    await resolveHomeProjectAssets();
     await writeStaticPages(baseHtml);
     await writeRobotsAndSitemap();
     await ensureCnameAndNoJekyll();

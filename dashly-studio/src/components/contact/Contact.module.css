@@ -1,0 +1,247 @@
+/** Contact section: mobile-first, using the shared landing-page tokens. */
+
+.root {
+    background:
+        linear-gradient(
+            to bottom,
+            var(--color-surface-page),
+            var(--color-surface-accent-subtle)
+        ) top / 100% var(--space-section-padding) no-repeat,
+        var(--color-surface-accent-subtle);
+    padding-block: var(--space-section-padding);
+}
+
+.container {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: var(--content-max-width-wide);
+    margin-inline: auto;
+    padding-inline: var(--container-gutter);
+    display: grid;
+    grid-template-columns: 1fr;
+    align-items: center;
+    gap: var(--space-md);
+}
+
+@media (min-width: 48rem) {
+    .container {
+        gap: var(--space-xl);
+    }
+}
+
+.intro {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.heading {
+    font-family: var(--font-family-sans);
+    font-size: var(--font-size-contact-heading);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-display);
+    letter-spacing: var(--letter-spacing-wide-plus);
+    color: var(--color-text-black);
+}
+
+@media (max-width: 47.999rem) {
+    .heading {
+        font-size: var(--type-h2);
+        line-height: var(--line-height-type-h2);
+        text-align: left;
+    }
+
+}
+
+.headingLine {
+    display: block;
+    white-space: nowrap;
+}
+
+.headingAccent {
+    color: var(--color-text-accent);
+}
+
+.body {
+    font-size: var(--type-body);
+    font-weight: var(--font-weight-regular);
+    line-height: var(--line-height-body-compact);
+    letter-spacing: var(--letter-spacing-wide-plus);
+    color: var(--color-text-black);
+    max-width: var(--measure-default);
+}
+
+/* ---- Form card ---------------------------------------------------------- */
+
+.card {
+    box-sizing: border-box;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    width: 100%;
+    background: var(--color-surface-raised);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-md);
+}
+
+/* Small-laptop composition: the 1024px layout already has enough room for
+   the copy and form to sit side by side. Keep the tracks fluid until the
+   wider desktop composition takes over at 80rem. */
+@media (min-width: 64rem) {
+    .container {
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+        align-items: start;
+        gap: var(--space-2xl);
+    }
+
+    .intro {
+        align-self: start;
+        margin-top: var(--space-0);
+    }
+
+    .headingLine {
+        white-space: normal;
+    }
+}
+
+@media (min-width: 80rem) {
+    .container {
+        max-width: var(--content-max-width-wide);
+        grid-template-columns:
+            minmax(0, var(--faq-intro-width))
+            minmax(0, var(--container-narrow));
+        align-items: start;
+        gap: var(--faq-column-gap);
+        justify-content: space-between;
+    }
+
+    .intro {
+        align-self: start;
+        margin-top: var(--space-0);
+    }
+
+    .body {
+        inline-size: min(
+            var(--measure-default),
+            calc(100% + var(--faq-column-gap))
+        );
+    }
+
+    .headingLine {
+        white-space: nowrap;
+    }
+
+}
+
+/* Laptop-to-standard-desktop text inset: matches the visual gutter while
+   leaving the form track and the shared container geometry unchanged. */
+@media (min-width: 64rem) and (max-width: 107.999rem) {
+    .intro {
+        padding-inline-start: var(--space-xs);
+    }
+}
+
+.submit {
+    box-sizing: border-box;
+    width: 100%;
+    font-family: var(--font-family-sans);
+    font-size: var(--type-control);
+    font-weight: var(--font-weight-semibold);
+    color: var(--color-action-primary-text);
+    background: var(--color-action-primary-bg);
+    border: none;
+    border-radius: var(--radius-pill);
+    padding-block: var(--space-xs);
+    cursor: pointer;
+    transition: var(--transition-colors), var(--transition-transform);
+}
+
+.submit:hover:not(:disabled) {
+    background: var(--color-action-primary-bg-hover);
+}
+
+.submit:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+}
+
+.submit:disabled {
+    cursor: progress;
+    opacity: 0.7;
+}
+
+.status {
+    display: block;
+    text-align: center;
+    font-size: var(--font-size-sm);
+    color: var(--color-text-secondary);
+}
+
+.statusError {
+    color: var(--color-feedback-error);
+    font-weight: var(--font-weight-medium);
+}
+
+/* Laptop type scale: submit/status text is the "form & links" size. Placed
+   after the base .submit/.status rules so it wins the cascade at --bp-lg. */
+@media (min-width: 64rem) {
+    .status {
+        font-size: var(--font-size-small);
+    }
+}
+
+/* The approved desktop starts at 64rem. Keep every desktop declaration above
+   intact and constrain this touch/press feedback to tablet and phone widths. */
+@media (max-width: 47.999rem) {
+    .card {
+        width: calc(100% + (var(--space-3xs) * 2));
+        margin-inline: calc(var(--space-3xs) * -1);
+        padding: var(--space-sm);
+    }
+
+    .submit:active:not(:disabled) {
+        background: var(--color-action-primary-bg-hover);
+        transform: scale(0.99);
+    }
+}
+
+/* Pair the short contact fields from tablet upward. Fields that are meant to
+   span the card mark themselves with .fullWidth, so hidden inputs or status
+   messages cannot change the layout through child-position selectors. */
+@media (min-width: 48rem) {
+    .card {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: var(--space-md);
+        row-gap: var(--space-sm);
+    }
+
+    .submit,
+    .status,
+    .estimateSummary,
+    .fullWidth {
+        grid-column: 1 / -1;
+    }
+}
+
+.fullWidth {
+    grid-column: 1 / -1;
+}
+.estimateSummary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-md);
+    background: var(--color-action-accent-bg-subtle);
+    color: var(--color-text-primary);
+    font-size: var(--type-small);
+    line-height: var(--line-height-normal);
+}
+
+.estimateSummary strong { text-align: right; }

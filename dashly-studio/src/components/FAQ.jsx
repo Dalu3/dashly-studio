@@ -1,68 +1,104 @@
-import { useState, useEffect, useRef } from "react";
+import { useEffect, useId, useState } from "react";
 import "./FAQ.css";
 import { faqItems } from "../seo/siteMetadata.js";
+import { openEstimator } from "./estimator/estimatorEvents.js";
 
 export default function FAQ() {
     const [activeIndex, setActiveIndex] = useState(null);
-    const containerRef = useRef(null);
+    const idPrefix = useId().replace(/:/g, "");
+
+    useEffect(() => {
+        const closeOnOutsidePress = (event) => {
+            const clickedQuestion = event.target.closest?.(".faq-question");
+            const clickedAnswer = event.target.closest?.(".faq-answer");
+
+            if (!clickedQuestion && !clickedAnswer) {
+                setActiveIndex(null);
+            }
+        };
+
+        document.addEventListener("pointerdown", closeOnOutsidePress);
+
+        return () => {
+            document.removeEventListener("pointerdown", closeOnOutsidePress);
+        };
+    }, []);
 
     const toggleFAQ = (index) => {
         setActiveIndex(index === activeIndex ? null : index);
     };
 
-    useEffect(() => {
-        const handleClickOutside = (event) => {
-            const activeItem =
-                containerRef.current?.querySelector(".faq-item.active");
-
-            if (activeItem && !activeItem.contains(event.target)) {
-                setActiveIndex(null);
-            }
-        };
-
-        document.addEventListener("mousedown", handleClickOutside);
-        return () => {
-            document.removeEventListener("mousedown", handleClickOutside);
-        };
-    }, []);
-
     return (
         <section
-            className="faq-container"
-            ref={containerRef}
+            className="faq-section"
             id="faq"
             aria-labelledby="faq-title"
         >
-            <h2 className="block-title" id="faq-title">
-                <span className="faq-title-desktop">FAQ</span>
-                <span className="faq-title-mobile">
-                    Frequently Asked Questions
-                </span>
-            </h2>
-            {faqItems.map((item, i) => (
-                <div
-                    key={i}
-                    className={`faq-item ${activeIndex === i ? "active" : ""}`}
-                >
-                    <button
-                        className="faq-question"
-                        onClick={() => toggleFAQ(i)}
-                        type="button"
-                        aria-expanded={activeIndex === i}
-                        aria-controls={`faq-answer-${i}`}
-                    >
-                        <span className="faq-question-text">{item.question}</span>
-                        <span className="faq-icon" aria-hidden="true" />
-                    </button>
-                    <div
-                        id={`faq-answer-${i}`}
-                        className="faq-answer"
-                        onClick={() => setActiveIndex(null)}
-                    >
-                        <p>{item.answer}</p>
-                    </div>
+            <div className="faq-container">
+                <header className="faq-intro">
+                    <h2 id="faq-title">FAQ</h2>
+                    <p>Everything You Need to Know</p>
+                </header>
+                <div className="faq-list">
+                    {faqItems.map((item, i) => {
+                        const isOpen = activeIndex === i;
+                        const questionId = `${idPrefix}-faq-question-${i}`;
+                        const answerId = `${idPrefix}-faq-answer-${i}`;
+
+                        return (
+                            <div
+                                key={item.question}
+                                className={`faq-item ${isOpen ? "active" : ""}`}
+                            >
+                                <h3>
+                                    <button
+                                        id={questionId}
+                                        className="faq-question"
+                                        onClick={() => toggleFAQ(i)}
+                                        type="button"
+                                        aria-expanded={isOpen}
+                                        aria-controls={answerId}
+                                    >
+                                        <span className="faq-question-text">
+                                            {item.question}
+                                        </span>
+                                        <span className="faq-icon" aria-hidden="true">
+                                            <svg viewBox="0 0 16 10" focusable="false">
+                                                <path d="m1 1 7 7 7-7" />
+                                            </svg>
+                                        </span>
+                                    </button>
+                                </h3>
+                                <div
+                                    id={answerId}
+                                    className="faq-answer"
+                                    role="region"
+                                    aria-labelledby={questionId}
+                                    aria-hidden={!isOpen}
+                                >
+                                    <div className="faq-answer-inner">
+                                        <p>
+                                            {item.answerBeforeEstimator ?? item.answer}
+                                            {item.estimatorLabel && (
+                                                <button
+                                                    className="faq-estimator-inline-link"
+                                                    onClick={(event) =>
+                                                        openEstimator(event.currentTarget)
+                                                    }
+                                                    type="button"
+                                                >
+                                                    {item.estimatorLabel}
+                                                </button>
+                                            )}
+                                            {item.answerAfterEstimator}
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        );
+                    })}
                 </div>
-            ))}
+            </div>
         </section>
     );
 }

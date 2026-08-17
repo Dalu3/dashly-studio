@@ -1,0 +1,188 @@
+/** Shared token-driven visual language for all Contact form controls. */
+
+.field {
+    display: flex;
+    flex-direction: column;
+    text-align: left;
+}
+
+.label {
+    font-size: var(--type-control);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-text-primary);
+    margin-bottom: var(--space-2xs);
+}
+
+/* Shared by <input>, <textarea> and the <select> trigger — one border/radius/
+   focus treatment so every control in the card reads as one family. */
+.control {
+    /* Same reason as Contact.module.css's .card: the site's global
+       box-sizing: border-box reset isn't wired in yet, and `width: 100%`
+       needs to include this element's own padding to match Figma's control
+       widths exactly. */
+    box-sizing: border-box;
+    width: 100%;
+    font-family: var(--font-family-sans);
+    font-size: var(--type-control);
+    line-height: var(--line-height-body-compact);
+    color: var(--color-text-primary);
+    background: var(--color-surface-raised);
+    border: 1px solid var(--color-border-default);
+    border-radius: var(--radius-md);
+    padding: var(--space-xs);
+    transition: var(--transition-colors), var(--transition-shadow);
+}
+
+.control::placeholder {
+    color: var(--color-text-muted);
+}
+
+.control:focus-visible {
+    outline: none;
+    border-color: var(--color-focus-ring);
+    box-shadow: var(--shadow-focus-ring);
+}
+
+.control.isInvalid {
+    border-color: var(--color-feedback-error);
+}
+
+.control.isInvalid:focus-visible {
+    border-color: var(--color-feedback-error);
+    box-shadow: var(--shadow-error-ring);
+}
+
+.textarea {
+    resize: vertical;
+    min-height: var(--space-3xl);
+}
+
+/* Positions the chevron glyph inside the select's own box without a second
+   wrapper element — the field markup stays identical to a text input. */
+.selectShell {
+    position: relative;
+}
+
+.selectTrigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-xs);
+    text-align: left;
+    cursor: pointer;
+    padding-right: var(--space-sm);
+}
+
+.placeholder {
+    color: var(--color-text-muted);
+}
+
+.selectTriggerOpen {
+    border-color: var(--color-focus-ring);
+    box-shadow: var(--shadow-focus-ring);
+}
+
+.select {
+    appearance: none;
+    padding-right: var(--space-xl);
+    cursor: pointer;
+}
+
+.chevron {
+    position: absolute;
+    top: 50%;
+    right: var(--space-sm);
+    transform: translateY(-50%);
+    width: var(--space-sm);
+    height: var(--space-sm);
+    color: var(--color-text-primary);
+    pointer-events: none;
+    transition: var(--transition-transform);
+}
+
+.chevronOpen {
+    transform: translateY(-50%) rotate(180deg);
+}
+
+.optionList {
+    box-sizing: border-box;
+    position: absolute;
+    z-index: var(--z-popover);
+    top: calc(100% + var(--form-select-menu-offset));
+    left: 0;
+    width: min(100%, var(--form-select-menu-width));
+    max-height: var(--form-select-menu-max-height);
+    margin: 0;
+    padding: var(--form-select-menu-padding);
+    overflow-y: auto;
+    list-style: none;
+    background: var(--color-surface-raised);
+    border: 1px solid var(--color-border-subtle);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    animation: dropdown-enter var(--duration-fast) var(--ease-entrance) both;
+}
+
+.option {
+    box-sizing: border-box;
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: var(--form-select-option-padding-block) var(--form-select-option-padding-inline);
+    color: var(--color-text-primary);
+    font: inherit;
+    font-size: var(--type-control);
+    line-height: var(--line-height-body-compact);
+    text-align: left;
+    white-space: nowrap;
+    background: transparent;
+    border: 0;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    transition:
+        color var(--duration-fast) var(--ease-standard),
+        background-color var(--duration-fast) var(--ease-standard);
+}
+
+.option:hover,
+.optionHighlighted {
+    background: var(--color-surface-sunken);
+}
+
+@keyframes dropdown-enter {
+    from {
+        opacity: 0;
+        transform: translateY(-0.25rem) scale(0.985);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+    }
+}
+
+.error {
+    margin-top: var(--space-3xs);
+    font-size: var(--font-size-xs);
+    color: var(--color-feedback-error);
+}
+
+/* Error text remains on the legacy small role until supporting typography is
+   migrated. Confirmed controls stay fixed at the semantic 16px role. */
+@media (min-width: 64rem) {
+    .error {
+        font-size: var(--font-size-small);
+    }
+}
+
+/* The approved desktop starts at 64rem. Keep every desktop declaration above
+   intact and constrain this touch/press feedback to tablet and phone widths. */
+@media (max-width: 63.999rem) {
+    .selectTrigger:active {
+        border-color: var(--color-focus-ring);
+    }
+
+    .option:active {
+        background: var(--color-surface-sunken);
+    }
+}

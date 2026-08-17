@@ -1,0 +1,23 @@
+.root {
+    display: inline-grid;
+    width: var(--space-lg);
+    height: var(--space-lg);
+    flex: 0 0 auto;
+    place-items: center;
+    border-radius: var(--radius-circle);
+    background: var(--color-action-accent-bg-subtle);
+}
+
+.accent {
+    background: var(--color-action-accent-bg);
+}
+
+.root svg {
+    width: var(--font-size-md);
+    height: var(--font-size-md);
+    fill: none;
+    stroke: currentColor;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-width: 2.25;
+}

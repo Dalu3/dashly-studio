@@ -1,12 +1,53 @@
+import { markHeroScrollActivity } from "../components/hero/heroResumeScheduler";
+
 export const VIEWPORT_CHECK_EVENT = "dashly:viewport-check";
 
 const DEFAULT_SCROLL_DURATION = 420;
 const DESKTOP_NATIVE_SCROLL_MEDIA_QUERY =
     "(min-width: 1061px) and (hover: hover) and (pointer: fine)";
+const TOUCH_SCROLL_MEDIA_QUERY = "(max-width: 63.999rem)";
+const PHONE_SCROLL_MEDIA_QUERY = "(max-width: 47.999rem)";
+const CONTENT_SCROLL_CLEARANCE = 50;
+const PHONE_CONTENT_SCROLL_CLEARANCE = 24;
+const HASH_TARGET_ALIASES = {
+    services: "packages",
+};
 
 let activeScrollFrame = 0;
 let activeScrollToken = 0;
 let removeActiveScrollInterrupts = null;
+
+function getScrollDuration() {
+    if (typeof window === "undefined") {
+        return DEFAULT_SCROLL_DURATION;
+    }
+
+    const durationToken = window.matchMedia(TOUCH_SCROLL_MEDIA_QUERY).matches
+        ? "--duration-slower"
+        : "--duration-slow";
+    const duration = Number.parseFloat(
+        window
+            .getComputedStyle(document.documentElement)
+            .getPropertyValue(durationToken),
+    );
+
+    return Number.isFinite(duration) && duration > 0
+        ? duration
+        : DEFAULT_SCROLL_DURATION;
+}
+
+function getContentScrollClearance() {
+    if (
+        typeof window === "undefined" ||
+        typeof window.matchMedia !== "function"
+    ) {
+        return CONTENT_SCROLL_CLEARANCE;
+    }
+
+    return window.matchMedia(PHONE_SCROLL_MEDIA_QUERY).matches
+        ? PHONE_CONTENT_SCROLL_CLEARANCE
+        : CONTENT_SCROLL_CLEARANCE;
+}
 
 function normalizePathname(pathname = "/") {
     if (!pathname) {
@@ -26,24 +67,70 @@ function normalizePathname(pathname = "/") {
     return normalized || "/";
 }
 
-function getHeaderOffset(element) {
-    const scrollMarginTop = Number.parseFloat(
-        window.getComputedStyle(element).scrollMarginTop,
-    );
-
-    if (!Number.isNaN(scrollMarginTop) && scrollMarginTop > 0) {
-        return scrollMarginTop;
-    }
-
+function getSectionContentScrollTop(element, elementTop) {
     const header = document.querySelector(".glass-navbar");
+    const sectionPaddingTop = Number.parseFloat(
+        window.getComputedStyle(element).paddingTop,
+    );
+    const headerBottom = header?.getBoundingClientRect().bottom ?? 0;
+    const contentStart =
+        elementTop + (Number.isFinite(sectionPaddingTop) ? sectionPaddingTop : 0);
+    const contentScrollClearance = getContentScrollClearance();
 
-    if (!header) {
-        return 0;
-    }
+    // Every standard section lands with a small clearance below the fixed
+    // header. The content position follows the section's real padding, so
+    // responsive section tokens remain the source of truth.
+    return contentStart - headerBottom - contentScrollClearance;
+}
 
-    const headerBounds = header.getBoundingClientRect();
+function getElevatedSectionScrollTop(element, elementTop) {
+    // FAQ and Contact need one additional shared clearance step above their
+    // content while retaining the same anchor rule as the rest of navigation.
+    return (
+        getSectionContentScrollTop(element, elementTop) -
+        getContentScrollClearance()
+    );
+}
 
-    return Math.max(0, headerBounds.height);
+function getWorkScrollTop(element, elementTop) {
+    const hero = document.querySelector('[aria-label="Introduction"]');
+    const header = document.querySelector(".glass-navbar");
+    const sectionPaddingTop = Number.parseFloat(
+        window.getComputedStyle(element).paddingTop,
+    );
+    const headerBottom = header?.getBoundingClientRect().bottom ?? 0;
+    const heroBottom = hero
+        ? window.scrollY + hero.getBoundingClientRect().bottom
+        : elementTop;
+    const heroMeta = hero?.querySelector('[aria-label="Studio information"]');
+    const heroMetaBottom = heroMeta
+        ? window.scrollY + heroMeta.getBoundingClientRect().bottom
+        : heroBottom;
+    const tickerText = element.querySelector('[class*="tickerText"]');
+    const tickerTextPaddingTop = tickerText
+        ? Number.parseFloat(window.getComputedStyle(tickerText).paddingTop)
+        : 0;
+    const tickerTextTop = tickerText
+        ? window.scrollY + tickerText.getBoundingClientRect().top
+        : elementTop +
+          (Number.isFinite(sectionPaddingTop) ? sectionPaddingTop : 0);
+    const visualTickerTop =
+        tickerTextTop +
+        (Number.isFinite(tickerTextPaddingTop) ? tickerTextPaddingTop : 0);
+
+    // Work follows the full-screen Hero directly. At widths where its actual
+    // top padding is shorter than the floating header, stopping just after
+    // Hero would place the marquee beneath the header. Keep the marquee's
+    // first rendered line flush with the header instead, using the section's
+    // computed padding rather than a breakpoint-specific offset. At laptop
+    // and desktop widths the padding is already at least as tall as the
+    // header, so Hero is fully outside the viewport.
+    const shouldClearHeroShell =
+        !Number.isFinite(sectionPaddingTop) || sectionPaddingTop >= headerBottom;
+    const heroBoundary = shouldClearHeroShell ? heroBottom : heroMetaBottom;
+    const lastSafeTickerScrollTop = visualTickerTop - headerBottom;
+
+    return Math.ceil(Math.min(heroBoundary, lastSafeTickerScrollTop));
 }
 
 function dispatchViewportCheck() {
@@ -110,9 +197,10 @@ function easeOutCubic(progress) {
     return 1 - Math.pow(1 - progress, 3);
 }
 
-function smoothScrollWindowTo(top, duration = DEFAULT_SCROLL_DURATION) {
+function smoothScrollWindowTo(top, duration = getScrollDuration()) {
     cancelActiveScroll();
     attachActiveScrollInterrupts();
+    markHeroScrollActivity();
 
     const startY =
         window.pageYOffset ||
@@ -150,6 +238,7 @@ function smoothScrollWindowTo(top, duration = DEFAULT_SCROLL_DURATION) {
         );
 
         window.scrollTo(0, currentY);
+        markHeroScrollActivity();
         dispatchViewportCheck();
 
         if (progress < 1) {
@@ -167,6 +256,10 @@ function smoothScrollWindowTo(top, duration = DEFAULT_SCROLL_DURATION) {
 
 function nativeSmoothScrollWindowTo(top) {
     cancelActiveScroll();
+    // Logo navigation uses native smooth scrolling. Mark its first frame here
+    // as well as in Hero's scroll listener, so content resume cannot win a
+    // callback-order race before the first browser scroll event is delivered.
+    markHeroScrollActivity();
 
     const maxScrollTop = Math.max(
         0,
@@ -182,14 +275,25 @@ function nativeSmoothScrollWindowTo(top) {
     dispatchViewportCheck();
 }
 
+export function scrollToTop() {
+    // The browser owns the return-to-top interpolation. Unlike a manual
+    // frame-by-frame scroll, this does not compete with the Hero's own
+    // scroll-driven rendering while it is coming back into view.
+    nativeSmoothScrollWindowTo(0);
+}
+
 export function scrollToElement(element, options = {}) {
     if (!element) {
         return false;
     }
 
     const elementTop = window.pageYOffset + element.getBoundingClientRect().top;
-    const offset = getHeaderOffset(element);
-    const nextScrollTop = Math.max(0, elementTop - offset);
+    const nextScrollTop =
+        element.id === "work"
+            ? getWorkScrollTop(element, elementTop)
+            : element.id === "contact" || element.id === "faq"
+              ? getElevatedSectionScrollTop(element, elementTop)
+            : getSectionContentScrollTop(element, elementTop);
     const behavior = options.behavior ?? "smooth";
 
     if (behavior === "smooth") {
@@ -214,8 +318,11 @@ export function scrollToHash(hash, options) {
         return false;
     }
 
-    const id = decodeURIComponent(hash.replace(/^#/, ""));
+    const requestedId = decodeURIComponent(hash.replace(/^#/, ""));
+    const id = HASH_TARGET_ALIASES[requestedId] ?? requestedId;
     const element = document.getElementById(id);
+
+    if (!element) return false;
 
     return scrollToElement(element, options);
 }
@@ -252,7 +359,15 @@ export function navigateToHash(event, hash, pathname = "/") {
         return;
     }
 
-    requestAnimationFrame(() => {
-        scrollToHash(hash);
-    });
+    let attempts = 0;
+    const scrollWhenTargetIsReady = () => {
+        if (scrollToHash(hash) || attempts >= 120) {
+            return;
+        }
+
+        attempts += 1;
+        requestAnimationFrame(scrollWhenTargetIsReady);
+    };
+
+    requestAnimationFrame(scrollWhenTargetIsReady);
 }

@@ -1,0 +1,672 @@
+/**
+ * Site footer — rebuilt to match Figma node 458:88 exactly: background,
+ * three-column split, typography (weights/sizes/tracking), and the single
+ * solid text colour every footer text node uses (no opacity variants).
+ *
+ * `line-height: 1.1` on .root is deliberate, not a stylistic pick: every gap
+ * below is derived from Figma's row-to-row deltas MINUS each line's own box
+ * height, so it only lands correctly if that box height is known/tight.
+ * Figma's own text here is near-single-line (~100–110% leading); leaving
+ * line-height at the browser default (~1.2) would silently pad every gap by
+ * a few extra px per row and compound down the column.
+ *
+ * Mobile-first: `.top`'s three columns collapse to one until --bp-lg, and
+ * `.bottom`'s copyright/legal row stacks until --bp-md.
+ */
+
+.root {
+    margin-block-start: var(--space-0);
+
+    background: var(--color-surface-inverse);
+    color: var(--color-text-inverse);
+    line-height: var(--line-height-type-display);
+    padding-block: var(--space-section-padding);
+}
+
+.top {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: var(--content-max-width-wide);
+    margin-inline: auto;
+    padding-block: var(--space-0) clamp(2.5rem, 1.5rem + 4vw, 4.25rem);
+    padding-inline: var(--container-gutter);
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: clamp(2rem, 1rem + 3vw, 3rem);
+}
+
+@media (min-width: 72rem) {
+    .top {
+        grid-template-columns: minmax(0, auto) minmax(1.5rem, 1fr) auto;
+    }
+
+    .brand {
+        grid-column: 1;
+        /* 36rem, not the tighter 30rem this used to be — the tagline is
+           559px on one line at its own font/weight/tracking, so anything
+           narrower forces it to wrap. */
+        max-width: 36rem;
+    }
+
+    .tagline {
+        white-space: nowrap;
+    }
+
+    .columns {
+        grid-column: 3;
+    }
+}
+
+.columns {
+    display: grid;
+    gap: clamp(2rem, 1rem + 3vw, 3rem);
+}
+
+.brand {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.tagline {
+    margin: 0;
+    font-size: var(--font-size-footer-tagline);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-wide-plus);
+}
+
+.wordmark {
+    margin: 0;
+    font-size: var(--font-size-footer-wordmark);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-wide-plus);
+}
+
+.columnHeading {
+    margin: 0;
+    font-size: var(--font-size-footer-heading);
+    font-weight: var(--font-weight-bold);
+    letter-spacing: var(--letter-spacing-wide-plus);
+}
+
+/* Nav (heading→links) and touch (heading→blurb→links) columns land on
+   different Figma gaps — 32px vs 20px — so they can't share one value. */
+.nav .columnHeading {
+    margin-bottom: 2rem;
+}
+
+.touch .columnHeading {
+    margin-bottom: 1.25rem;
+}
+
+.linkList {
+    display: flex;
+    flex-direction: column;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+.nav .linkList {
+    gap: 1.125rem;
+}
+
+.touch .linkList {
+    gap: 1.25rem;
+}
+
+.link {
+    color: inherit;
+    text-decoration: none;
+    font-size: var(--font-size-footer-link);
+    font-weight: var(--font-weight-extralight);
+    letter-spacing: var(--letter-spacing-wide-plus);
+    opacity: 1;
+    transition: opacity 0.2s ease;
+}
+
+.link:hover {
+    opacity: 0.75;
+}
+
+.link:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+    border-radius: var(--radius-xs);
+}
+
+.touchBlurb {
+    margin: 0 0 1.75rem;
+    /* Forces the exact Figma break ("...for" / "updates,...") — measured in
+       browser: line 1 is 277px, line 2 is 298px at this font/weight/tracking,
+       so this needs to sit in [298, 365)px. The 17.8rem I had before was
+       narrower than line 2 itself, which wrapped it to 3 lines. */
+    max-width: 19rem;
+    font-size: var(--font-size-footer-link);
+    font-weight: var(--font-weight-extralight);
+    line-height: var(--line-height-display);
+    letter-spacing: var(--letter-spacing-wide-plus);
+}
+
+/* Phone's Figma frame (node 609:91) shortens this blurb; tablet/desktop
+   keep the longer copy. Both nodes always exist for a11y — CSS display
+   toggling (not JS) so a screen reader only ever announces one. */
+.touchBlurbShort {
+    display: inline;
+}
+
+.touchBlurbLong {
+    display: none;
+}
+
+@media (min-width: 48rem) {
+    .touchBlurbShort {
+        display: none;
+    }
+
+    .touchBlurbLong {
+        display: inline;
+    }
+}
+
+/* Laptop type scale: tagline=p, wordmark=H2 (bumped up from H3 so "Dashly
+   Studio" reads as the brand mark, not a column label), column headings=H3.
+   Footer links and metadata retain their component-specific type tokens. The
+   approved desktop starts at 64rem — independent of the 72rem/108rem
+   structural breakpoints below. */
+@media (min-width: 64rem) {
+    .tagline {
+        font-size: var(--font-size-p);
+    }
+
+    .wordmark {
+        font-size: var(--font-size-h2);
+    }
+
+    .columnHeading {
+        font-size: var(--font-size-h3);
+    }
+
+    .link,
+    .touchBlurb {
+        font-size: var(--font-size-footer-link);
+    }
+
+    .bottom {
+        font-size: var(--font-size-footer-meta);
+    }
+}
+
+/* The laptop range needs the same two-column information hierarchy as the
+   desktop footer: brand at the left, with Navigation and contact information
+   sharing the right column. The 72rem composition below takes over unchanged
+   once there is room for its wider desktop spacing. */
+@media (min-width: 64rem) and (max-width: 71.999rem) {
+    .top {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+        align-items: start;
+        column-gap: var(--space-xl);
+    }
+
+    .brand {
+        grid-column: 1;
+    }
+
+    .columns {
+        grid-column: 2;
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+        align-items: start;
+        column-gap: var(--space-lg);
+        row-gap: var(--space-0);
+    }
+}
+
+@media (min-width: 72rem) {
+    .columns {
+        grid-template-columns:
+            max-content
+            calc(19rem - var(--footer-columns-shift-desktop));
+        column-gap: var(--footer-column-gap-desktop);
+        row-gap: 0;
+        align-items: stretch;
+        transform: none;
+    }
+
+    .nav,
+    .touch {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        row-gap: var(--footer-column-heading-gap);
+    }
+
+    .nav .columnHeading,
+    .touch .columnHeading {
+        margin: 0;
+    }
+
+    .nav .linkList {
+        justify-content: space-between;
+    }
+
+    .touchBody {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .touch,
+    .touchBody,
+    .touchBlurb {
+        min-width: 0;
+        max-width: 100%;
+    }
+
+    .touchBlurb {
+        overflow-wrap: break-word;
+        text-align: left;
+    }
+
+    .touchBody .linkList {
+        margin-top: auto;
+    }
+
+    .nav .link,
+    .touch .link {
+        line-height: var(--line-height-none);
+    }
+
+    .nav .linkList,
+    .touch .linkList {
+        gap: var(--footer-list-row-gap);
+    }
+}
+
+.divider {
+    width: 100%;
+    max-width: var(--content-max-width-wide);
+    margin-inline: auto;
+    height: 1px;
+    background: rgb(214 237 248 / 0.15);
+}
+
+.bottom {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: var(--content-max-width-wide);
+    margin-inline: auto;
+    padding-block: 1.25rem var(--space-0);
+    padding-inline: var(--container-gutter);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    font-size: var(--font-size-footer-meta);
+    font-weight: var(--font-weight-regular);
+    letter-spacing: var(--letter-spacing-wide-plus);
+}
+
+@media (min-width: 48rem) {
+    .bottom {
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .legal {
+        margin-inline-start: auto;
+        justify-content: flex-end;
+    }
+}
+
+@media (min-width: 64rem) {
+    .bottom {
+        justify-content: flex-start;
+        gap: var(--space-xl);
+    }
+}
+
+/* FAQ and Contact apply this existing visual inset to their headings through
+   the standard desktop range. Keep Footer's primary content on that same
+   line while its container and right edge continue to use the shared gutter. */
+@media (min-width: 64rem) and (max-width: 107.999rem) {
+    .top {
+        padding-inline-start: calc(
+            var(--container-gutter) + var(--space-xs)
+        );
+    }
+}
+
+.copyright {
+    margin: 0;
+    font-weight: var(--font-weight-light);
+}
+
+.legal {
+    display: flex;
+    gap: 4.25rem;
+}
+
+.legalLink {
+    font-size: inherit;
+    font-weight: var(--font-weight-light);
+    letter-spacing: inherit;
+}
+
+.legalSeparator {
+    display: none;
+}
+
+/* At the large desktop breakpoint the footer keeps the same fixed-width shell
+   while returning to the regular responsive grid inside that shell. */
+@media (min-width: 108rem) {
+    .root {
+        height: auto;
+    }
+
+    .top {
+        position: static;
+        display: grid;
+        height: auto;
+        padding-block: var(--space-0) 4.25rem;
+        column-gap: var(--space-xl);
+    }
+
+    .brand,
+    .columns {
+        position: static;
+        top: auto;
+        left: auto;
+        padding: 0;
+    }
+
+    .brand {
+        max-width: 36rem;
+        gap: 1rem;
+    }
+
+    .tagline,
+    .wordmark {
+        line-height: var(--line-height-body-compact);
+    }
+
+    .columns {
+        grid-template-columns:
+            max-content
+            calc(19rem - var(--footer-columns-shift-figma));
+        column-gap: var(--footer-column-gap-figma);
+        transform: none;
+    }
+
+    .divider {
+        position: static;
+        width: auto;
+        margin-inline: auto;
+        height: 1px;
+    }
+
+    .bottom {
+        position: static;
+        width: auto;
+        margin-inline: auto;
+        padding-block: 1.25rem var(--space-0);
+        line-height: var(--line-height-body-compact);
+    }
+
+    .legal {
+        position: static;
+        gap: 4.25rem;
+    }
+
+    /* Keep the footer's total height unchanged while giving the divider and
+       legal row a little more breathing room below the main content. */
+    .divider,
+    .bottom {
+        transform: translateY(var(--space-xs));
+    }
+}
+
+/* The approved desktop starts at 64rem. Keep every desktop declaration above
+   intact and constrain this responsive refinement to tablet and phone widths. */
+@media (max-width: 63.999rem) {
+    .root {
+        overflow-x: clip;
+    }
+
+    .top {
+        gap: var(--footer-responsive-top-gap);
+    }
+
+    .brand {
+        max-width: var(--footer-responsive-copy-width);
+    }
+
+    .tagline,
+    .wordmark {
+        line-height: var(--line-height-normal);
+    }
+
+    .columns {
+        gap: var(--footer-responsive-column-gap);
+    }
+
+    .nav .linkList,
+    .touch .linkList {
+        gap: var(--space-0);
+    }
+
+    .link {
+        display: inline-flex;
+        align-items: center;
+        min-block-size: var(--footer-responsive-link-hit-area);
+    }
+
+    .link:active {
+        opacity: 0.6;
+    }
+
+    .touchBlurb {
+        max-width: min(100%, var(--footer-responsive-copy-width));
+    }
+
+    .bottom {
+        padding-block: var(--footer-responsive-bottom-padding-start)
+            var(--space-0);
+        gap: var(--space-xs);
+    }
+
+    .legal {
+        flex-wrap: wrap;
+        column-gap: var(--footer-responsive-legal-column-gap);
+        row-gap: var(--footer-responsive-legal-row-gap);
+    }
+
+    .legalLink {
+        min-block-size: var(--footer-responsive-link-hit-area);
+        align-items: center;
+        display: inline-flex;
+    }
+}
+
+/* Navigation and "Let's stay in touch" sit side by side under the brand
+   block on every phone and tablet width, per the reference composition.
+   Phones get a tighter column-gap than tablet — --space-3xl reads as too
+   wide a gulf on a ~375-430px screen. */
+@media (max-width: 63.999rem) {
+    .columns {
+        grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+        align-items: start;
+        column-gap: var(--space-lg);
+        row-gap: var(--space-2xl);
+    }
+
+    .touchBlurb {
+        max-width: 100%;
+    }
+}
+
+@media (min-width: 48rem) and (max-width: 63.999rem) {
+    .columns {
+        column-gap: var(--space-3xl);
+    }
+}
+
+/* Pixel match against Figma node 609:91 (iPhone 14/15 Pro frame, 393px).
+   Phone only — everything above (tablet's 2-column .columns, the approved
+   desktop composition) is untouched. */
+@media (max-width: 47.999rem) {
+    .divider {
+        width: calc(
+            100% - var(--container-gutter) - var(--container-gutter)
+        );
+        max-width: calc(
+            var(--content-max-width-wide) - var(--container-gutter) -
+                var(--container-gutter)
+        );
+    }
+
+    .top {
+        padding-block-start: var(--space-0);
+        gap: 4.05rem;
+    }
+
+    .brand {
+        gap: 0.45rem;
+    }
+
+    .tagline {
+        /* Matches the Figma text box (308.17px) so the line break lands on
+           "that" / "works" exactly like the frame, not wherever the
+        inherited --footer-responsive-copy-width happens to wrap it. */
+        max-width: 19.25rem;
+        font-size: var(--font-size-p);
+        font-weight: var(--font-weight-regular);
+    }
+
+    .wordmark {
+        font-size: 1.5rem;
+    }
+
+    .nav .columnHeading,
+    .touch .columnHeading {
+        margin-bottom: 1rem;
+    }
+
+    .nav .linkList,
+    .touch .linkList {
+        gap: var(--space-2xs);
+    }
+
+    .link {
+        min-block-size: auto;
+        padding-block: 0.3rem;
+    }
+
+    .legalLink {
+        min-block-size: auto;
+        padding-block: var(--space-3xs);
+        opacity: 0.5;
+    }
+
+    .bottom {
+        align-items: center;
+        gap: var(--space-md);
+    }
+
+    .copyright {
+        text-align: center;
+        letter-spacing: var(--letter-spacing-normal);
+        white-space: nowrap;
+    }
+
+    .legal {
+        width: auto;
+        column-gap: var(--footer-responsive-legal-column-gap);
+        justify-content: center;
+    }
+
+    .legalSeparator {
+        display: inline-flex;
+        align-items: center;
+        color: var(--color-text-inverse);
+        opacity: 0.5;
+    }
+}
+
+/* The compact legal row and equal-height columns are only needed at the
+   smallest 320px frame; wider phones keep the regular mobile composition. */
+@media (max-width: 20rem) {
+    .columns {
+        grid-template-columns: max-content minmax(0, 1fr);
+        align-items: stretch;
+        column-gap: var(--space-sm);
+    }
+
+    .nav,
+    .touch {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        min-width: 0;
+    }
+
+    .nav .columnHeading,
+    .touch .columnHeading {
+        letter-spacing: var(--letter-spacing-normal);
+        white-space: nowrap;
+    }
+
+    .nav .linkList {
+        justify-content: space-between;
+    }
+
+    .touchBody {
+        display: flex;
+        min-height: 0;
+        flex-direction: column;
+    }
+
+    .touchBody .linkList {
+        margin-block-start: auto;
+    }
+
+    .tagline {
+        font-size: var(--font-size-footer-tagline);
+    }
+
+    .wordmark {
+        font-size: var(--type-h2);
+    }
+
+    .touchBlurb {
+        letter-spacing: var(--letter-spacing-normal);
+    }
+
+    .legalLink {
+        font-size: var(--type-small);
+        white-space: nowrap;
+    }
+
+    .bottom {
+        align-items: center;
+        padding-block-start: var(--space-xl);
+        gap: var(--space-xs);
+    }
+
+    .copyright {
+        text-align: center;
+        font-size: var(--type-small);
+        letter-spacing: var(--letter-spacing-normal);
+        white-space: nowrap;
+    }
+
+    .legal {
+        width: auto;
+        column-gap: var(--space-sm);
+        flex-wrap: nowrap;
+        justify-content: center;
+    }
+
+    .legalSeparator {
+        display: inline-flex;
+        align-items: center;
+        color: var(--color-text-inverse);
+        opacity: 0.5;
+    }
+}

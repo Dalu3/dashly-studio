@@ -1,0 +1,85 @@
+.not-found-page {
+    display: grid;
+    min-height: clamp(30rem, calc(100svh - var(--space-xl)), 48rem);
+    box-sizing: border-box;
+    place-items: center;
+    padding: calc(var(--space-4xl) + var(--space-xl)) var(--container-gutter)
+        var(--space-3xl);
+    background: linear-gradient(
+        135deg,
+        var(--color-surface-page),
+        var(--color-surface-accent-subtle)
+    );
+    color: var(--color-text-primary);
+}
+
+.not-found-page__inner {
+    display: grid;
+    width: min(100%, var(--container-wide));
+    justify-items: center;
+}
+
+.not-found-page__eyebrow {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--type-metadata);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-wide-plus);
+    line-height: var(--line-height-label);
+    text-transform: uppercase;
+}
+
+.not-found-page__copy {
+    display: grid;
+    max-width: var(--measure-narrow);
+    justify-items: center;
+    gap: var(--space-md);
+    text-align: center;
+}
+
+.not-found-page__copy h1 {
+    margin: 0;
+    font-size: var(--type-section-title);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-tight);
+    line-height: var(--line-height-type-h2);
+}
+
+.not-found-page__copy p {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--type-lead);
+    line-height: var(--line-height-type-body);
+}
+
+.not-found-page__action {
+    display: inline-flex;
+    width: fit-content;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-0);
+    border: 0;
+    background: transparent;
+    color: var(--color-text-primary);
+    font-size: var(--type-control);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-body-compact);
+    text-decoration: none;
+    transition: var(--transition-colors);
+}
+
+.not-found-page__action:hover {
+    color: var(--color-text-accent);
+}
+
+.not-found-page__action:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus-ring);
+}
+
+@media (min-width: 48rem) {
+    .not-found-page {
+        padding-top: calc(var(--space-4xl) + var(--space-2xl));
+        padding-bottom: var(--space-4xl);
+    }
+}

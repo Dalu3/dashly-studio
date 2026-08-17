@@ -1,0 +1,52 @@
+/**
+ * Spacing tokens.
+ *
+ * A single 4px-based scale for every margin, padding and gap in the site.
+ * Named by t-shirt size rather than by pixel value so the scale can be retuned
+ * without renaming anything.
+ *
+ * --space-section-* is fluid: vertical section rhythm is the one measurement
+ * that genuinely needs to breathe between mobile and desktop.
+ */
+
+:root {
+    --space-0: 0;
+    --space-3xs: 0.25rem; /*  4px */
+    --space-2xs: 0.5rem; /*  8px */
+    --space-xs: 0.75rem; /* 12px */
+    --space-sm: 1rem; /* 16px */
+    --space-md: 1.5rem; /* 24px */
+    --space-lg: 2rem; /* 32px */
+    --space-xl: 3rem; /* 48px */
+    --space-2xl: 4rem; /* 64px */
+    --space-3xl: 6rem; /* 96px */
+    --space-4xl: 8rem; /* 128px */
+
+    /* ---- Fluid section rhythm -------------------------------------------- */
+    --space-section-sm: clamp(2.5rem, 1.8rem + 3.5vw, 4rem);
+    --space-section-md: clamp(3.5rem, 2.4rem + 5.5vw, 6rem);
+    --space-section-lg: clamp(4.5rem, 2.8rem + 8.5vw, 9rem);
+
+    /* Shared vertical padding for the site's primary content sections. */
+    --space-section-padding: 3.75rem; /* 60px — phone and tablet */
+
+    /* Consistent distance between adjacent page sections. */
+    --space-section-gap: 6.25rem; /* 100px — phone */
+
+    /* ---- Component-level rhythm ------------------------------------------ */
+    --space-stack: var(--space-md); /* default vertical gap in a stack */
+    --space-inline: var(--space-sm); /* default horizontal gap in a row  */
+}
+
+@media (min-width: 48rem) {
+    :root {
+        --space-section-gap: 6.25rem; /* 100px — tablet */
+    }
+}
+
+@media (min-width: 64rem) {
+    :root {
+        --space-section-padding: 6.25rem; /* 100px — laptop and desktop */
+        --space-section-gap: 10rem; /* 160px — laptop and desktop */
+    }
+}

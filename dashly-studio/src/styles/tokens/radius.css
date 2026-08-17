@@ -1,0 +1,18 @@
+/**
+ * Border radius tokens.
+ *
+ * Replaces the 12 one-off radii currently in the codebase
+ * (3px, 4px, 12px, 26px, 28px, 32px, 50px, 999px, 50% ...).
+ */
+
+:root {
+    --radius-none: 0;
+    --radius-xs: 0.1875rem; /*  3px */
+    --radius-sm: 0.25rem; /*  4px */
+    --radius-md: 0.75rem; /* 12px */
+    --radius-lg: 1.25rem; /* 20px */
+    --radius-xl: 1.75rem; /* 28px */
+    --radius-2xl: 2rem; /* 32px */
+    --radius-pill: 999px;
+    --radius-circle: 50%;
+}

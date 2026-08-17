@@ -1,0 +1,224 @@
+/**
+ * Typography tokens.
+ *
+ * Font sizes use clamp() so type scales fluidly between the smallest phone and
+ * the largest desktop WITHOUT a media query per step. This is what replaces the
+ * historical breakpoint-specific title rules in the global stylesheet.
+ *
+ * Scale ratio: ~1.25 (major third) at mobile, widening to ~1.333 at desktop.
+ */
+
+@font-face {
+    font-family: "Sora";
+    font-style: normal;
+    font-weight: 200;
+    font-display: swap;
+    src: url("/fonts/sora-200.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Sora";
+    font-style: normal;
+    font-weight: 300;
+    font-display: swap;
+    src: url("/fonts/sora-300.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Sora";
+    font-style: normal;
+    font-weight: 400;
+    font-display: swap;
+    src: url("/fonts/sora-400.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Sora";
+    font-style: normal;
+    font-weight: 500;
+    font-display: swap;
+    src: url("/fonts/sora-500.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Sora";
+    font-style: normal;
+    font-weight: 600;
+    font-display: swap;
+    src: url("/fonts/sora-600.woff2") format("woff2");
+}
+
+@font-face {
+    font-family: "Sora";
+    font-style: normal;
+    font-weight: 700;
+    font-display: swap;
+    src: url("/fonts/sora-700.woff2") format("woff2");
+}
+
+/* Match Sora's 970/290 vertical font metrics before the local font is ready. */
+@font-face {
+    font-family: "Sora Fallback";
+    font-style: normal;
+    font-weight: 100 900;
+    font-display: swap;
+    src: local("Arial"), local("Helvetica Neue"), local("Helvetica");
+    size-adjust: 100%;
+    ascent-override: 97%;
+    descent-override: 29%;
+    line-gap-override: 0%;
+}
+
+:root {
+    /* ---- Families ------------------------------------------------------- */
+    --font-family-sans: "Sora", "Sora Fallback", ui-sans-serif, system-ui,
+        -apple-system, "Segoe UI", sans-serif;
+    --font-family-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo,
+        monospace;
+
+    /* ---- Weights (Sora is loaded at 200/300/400/500/600/700) ------------- */
+    --font-weight-extralight: 200;
+    --font-weight-light: 300;
+    --font-weight-regular: 400;
+    --font-weight-medium: 500;
+    --font-weight-semibold: 600;
+    --font-weight-bold: 700;
+
+    /* ---- Fluid size scale ----------------------------------------------- */
+    --font-size-2xs: clamp(0.69rem, 0.67rem + 0.11vw, 0.75rem);
+    --font-size-xs: clamp(0.78rem, 0.75rem + 0.15vw, 0.875rem);
+    --font-size-sm: clamp(0.88rem, 0.84rem + 0.19vw, 1rem);
+    --font-size-md: clamp(1rem, 0.95rem + 0.24vw, 1.125rem);
+    --font-size-lg: clamp(1.13rem, 1.05rem + 0.38vw, 1.375rem);
+    --font-size-xl: clamp(1.27rem, 1.15rem + 0.57vw, 1.75rem);
+    --font-size-2xl: clamp(1.42rem, 1.25rem + 0.86vw, 2.25rem);
+    --font-size-3xl: clamp(1.6rem, 1.34rem + 1.31vw, 3rem);
+    --font-size-4xl: clamp(1.8rem, 1.4rem + 2vw, 3.7rem);
+
+    /* ---- Semantic fluid type -------------------------------------------
+       The semantic scale is the migration target for redesigned sections.
+       Legacy --font-size-* tokens remain below for sections that have not
+       migrated yet. Each role has one continuous clamp from phone to desktop
+       rather than a breakpoint-specific replacement. */
+    --type-display-primary: clamp(
+        1.875rem,
+        calc(1.126761rem + 3.192488vw),
+        4rem
+    );
+    --type-display-marquee: clamp(
+        2.1875rem,
+        calc(1.549296rem + 2.723005vw),
+        4rem
+    );
+    --type-section-title: clamp(
+        2rem,
+        calc(1.295775rem + 3.004695vw),
+        4rem
+    );
+    --type-lead: clamp(
+        1rem,
+        calc(0.823944rem + 0.751174vw),
+        1.5rem
+    );
+    --type-metadata: clamp(
+        0.625rem,
+        calc(0.514965rem + 0.469484vw),
+        0.9375rem
+    );
+    --type-control: 1rem;
+    /* Selected Work card captions are a reusable composition role for the
+       card title and description. This clamp preserves the former 16px /
+       18px / 20px values at 320px, 768px and 1024px without mutating the
+       token at breakpoints. */
+    --type-project-card-caption: clamp(
+        1rem,
+        calc(0.75rem + 0.78125vw),
+        1.25rem
+    );
+
+    /* Supporting semantic roles. */
+    --type-small: clamp(
+        0.8125rem,
+        calc(0.790493rem + 0.093897vw),
+        0.875rem
+    );
+    --type-body: clamp(
+        1rem,
+        calc(0.911972rem + 0.375587vw),
+        1.25rem
+    );
+    --type-h3: clamp(
+        1.125rem,
+        calc(0.992958rem + 0.56338vw),
+        1.5rem
+    );
+    --type-h2: clamp(
+        1.5rem,
+        calc(1.257923rem + 1.032864vw),
+        2.1875rem
+    );
+
+    /* Shared laptop typography for long-form informational documents. */
+    --type-document-heading: 1.5rem;
+    --type-document-body: 1.125rem;
+
+    /* Footer type scale — intentionally more compact than the Figma display
+       scale so the footer stays visually light beside the contact form. */
+    --font-size-footer-tagline: 1.125rem;
+    --font-size-footer-wordmark: 1.75rem;
+    --font-size-footer-heading: 1rem;
+    --font-size-footer-link: 0.9375rem;
+    --font-size-footer-meta: 0.9375rem;
+
+    /* Compact contact composition scale. */
+    --font-size-contact-heading: 3.1875rem;
+
+    /* FAQ type keeps the section light and editorial. */
+    --font-size-faq-title: min(var(--type-section-title), 3.375rem);
+    --font-size-faq-question: var(--font-size-md);
+    --font-size-faq-answer: var(--font-size-sm);
+
+    /* ---- Laptop/desktop type scale (the approved --bp-lg composition) ----
+       The six sizes the whole page's laptop layout is built from. Every
+       heading, paragraph, body and form/link size at --bp-lg and up should
+       resolve to one of these — no other desktop font-size should exist. */
+    --font-size-h2: 2.1875rem; /* 35px */
+    --font-size-h3: 1.25rem; /* 20px */
+    --font-size-p: 1.35rem; /* 21.6px */
+    --font-size-body: 1rem; /* 16px */
+    --font-size-small: 0.875rem; /* 14px — form controls and links */
+
+    /* ---- Line heights ---------------------------------------------------- */
+    --line-height-none: 1;
+    --line-height-tight: 1.15;
+    --line-height-display: 1.265625;
+    --line-height-body-compact: 1.25;
+    --line-height-snug: 1.3;
+    --line-height-normal: 1.5;
+    --line-height-relaxed: 1.65;
+
+    /* Semantic line-height roles for the fluid type scale. The existing
+       tokens above stay intact because legacy sections still consume them. */
+    --line-height-label: var(--line-height-tight);
+    --line-height-small: var(--line-height-tight);
+    --line-height-type-body: var(--line-height-body-compact);
+    --line-height-type-h3: var(--line-height-snug);
+    --line-height-type-h2: var(--line-height-tight);
+    --line-height-type-display: 1.1;
+    --line-height-type-number: var(--line-height-none);
+
+    /* ---- Letter spacing --------------------------------------------------- */
+    --letter-spacing-tighter: -0.03em;
+    --letter-spacing-tight: -0.015em;
+    --letter-spacing-normal: 0;
+    --letter-spacing-wide: 0.02em;
+    /* Matches every tracking value in the Contact/Footer Figma frame
+       (node 563:92) — each one is exactly 4% of its own font-size. */
+    --letter-spacing-wide-plus: 0.04em;
+    --letter-spacing-wider: 0.08em;
+
+    /* ---- Measure (readable line length) ----------------------------------- */
+    --measure-narrow: 45ch;
+    --measure-default: 65ch;
+    --measure-wide: 80ch;
+}

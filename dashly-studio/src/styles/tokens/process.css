@@ -1,0 +1,273 @@
+/**
+ * Landing-page process section tokens.
+ *
+ * Desktop geometry is transcribed from Figma node 491:175 and normalized to
+ * the 1758.752 × 1730 frame so it scales without viewport-specific offsets.
+ * Tablet/mobile values form the responsive adaptation of the same section.
+ */
+
+:root {
+    /* ---- Canvas --------------------------------------------------------- */
+    --process-canvas-max-width: 109.922rem;
+    --process-canvas-aspect-ratio: 1758.752 / 1730;
+    --process-header-left: 13.646%;
+    --process-header-top-base: 7.2399%;
+    --process-header-flow-shift: -7.2399%;
+    --process-header-top: var(--process-header-top-base);
+    --process-header-width: 75.9844%;
+    --process-intro-left: 22%;
+    --process-intro-top-base: 13.3908%;
+    --process-intro-top: var(--process-intro-top-base);
+    --process-intro-width: 56%;
+
+    /* ---- Type ----------------------------------------------------------- */
+    --process-heading-size: var(--type-h2);
+    /* Stage names use the supporting-heading scale so they remain distinct
+       from the descriptive body copy without dominating the route. */
+    --process-stage-title-size: var(--font-size-xl);
+    --process-stage-number-size: clamp(5rem, 8.53vw, 9.375rem);
+    --process-body-size: var(--font-size-body);
+    --process-copy-line-height: var(--line-height-body-compact);
+
+    /* ---- Route ---------------------------------------------------------- */
+    --process-route-left: 18.5546%;
+    --process-route-top: 28.1954%;
+    --process-route-width: 56.6978%;
+    --process-route-height: 55.4753%;
+    --process-route-stroke-width: 0.1875rem;
+    --process-route-dash: 0.5625rem;
+    --process-route-endpoint-mask-radius: var(
+        --process-responsive-number-center
+    );
+    --process-route-start-mask-radius: var(
+        --process-route-endpoint-mask-radius
+    );
+    --process-route-end-mask-radius: var(
+        --process-route-endpoint-mask-radius
+    );
+    --process-arrow-width: clamp(1.875rem, 3.043vw, 3.3445rem);
+    --process-arrow-fade-start: 0.99;
+    --process-arrow-arrival-duration: 0.05;
+    --process-scroll-start: 0.5;
+    --process-image-arrival-duration: 0.025;
+    --process-image-hold-duration: 0.09;
+    --process-image-exit-duration: 0.035;
+
+    /* ---- Shared card ---------------------------------------------------- */
+    --process-card-width: 11.8216%;
+    --process-card-aspect-ratio: 207.913 / 193.781;
+    --process-card-radius: 1.25rem;
+    --process-reveal-shift: 1.5rem;
+    --process-reveal-scale: 0.94;
+    --process-image-darkening: rgb(var(--c-black-rgb) / 0.2);
+    --process-first-stage-offset-y: -3rem;
+    --process-final-stage-route-progress: 0.9;
+
+    /* ---- Stage 1: Discovery Call --------------------------------------- */
+    --process-1-number-left: 8.4435%;
+    --process-1-number-top: 22.7329%;
+    --process-1-title-left: 14.5484%;
+    --process-1-title-top: 23.6191%;
+    --process-1-description-left: 14.5484%;
+    --process-1-description-top: 27.5705%;
+    --process-1-description-width: 24.2415%;
+    --process-1-image-left: 45%;
+    --process-1-image-top: 29.6954%;
+    --process-1-image-rotation: 6.56deg;
+    --process-1-media-left: -13.818%;
+    --process-1-media-top: -26.081%;
+    --process-1-media-width: 117.23%;
+    --process-1-media-height: 188.64%;
+    --process-1-media-rotation: 0deg;
+    --process-1-image-overlay: rgb(var(--c-black-rgb) / 0.48);
+    --process-1-anchor-left: 18.5546%;
+    --process-1-anchor-top: 28.1954%;
+
+    /* ---- Stage 2: Strategy & Planning ---------------------------------- */
+    --process-2-number-left: 59.5849%;
+    --process-2-number-top: 28.7046%;
+    --process-2-title-left: 66.0861%;
+    --process-2-title-top: 29.8249%;
+    --process-2-description-left: 66.1253%;
+    --process-2-description-top: 33.6578%;
+    --process-2-description-width: 25.759%;
+    --process-2-image-left: 84.2053%;
+    --process-2-image-top: 35.4466%;
+    --process-2-image-rotation: -11.63deg;
+    --process-2-media-left: -23.928%;
+    --process-2-media-top: -1.972%;
+    --process-2-media-width: 144.163%;
+    --process-2-media-height: 103.131%;
+    --process-2-media-rotation: -0.61deg;
+    --process-2-image-overlay: rgb(var(--c-black-rgb) / 0.41);
+    --process-2-anchor-left: 73.5%;
+    --process-2-anchor-top: 31.5%;
+
+    /* ---- Stage 3: Wireframes ------------------------------------------- */
+    --process-3-number-left: 6.96%;
+    --process-3-number-top: 45.0081%;
+    --process-3-title-left: 13.3595%;
+    --process-3-title-top: 45.8942%;
+    --process-3-description-left: 13.3987%;
+    --process-3-description-top: 49.7272%;
+    --process-3-description-width: 24.2415%;
+    --process-3-image-left: 31.0853%;
+    --process-3-image-top: 51.3347%;
+    --process-3-image-rotation: 6.56deg;
+    --process-3-media-left: -15.402%;
+    --process-3-media-top: -2.31%;
+    --process-3-media-width: 143.98%;
+    --process-3-media-height: 102.999%;
+    --process-3-media-rotation: -0.43deg;
+    --process-3-image-overlay: rgb(var(--c-black-rgb) / 0.53);
+    --process-3-anchor-left: 20%;
+    --process-3-anchor-top: 47.8%;
+
+    /* ---- Stage 4: UI/UX Design ----------------------------------------- */
+    --process-4-number-left: 60.498%;
+    --process-4-number-top: 53.7156%;
+    --process-4-title-left: 67.9055%;
+    --process-4-title-top: 55.2896%;
+    --process-4-description-left: 67.9448%;
+    --process-4-description-top: 59.1225%;
+    --process-4-description-width: 26.3048%;
+    --process-4-image-left: 82.6599%;
+    --process-4-image-top: 61.6362%;
+    --process-4-image-rotation: -10.38deg;
+    --process-4-media-left: -19.607%;
+    --process-4-media-top: -7.265%;
+    --process-4-media-width: 153.737%;
+    --process-4-media-height: 109.979%;
+    --process-4-media-rotation: -1.79deg;
+    --process-4-image-overlay: rgb(var(--c-black-rgb) / 0.45);
+    --process-4-anchor-left: 73.5%;
+    --process-4-anchor-top: 57.7%;
+
+    /* ---- Stage 5: Development & Testing -------------------------------- */
+    --process-5-number-left: 6.1401%;
+    --process-5-number-top: 72.2699%;
+    --process-5-title-left: 13.3595%;
+    --process-5-title-top: 72.8879%;
+    --process-5-description-left: 13.3987%;
+    --process-5-description-top: 76.7208%;
+    --process-5-description-width: 26.1205%;
+    --process-5-image-left: 33.9714%;
+    --process-5-image-top: 81.5694%;
+    --process-5-image-rotation: 6.56deg;
+    --process-5-media-left: -28.546%;
+    --process-5-media-top: -20.925%;
+    --process-5-media-width: 210.073%;
+    --process-5-media-height: 126.563%;
+    --process-5-media-rotation: -0.7deg;
+    --process-5-image-overlay: rgb(var(--c-black-rgb) / 0.61);
+    --process-5-anchor-left: 18%;
+    --process-5-anchor-top: 76.2%;
+
+    /* ---- Stage 6: Launch & Support ------------------------------------- */
+    --process-6-number-left: 60.498%;
+    --process-6-number-top: 79.3803%;
+    --process-6-title-left: 67.9055%;
+    --process-6-title-top: 80.7538%;
+    --process-6-description-left: 67.9448%;
+    --process-6-description-top: 84.5867%;
+    --process-6-description-width: 25.8229%;
+    --process-6-image-left: 85.3833%;
+    --process-6-image-top: 89.4646%;
+    --process-6-image-rotation: -15.69deg;
+    --process-6-media-left: -9.303%;
+    --process-6-media-top: -2.936%;
+    --process-6-media-width: 146.49%;
+    --process-6-media-height: 104.797%;
+    --process-6-media-rotation: 0.36deg;
+    --process-6-image-overlay: rgb(var(--c-black-rgb) / 0.41);
+    --process-6-anchor-left: 71%;
+    --process-6-anchor-top: 84.5%;
+
+    /* ---- Tablet/mobile adaptation -------------------------------------- */
+    --process-responsive-padding-block: var(--space-section-md);
+    --process-responsive-padding-inline: var(--container-gutter);
+    --process-responsive-header-width: var(--container-default);
+    --process-responsive-heading-width: none;
+    --process-responsive-header-gap: var(--space-sm);
+    --process-responsive-flow-gap: var(--space-lg);
+    --process-responsive-flow-margin: var(--space-3xl);
+    --process-responsive-stage-min-height: 16rem;
+    --process-responsive-final-stage-min-height: var(
+        --process-responsive-stage-min-height
+    );
+    --process-responsive-number-size: clamp(4.5rem, 12vw, 7rem);
+    --process-responsive-number-center: clamp(2.25rem, 6vw, 3.5rem);
+    --process-responsive-number-mask-width: 62%;
+    --process-responsive-body-size: clamp(0.9375rem, 2.2vw, 1.125rem);
+    --process-responsive-card-width: clamp(10.5rem, 24vw, 13rem);
+    --process-responsive-copy-width: 31rem;
+    --process-responsive-title-width: none;
+    --process-responsive-copy-gap: var(--space-2xs);
+    --process-responsive-number-offset: var(--space-sm);
+    --process-responsive-stage-padding: clamp(4.25rem, 10vw, 7.5rem);
+    --process-responsive-mobile-image-top: 35%;
+    --process-responsive-mobile-image-inset: var(--space-sm);
+    --process-desktop-flow-offset: var(--space-2xs);
+    --process-desktop-canvas-bottom-trim: var(--space-3xl);
+    --process-laptop-flow-offset: calc(
+        var(--space-xl) + var(--space-2xs)
+    );
+    --process-laptop-canvas-bottom-trim: var(--space-lg);
+    --process-mobile-route-left: 1.5rem;
+    --process-mobile-route-right: 2.5rem;
+}
+
+@media (min-width: 64rem) {
+    :root {
+        --process-header-top: var(--space-0);
+        --process-intro-top: calc(
+            var(--process-intro-top-base) - var(--process-header-top-base)
+        );
+        /* Keep the Process heading identical to the Packages section title
+           at the desktop breakpoint. */
+        --process-heading-size: var(--font-size-4xl);
+    }
+}
+
+@media (min-width: 48rem) and (max-width: 63.999rem) {
+    :root {
+        --process-scroll-start: 0.6;
+        --process-responsive-flow-margin: var(--space-lg);
+        --process-responsive-flow-gap: var(--space-sm);
+        --process-responsive-stage-min-height: 12rem;
+    }
+}
+
+@media (max-width: 63.999rem) {
+    :root {
+        --process-image-darkening: rgb(var(--c-black-rgb) / 0.28);
+        --process-image-hold-duration: 0.16;
+        --process-image-exit-duration: 0.05;
+    }
+}
+
+@media (max-width: 47.999rem) {
+    :root {
+        --process-responsive-flow-gap: var(--space-2xs);
+        --process-responsive-stage-min-height: 13rem;
+        --process-responsive-final-stage-min-height: 14.5rem;
+        --process-responsive-mobile-image-top: 27%;
+    }
+}
+
+@media (max-width: 23.4375rem) {
+    :root {
+        --process-route-start-mask-radius: var(--space-sm);
+    }
+}
+
+@media (width: 20rem) {
+    :root {
+        --process-responsive-stage-padding: calc(
+            var(--space-xl) + var(--space-2xs)
+        );
+        --process-responsive-heading-width: 12.5rem;
+        --process-mobile-route-left: var(--space-sm);
+        --process-mobile-route-right: var(--space-lg);
+    }
+}

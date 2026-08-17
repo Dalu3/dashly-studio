@@ -1,6 +1,12 @@
+/* Design tokens for the redesign. Custom property DEFINITIONS only — this
+   import declares variables and produces no visual change on its own. The
+   legacy rules below still drive the current site until each section is
+   redesigned. See src/styles/index.css for the eventual global entry point. */
+@import "./styles/tokens/index.css";
+
 :root {
     --content-max-width: 1100px;
-    --content-gutter: 2rem;
+
 }
 
 body {
@@ -53,83 +59,13 @@ body {
     border: 0;
 }
 
-.block-title {
-    text-align: left;
-    font-size: 3.7rem;
-    font-weight: 500;
-    max-width: 1200px;
-    padding: 0;
-    box-sizing: border-box;
+/* Each section owns its internal rhythm. External gaps would expose the page
+   surface between the intentional colour-bridge layers. */
+#main-content > * + * {
+    margin-block-start: var(--space-0);
 }
 
-#packages {
-    scroll-margin-top: 50px;
-}
-#stages {
-    scroll-margin-top: 53px;
-}
-#faq {
-    scroll-margin-top: 140px;
-}
-#contact {
-    scroll-margin-top: 30px;
-}
-
-@media (min-width: 598px) and (max-width: 769px) {
-    :root {
-        --content-gutter: 3rem;
-    }
-
-    #packages,
-    #stages,
-    #contact {
-        scroll-margin-top: 84px;
-    }
-
-    #faq {
-        scroll-margin-top: 110px;
-    }
-
-    .block-title {
-        font-size: 2.5rem;
-        text-align: center;
-    }
-}
-
-@media (max-width: 598px) {
-    :root {
-        --content-gutter: 1rem;
-    }
-
-    #packages,
-    #stages,
-    #contact {
-        scroll-margin-top: 84px;
-    }
-
-    #faq {
-        scroll-margin-top: 110px;
-    }
-
-    .block-title {
-        padding: 0;
-        text-align: center;
-        font-size: 2.1rem;
-        max-width: 100%;
-        white-space: normal;
-        word-break: break-word;
-    }
-}
-
-@media (min-width: 769px) and (max-width: 1060px) {
-    .block-title {
-        font-size: 3rem;
-    }
-}
-
-@media (min-width: 20px) and (max-width: 415px) {
-    .block-title {
-        font-size: 2rem;
-        padding: 0 1rem;
-    }
+/* Kept explicit so the Hero → Selected Work boundary remains self-documenting. */
+#main-content > :nth-child(2) {
+    margin-block-start: 0;
 }

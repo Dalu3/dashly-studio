@@ -1,76 +1,44 @@
 import "./MainPage.css";
-import arrowImage from "../assets/arrow.png";
+import { ArrowControl } from "./ui/ArrowControl";
 import { navigateToHash } from "../utils/scrollToHash";
+import { homeContent } from "../seo/siteMetadata.js";
 
 export function MainPage() {
     return (
-        <>
-            <div className="hero-wrapper" id="main">
-                <div className="hero">
-                    <div className="hero-content">
-                        <div className="hero-left">
-                            <p className="subtitle">
-                                Need a website that actually brings you clients?
-                                Dashly Studio builds websites that convert.
-                            </p>
-                            <a
-                                href="#packages"
-                                className="services-link"
-                                onClick={(event) =>
-                                    navigateToHash(event, "#packages")
-                                }
-                            >
-                                Services{" "}
-                                <img
-                                    src={arrowImage}
-                                    alt="Arrow"
-                                    className="arrow-icon"
-                                />
-                            </a>
-                        </div>
-
-                        <div className="hero-line"></div>
-
-                        <div className="hero-right">
-                            <h1 className="headline">
-                                Your Digital <br />
-                                <span className="highlight">
-                                    Excellence
-                                </span>{" "}
-                                <br />
-                                Begins Here
-                            </h1>
-                        </div>
-                    </div>
-
-                    <div className="hero-stats">
-                        <div>
-                            <p className="stat-number">
-                                3<span>+</span>
-                            </p>
-                            <p className="stat-label">Experience</p>
-                        </div>
-                        <div>
-                            <p className="stat-number">
-                                30<span>+</span>
-                            </p>
-                            <p className="stat-label">Projects</p>
-                        </div>
-                        <div>
-                            <p className="stat-number">
-                                1000<span>+</span>
-                            </p>
-                            <p className="stat-label">Hours of work</p>
-                        </div>
-                        <div>
-                            <p className="stat-number">
-                                15<span>+</span>
-                            </p>
-                            <p className="stat-label">Clients</p>
-                        </div>
-                    </div>
-                </div>
+        <div className="hero-copy" id="main">
+            <div className="hero-copy__message">
+                <span
+                    className="hero-copy__grid-sizer"
+                    aria-hidden="true"
+                >
+                    {homeContent.heroTitleLines[1]}
+                </span>
+                <h1 id="hero-title">
+                    {homeContent.heroTitleLines.map((line) => (
+                        <span key={line}>{line}</span>
+                    ))}
+                </h1>
+                <p>{homeContent.heroSubtitle}</p>
             </div>
-        </>
+
+            <div className="hero-copy__meta" aria-label="Studio information">
+                <span>
+                    Based in <br className="hero-copy__meta-break" /> Scotland
+                </span>
+                <a
+                    href="#work"
+                    onClick={(event) => navigateToHash(event, "#work")}
+                >
+                    <span className="hero-copy__scroll-label">Scroll to explore</span>
+                    <ArrowControl
+                        className="hero-copy__scroll-icon"
+                        variant="accent"
+                    />
+                </a>
+                <span>
+                    Working <br className="hero-copy__meta-break" /> Worldwide
+                </span>
+            </div>
+        </div>
     );
 }

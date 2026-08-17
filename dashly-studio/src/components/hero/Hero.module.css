@@ -1,0 +1,84 @@
+/**
+ * Minimal Hero shell — a positioning context for the background, and nothing
+ * more. No typography, no layout for Hero content: that arrives in a later
+ * step. This file exists only so the background can be previewed in place at
+ * the correct size.
+ */
+
+.root {
+    position: relative;
+
+    /* Establishes the containing block for the absolutely positioned
+       background and contains its oversized drifting layers, so they can never
+       create horizontal scroll. Nothing is allowed out of this box: the
+       background's fade reaches zero at the bottom edge, exactly where the
+       next section begins. */
+    overflow: clip;
+
+    /* Full first screen. 100svh uses the SMALL viewport height, i.e. the
+       height with mobile browser chrome visible, so the Hero never gets
+       cut off behind Safari's address bar. min-height (not height) lets
+       future Hero content grow the section if it ever needs more room. */
+    min-height: 100vh; /* fallback for browsers without svh */
+    min-height: 100svh;
+
+    /* Hero participates in the same section rhythm as the content below it.
+       Its trailing padding and Selected Work's leading padding are both owned
+       by the shared token, so the space between their content is the sum of
+       two section paddings at every viewport. */
+    padding-block-end: var(--space-section-padding);
+
+    /* Belt and braces: the section itself must never widen the page. */
+    max-width: 100%;
+}
+
+/**
+ * Content sits above the background in the same stacking context.
+ * Empty for now — the placeholder simply reserves the layer.
+ */
+.content {
+    position: relative;
+    z-index: var(--z-raised);
+    display: flex;
+    min-height: inherit;
+    flex-direction: column;
+    justify-content: center;
+    padding-inline: var(--container-gutter);
+}
+
+/* Composited over both video and fur but beneath the Hero copy. This creates
+   one shared dissolve without masking the WebGL canvas, which can make
+   Chromium intermittently blank that layer. */
+.dissolve {
+    position: absolute;
+    inset: 0;
+    z-index: var(--z-raised);
+    pointer-events: none;
+    background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        transparent calc(100% - 10rem),
+        rgb(var(--c-paper-050-rgb) / 0.14) calc(100% - 8.375rem),
+        rgb(var(--c-paper-050-rgb) / 0.34) calc(100% - 7rem),
+        rgb(var(--c-paper-050-rgb) / 0.52) calc(100% - 5.8125rem),
+        rgb(var(--c-paper-050-rgb) / 0.67) calc(100% - 4.75rem),
+        rgb(var(--c-paper-050-rgb) / 0.78) calc(100% - 3.8125rem),
+        rgb(var(--c-paper-050-rgb) / 0.86) calc(100% - 3rem),
+        rgb(var(--c-paper-050-rgb) / 0.92) calc(100% - 2.25rem),
+        rgb(var(--c-paper-050-rgb) / 0.96) calc(100% - 1.5625rem),
+        var(--color-surface-page) 100%
+    );
+}
+
+/* The mobile Hero owns its exact Figma side inset through .hero-copy. Avoid
+   applying the global content gutter a second time, which would shift all
+   copy inwards by an extra 1rem. */
+@media (max-width: 29.999rem) {
+    .root {
+        min-height: 100dvh;
+    }
+
+    .content {
+        padding-inline: var(--space-0);
+    }
+}

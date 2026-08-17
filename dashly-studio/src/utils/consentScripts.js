@@ -10,7 +10,7 @@ const ANALYTICS_COOKIE_PREFIXES = ["_ga", "_gid", "_gat"];
 
 let analyticsScriptPromise = null;
 let analyticsConfigured = false;
-let previousAnalyticsEnabled = false;
+let analyticsConsentGranted = false;
 let hasInitializedConsentMode = false;
 let lastConsentModeSignature = null;
 
@@ -165,27 +165,27 @@ function applyGoogleConsentState(hasConsentDecision, preferences) {
     return googleConsentState;
 }
 
-function enableAnalytics(shouldSendPageView) {
+function enableAnalytics() {
     ensureGtag();
     setGoogleAnalyticsDisabled(false);
 
     return loadGoogleAnalyticsScript()
         .then(() => {
+            if (!analyticsConsentGranted) {
+                setGoogleAnalyticsDisabled(true);
+                return;
+            }
+
             if (!analyticsConfigured) {
                 window.gtag("js", new Date());
                 analyticsConfigured = true;
                 window.gtag("config", ANALYTICS_MEASUREMENT_ID, {
                     anonymize_ip: true,
-                    send_page_view: shouldSendPageView,
+                    // SPA page views are sent by trackAnalyticsPageView so the
+                    // initial load and route transitions share one path.
+                    send_page_view: false,
                 });
                 return;
-            }
-
-            if (shouldSendPageView) {
-                window.gtag("config", ANALYTICS_MEASUREMENT_ID, {
-                    anonymize_ip: true,
-                    send_page_view: true,
-                });
             }
         })
         .catch(() => {
@@ -198,6 +198,7 @@ function disableAnalytics() {
         return;
     }
 
+    analyticsConsentGranted = false;
     setGoogleAnalyticsDisabled(true);
     clearCookiesByPrefixes(ANALYTICS_COOKIE_PREFIXES);
 }
@@ -212,12 +213,11 @@ export function syncConsentScripts(consent) {
     applyGoogleConsentState(hasConsentDecision, preferences);
 
     if (analyticsEnabled) {
-        void enableAnalytics(!previousAnalyticsEnabled);
+        analyticsConsentGranted = true;
+        void enableAnalytics();
     } else {
         disableAnalytics();
     }
-
-    previousAnalyticsEnabled = analyticsEnabled;
 }
 
 export function trackAnalyticsPageView({

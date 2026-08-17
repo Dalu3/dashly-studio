@@ -1,0 +1,210 @@
+/**
+ * Project card. Every dimension comes from a component token defined on the
+ * section root (SelectedWork.module.css) so proportions can be retuned in one
+ * place without touching this file.
+ */
+
+/**
+ * The only transform here is on the complete card. With all custom properties
+ * at their defaults this is a genuinely flat, untransformed card at rest. The
+ * image and caption stay inside the same article, so the entire card rotates
+ * as one rigid object during scroll or image-frame pointer interaction.
+ */
+.card {
+    /* Never shrink to fit the flex line — the carousel is meant to overflow. */
+    flex: 0 0 auto;
+    width: var(--work-card-width);
+    box-sizing: border-box;
+    position: relative;
+
+    /* Each card gets its own centred camera. A shared perspective on the
+       carousel would make cards near the viewport edges distort differently;
+       the local camera makes the near edge consistently grow while the far
+       edge recedes, matching the printed-card reference. */
+    perspective: var(--work-card-perspective);
+    perspective-origin: center;
+
+}
+
+.link {
+    display: block;
+    color: inherit;
+    text-decoration: none;
+
+    transform:
+        rotateY(
+            calc(
+                var(--tilt-rotate-y, 0deg) +
+                    var(--pointer-tilt-y, 0deg)
+            )
+        )
+        rotateX(
+            calc(
+                var(--tilt-rotate-x, 0deg) +
+                    var(--pointer-tilt-x, 0deg)
+            )
+        );
+    transform-origin: center;
+    transform-style: preserve-3d;
+    will-change: transform;
+}
+
+.cursor {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: var(--z-cursor);
+    width: var(--space-3xl);
+    height: var(--space-3xl);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity var(--duration-fast) var(--ease-standard);
+    will-change: transform, opacity;
+}
+
+.cursor[data-active="true"] {
+    opacity: 1;
+}
+
+.cursor svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+.cursorCircle {
+    fill: var(--color-text-accent);
+}
+
+.cursorSpinner {
+    transform-box: view-box;
+    transform-origin: center;
+    animation: project-card-cursor-rotate calc(var(--duration-deliberate) * 16)
+        var(--ease-linear) infinite;
+    animation-play-state: paused;
+}
+
+.cursor[data-active="true"] .cursorSpinner {
+    animation-play-state: running;
+}
+
+.cursorText {
+    fill: var(--color-surface-raised);
+    font-family: var(--font-family-sans);
+    font-size: calc(var(--font-size-2xs) * 0.85);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-normal);
+    text-transform: uppercase;
+}
+
+.cursorSeparator {
+    font-size: 1.15em;
+    font-weight: var(--font-weight-bold);
+}
+
+@keyframes project-card-cursor-rotate {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+@media (min-width: 64rem) and (hover: hover) and (pointer: fine) {
+    .cursorEnabled,
+    .cursorEnabled * {
+        cursor: none;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .cursor {
+        display: none;
+    }
+
+    .cursorSpinner {
+        animation: none;
+    }
+}
+
+.frame {
+    position: relative;
+    aspect-ratio: var(--work-card-aspect);
+    border-radius: var(--work-card-radius);
+    background-color: var(--color-surface-sunken);
+    box-shadow: var(--shadow-md);
+
+    /* The artwork stays inside a stable frame while the complete card tilts. */
+    overflow: hidden;
+    overflow: clip;
+}
+
+/* The <picture> wrapper (mobile/desktop source switch) must not generate its
+   own box, or .image's 100%/100% would size against it instead of .frame. */
+.frame > picture {
+    display: contents;
+}
+
+.image,
+.placeholder {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.image {
+    object-fit: cover;
+    /* The image is part of the rigid card. It must never move independently
+       from the frame while the carousel is dragging or settling. */
+    transform: none;
+    -webkit-user-drag: none;
+}
+
+/* Empty state until a preview is supplied. Deliberately quiet — a card without
+   artwork should read as "not yet", not as a broken image. */
+.placeholder {
+    background-color: var(--color-surface-sunken);
+    box-shadow: inset 0 0 0 1px var(--color-border-subtle);
+}
+
+.meta {
+    margin-block-start: var(--work-card-meta-gap);
+}
+
+.title {
+    margin: 0;
+    font-size: var(--type-project-card-caption);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-type-body);
+    letter-spacing: var(--letter-spacing-tight);
+    color: var(--color-text-primary);
+}
+
+.description {
+    margin: 0;
+    font-size: var(--type-project-card-caption);
+    font-weight: var(--font-weight-bold);
+    line-height: var(--line-height-type-body);
+    letter-spacing: var(--letter-spacing-tight);
+    color: var(--color-text-primary);
+}
+
+.mobileDescription {
+    display: none;
+}
+
+@media (max-width: 47.999rem) {
+    .hasMobileDescription {
+        display: none;
+    }
+
+    .mobileDescription {
+        display: inline;
+    }
+}
+
+@media (max-width: 20rem) {
+    .description {
+        font-size: var(--type-small);
+        white-space: nowrap;
+    }
+}

@@ -1,0 +1,100 @@
+/**
+ * Colour tokens.
+ *
+ * Two layers on purpose:
+ *   1. Primitives (--c-*)  — the raw palette. Never used directly in components.
+ *   2. Semantic  (--color-*) — what a colour MEANS. Components use only these.
+ *
+ * This indirection is what makes a re-skin (or a future dark theme) a change to
+ * one file instead of a change to 156 scattered hex literals.
+ *
+ * Primitives are extracted from the existing production site so the redesign
+ * starts from the established brand, not an invented palette.
+ */
+
+:root {
+    /* ---- Primitives: neutrals ------------------------------------------ */
+    --c-ink-900: #171715;
+    --c-ink-000: #000000;
+    --c-ink-800: #2a2a26;
+    --c-ink-600: #55524f;
+    --c-ink-500: #646363;
+    --c-ink-400: #989898;
+    --c-ink-300: #cccccc;
+
+    --c-paper-000: #ffffff;
+    --c-paper-050: #f6f6f6;
+    --c-paper-100: #f5f5f5;
+    --c-paper-200: #f5f5f1;
+
+    /* ---- Primitives: brand accent -------------------------------------- */
+    --c-accent-300: #8edcff;
+    --c-accent-400: #63d5ff;
+    --c-accent-500: #29c9ff;
+
+    /* ---- Primitives: feedback ------------------------------------------ */
+    --c-error-500: #d92d20;
+
+    /* ---- Primitives: channels (for alpha composition) ------------------- */
+    --c-ink-800-rgb: 42 42 38;
+    --c-accent-400-rgb: 99 213 255;
+    --c-error-500-rgb: 217 45 32;
+    --c-black-rgb: 0 0 0;
+    --c-white-rgb: 255 255 255;
+    --c-paper-050-rgb: 246 246 246;
+
+    /* ---- Semantic: surfaces -------------------------------------------- */
+    --color-surface-page: var(--c-paper-050);
+    --color-surface-raised: var(--c-paper-000);
+    --color-surface-glass: rgb(var(--c-white-rgb) / 0.38);
+    --color-surface-glass-highlight: rgb(var(--c-white-rgb) / 0.58);
+    --color-surface-glass-shade: rgb(var(--c-white-rgb) / 0.28);
+    --color-surface-sunken: var(--c-paper-100);
+    /* Exact hex from Figma node 458:88 — a few shades cooler than
+       --c-ink-800, which shadow.css also depends on. */
+    --color-surface-inverse: #2c2c2c;
+    /* Exact hex from Figma node 466:121 (the Contact section background). */
+    --color-surface-accent-subtle: #d6edf8;
+    /* Exact surface from the process frame in Figma node 491:175. */
+    --color-surface-process: #242424;
+
+    /* ---- Semantic: text ------------------------------------------------- */
+    --color-text-primary: var(--c-ink-800);
+    --color-text-black: var(--c-ink-000);
+    --color-text-secondary: var(--c-ink-600);
+    --color-text-muted: var(--c-ink-400);
+    /* Exact hex from Figma's Footer text (node 458:88) — every text node in
+       that frame, at every weight, uses this one solid colour. */
+    --color-text-inverse: #d6edf8;
+    --color-text-process-muted: rgb(214 237 248 / 0.6);
+    --color-text-process-number: var(--c-ink-600);
+    --color-text-accent: var(--c-accent-500);
+
+    /* ---- Semantic: borders ---------------------------------------------- */
+    --color-border-subtle: rgb(var(--c-ink-800-rgb) / 0.12);
+    --color-border-default: rgb(var(--c-ink-800-rgb) / 0.22);
+    --color-border-strong: var(--c-ink-800);
+    --color-border-glass: rgb(var(--c-white-rgb) / 0.46);
+
+    /* ---- Semantic: interactive ------------------------------------------ */
+    --color-action-primary-bg: var(--c-ink-800);
+    --color-action-primary-text: var(--c-paper-050);
+    --color-action-primary-bg-hover: var(--c-ink-900);
+
+    --color-action-accent-bg: var(--c-accent-400);
+    --color-action-accent-bg-subtle: rgb(var(--c-accent-400-rgb) / 0.22);
+    --color-action-accent-text: var(--c-ink-900);
+    --color-action-accent-bg-hover: var(--c-accent-500);
+
+    /* Focus ring is a token, not a per-component decision — accessibility
+       depends on it being consistent and never removed. */
+    --color-focus-ring: var(--c-accent-500);
+
+    /* ---- Semantic: feedback --------------------------------------------- */
+    --color-feedback-error: var(--c-error-500);
+
+    /* ---- Semantic: overlays --------------------------------------------- */
+    --color-overlay-scrim: rgb(var(--c-black-rgb) / 0.5);
+    --color-overlay-veil: rgb(var(--c-white-rgb) / 0.9);
+    --color-process-route: rgb(214 237 248 / 0.2);
+}

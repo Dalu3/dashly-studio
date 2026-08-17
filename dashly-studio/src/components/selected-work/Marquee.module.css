@@ -1,0 +1,70 @@
+/**
+ * Infinite ticker. See Marquee.tsx for why the loop is seamless and why this is
+ * a CSS animation rather than a rAF loop.
+ *
+ * Consumers set `--marquee-gap` to control the space between repeats; the gap
+ * lives INSIDE each copy (padding-inline-end) so that one copy's measured width
+ * already includes it and the translate distance stays exactly one copy.
+ */
+
+.root {
+    /* The track is deliberately wider than the page — this is what stops it
+       creating horizontal scroll. `clip` over `hidden` so no scroll container
+       is created at all. */
+    overflow: hidden;
+    overflow: clip;
+    max-width: 100%;
+}
+
+.track {
+    display: flex;
+    width: max-content;
+    flex-wrap: nowrap;
+
+    /* Promoted to its own compositor layer up front, so the first frame of the
+       animation is not the frame that pays for the promotion. */
+    will-change: transform;
+    transform: translate3d(0, 0, 0);
+}
+
+.animated {
+    animation: marquee-shift
+        calc(
+            var(--marquee-duration, 20s) *
+                var(--marquee-speed-factor, 1)
+        )
+        linear infinite;
+    animation-direction: var(--marquee-direction, normal);
+}
+
+/* Pausing preserves the animation's current timeline position. Removing the
+   animation would restart the marquee from zero on every viewport re-entry. */
+.paused {
+    animation-play-state: paused;
+}
+
+.copy {
+    flex: none;
+    padding-inline-end: var(--marquee-gap, var(--space-lg));
+}
+
+@keyframes marquee-shift {
+    from {
+        transform: translate3d(0, 0, 0);
+    }
+
+    to {
+        transform: translate3d(calc(var(--marquee-distance, 0px) * -1), 0, 0);
+    }
+}
+
+/**
+ * Reduced motion is handled in the component (the animation class is not
+ * applied at all), so the content simply sits still. This is the belt-and-
+ * braces half, for the case where the media query flips before React re-renders.
+ */
+@media (prefers-reduced-motion: reduce) {
+    .animated {
+        animation: none;
+    }
+}

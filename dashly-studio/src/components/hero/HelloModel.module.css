@@ -1,0 +1,34 @@
+/**
+ * Canvas host for the 3D "hello".
+ *
+ * Fills the Hero and sits between the animated background and the (future)
+ * Hero content. Placement of the word itself is done in 3D, inside
+ * HelloModel.tsx, rather than with CSS — that way the Hero's layout is not
+ * touched at all and the model stays correctly proportioned at any viewport.
+ */
+
+.root {
+    position: absolute;
+    inset: 0;
+    z-index: var(--z-raised);
+
+    /* Desktop remains click-through; the child touch surface selectively
+       opts only the projected HELLO bounds back into hit testing. */
+    pointer-events: none;
+}
+
+.root canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+/* This transparent input surface is positioned from the model's projected
+   bounds at runtime. Only a gesture that starts on HELLO opts into direct
+   manipulation; the rest of the Hero keeps native page scrolling. */
+.interactionSurface {
+    position: absolute;
+    z-index: var(--z-raised);
+    touch-action: none;
+    pointer-events: auto;
+}
