@@ -6,8 +6,10 @@ import {
     COOKIE_CATEGORY_DETAILS,
     getDefaultConsentPreferences,
 } from "../utils/cookieConsent";
+import { InlineTextAction } from "./ui/InlineTextAction.jsx";
+import { TextArrowAction } from "./ui/TextArrowAction.jsx";
 
-export default function CookieConsent() {
+export default function CookieConsent({ blocked = false }) {
     const {
         consent,
         hasConsentDecision,
@@ -143,6 +145,24 @@ export default function CookieConsent() {
         savePreferences(draftPreferences);
     };
 
+    const handlePrivacyPolicyNavigation = (event) => {
+        if (
+            event.button !== 0 ||
+            event.metaKey ||
+            event.ctrlKey ||
+            event.shiftKey ||
+            event.altKey
+        ) {
+            return;
+        }
+
+        event.preventDefault();
+        closePreferences();
+        window.scrollTo(0, 0);
+        window.history.pushState({}, "", "/privacy/");
+        window.dispatchEvent(new PopStateEvent("popstate"));
+    };
+
     const preferencesDialog =
         isPreferencesOpen && document.body
             ? createPortal(
@@ -160,14 +180,11 @@ export default function CookieConsent() {
                           onClick={(event) => event.stopPropagation()}
                       >
                           <div className="cookie-consent-modal__header">
-                              <div>
-                                  <p className="cookie-consent-modal__eyebrow">
-                                      Cookie Settings
-                                  </p>
-                                  <h2 id={titleId}>
-                                      Choose which cookies you want to allow
-                                  </h2>
-                              </div>
+                              <h2 id={titleId}>
+                                  {isMobileViewport
+                                      ? "Choose your cookie preferences"
+                                      : "Choose which cookies you want to allow"}
+                              </h2>
 
                               <button
                                   type="button"
@@ -183,9 +200,9 @@ export default function CookieConsent() {
                               id={descriptionId}
                               className="cookie-consent-modal__intro"
                           >
-                              Necessary cookies stay on so the website works as
-                              expected. Analytics and marketing cookies stay off
-                              until you choose to enable them.
+                              {isMobileViewport
+                                  ? "Necessary cookies keep the website working properly. You can choose whether to allow analytics and marketing cookies."
+                                  : "Necessary cookies stay on so the website works as expected. Analytics and marketing cookies stay off until you choose to enable them."}
                           </p>
 
                           <div className="cookie-consent-modal__categories">
@@ -244,33 +261,36 @@ export default function CookieConsent() {
                               <a
                                   href="/privacy/"
                                   className="cookie-consent-modal__policy-link"
-                                  onClick={closePreferences}
+                                  onClick={handlePrivacyPolicyNavigation}
                               >
                                   View Privacy Policy
                               </a>
 
                               <div className="cookie-consent-modal__actions">
-                                  <button
+                                  <InlineTextAction
+                                      as="button"
                                       type="button"
-                                      className="cookie-consent-button cookie-consent-button--ghost"
+                                      className="cookie-consent-modal__policy-link"
                                       onClick={rejectAll}
                                   >
                                       Reject All
-                                  </button>
-                                  <button
+                                  </InlineTextAction>
+                                  <InlineTextAction
+                                      as="button"
                                       type="button"
-                                      className="cookie-consent-button cookie-consent-button--secondary"
+                                      className="cookie-consent-modal__policy-link"
                                       onClick={handleSave}
                                   >
                                       Save Preferences
-                                  </button>
-                                  <button
+                                  </InlineTextAction>
+                                  <TextArrowAction
+                                      as="button"
                                       type="button"
                                       className="cookie-consent-button cookie-consent-button--primary"
                                       onClick={acceptAll}
                                   >
                                       Accept All
-                                  </button>
+                                  </TextArrowAction>
                               </div>
                           </div>
                       </div>
@@ -278,6 +298,10 @@ export default function CookieConsent() {
                   document.body,
               )
             : null;
+
+    if (blocked) {
+        return null;
+    }
 
     return (
         <>
@@ -297,7 +321,7 @@ export default function CookieConsent() {
                             ) : (
                                 <>
                                     We use cookies to improve your experience,
-                                    analyze traffic, and support our marketing.
+                                    analyse traffic, and support our marketing.
                                     You can accept all cookies or manage your
                                     preferences. See our{" "}
                                 </>
@@ -313,27 +337,22 @@ export default function CookieConsent() {
                     </div>
 
                     <div className="cookie-consent-banner__actions">
-                        <button
+                        <InlineTextAction
+                            as="button"
                             type="button"
-                            className="cookie-consent-button cookie-consent-button--ghost"
-                            onClick={rejectAll}
-                        >
-                            Reject All
-                        </button>
-                        <button
-                            type="button"
-                            className="cookie-consent-button cookie-consent-button--secondary"
+                            className="cookie-consent-banner__link cookie-consent-banner__manage"
                             onClick={openPreferences}
                         >
                             Manage Preferences
-                        </button>
-                        <button
+                        </InlineTextAction>
+                        <TextArrowAction
+                            as="button"
                             type="button"
                             className="cookie-consent-button cookie-consent-button--primary"
                             onClick={acceptAll}
                         >
                             Accept All
-                        </button>
+                        </TextArrowAction>
                     </div>
                 </section>
             )}

@@ -29,6 +29,15 @@
 .backdrop[data-closing] { animation: estimator-fade-out var(--duration-fast) var(--ease-exit) forwards; }
 .backdrop[data-closing] .dialog { animation: estimator-exit var(--duration-fast) var(--ease-exit) forwards; }
 
+/* Safari iOS repaints the entire fixed dialog when backdrop-filter is active.
+   Keep the scrim, but remove the expensive blur on touch-sized viewports. */
+@media (max-width: 48rem) {
+    .backdrop {
+        -webkit-backdrop-filter: none;
+        backdrop-filter: none;
+    }
+}
+
 .topbar,
 .actions {
     padding-inline: var(--container-gutter);
