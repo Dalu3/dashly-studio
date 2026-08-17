@@ -1,6 +1,6 @@
 .privacy-container {
     max-width: var(--container-default);
-    margin: var(--space-4xl) auto var(--space-md);
+    margin: var(--space-3xl) auto var(--space-md);
     padding: var(--space-md) var(--container-gutter);
     color: var(--color-text-primary);
     background-color: var(--color-surface-page);

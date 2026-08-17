@@ -94,8 +94,8 @@ function AppFrame({ pathname, onHeroReady }) {
                 <Header />
                 <Suspense fallback={<LegalRouteFallback title="Privacy Policy" />}>
                     <Privacy />
+                    <Footer />
                 </Suspense>
-                <Footer />
             </>
         );
     }
@@ -106,8 +106,8 @@ function AppFrame({ pathname, onHeroReady }) {
                 <Header />
                 <Suspense fallback={<LegalRouteFallback title="Terms and Conditions" />}>
                     <Terms />
+                    <Footer />
                 </Suspense>
-                <Footer />
             </>
         );
     }
@@ -305,7 +305,7 @@ function App() {
                 covers it visually on the home route, but it cannot become a
                 late LCP candidate when the WebGL readiness gate takes several
                 seconds on mobile. */}
-            <CookieConsent />
+            <CookieConsent blocked={showLoader} />
         </CookieConsentProvider>
     );
 }
