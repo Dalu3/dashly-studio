@@ -10,13 +10,14 @@ import arrowIcon from "../../assets/arrow.svg";
 import styles from "./PriceEstimator.module.css";
 
 const STEPS = [
-    { id: "website", title: "What kind of website do you need?", description: "Pick the option closest to your idea. We can refine it together later." },
-    { id: "pages", title: "How many pages do you need?", description: "Not sure yet? Choose an approximate number for now." },
-    { id: "features", title: "What features do you need?", description: "Select everything your website should be able to do. You can change this later." },
-    { id: "starting-point", title: "Where are you starting from?", description: "This helps us account for the design and development work your project needs." },
+    { id: "website", title: "What kind of website do you need?", mobileTitle: "Choose your website type", description: "Pick the option closest to your idea. We can refine it together later." },
+    { id: "pages", title: "How many pages do you need?", description: "Not sure yet? Choose an approximate number for now.", mobileDescription: "Not sure? Choose an approximate number." },
+    { id: "features", title: "What additional features do you need?", mobileTitle: "Need any extra features?", description: "Select everything your website should be able to do. You can change this later.", mobileDescription: "Select any additional features you’d like for your website." },
+    { id: "starting-point", title: "Where are you starting from?", mobileTitle: "Where are you starting from?", description: "This helps us account for the design and development work your project needs.", mobileDescription: "Choose what you already have and what you need." },
 ];
 
 const focusableSelector = "button:not([disabled]), input:not([disabled]), [href], [tabindex]:not([tabindex='-1'])";
+const scrollOverflowEpsilon = 2;
 const money = (value) => new Intl.NumberFormat("en-GB", { style: "currency", currency: "GBP", maximumFractionDigits: 0 }).format(value);
 const featurePriceLabel = (feature) => feature.priceLabel ?? (Number.isFinite(feature.price) ? "+" + money(feature.price) : "Quoted separately");
 const includedHeading = (website) => website.directContact ? "Features can include" : "What’s included";
@@ -71,8 +72,10 @@ function WebsiteOption({ item, checked, onChange, priceLabel, headerRef }) {
             </div>
             <div className={styles.websiteIncluded} aria-hidden={!checked}>
                 <div className={styles.websiteIncludedContent}>
-                    <span className={styles.websiteIncludedHeading} role="heading" aria-level="3">{includedHeading(item)}</span>
-                    <IncludedFeatures website={item} />
+                    <div className={styles.websiteIncludedInner}>
+                        <span className={styles.websiteIncludedHeading} role="heading" aria-level="3">{includedHeading(item)}</span>
+                        <IncludedFeatures website={item} />
+                    </div>
                 </div>
             </div>
         </div>
@@ -131,7 +134,7 @@ function PageExplanation({ website }) {
     );
 }
 
-function ProjectSummary({ website, maxHeight, stablePosition = false, allowScroll = true, showScrollAffordance = true, showEstimate = false, detailsRef: detailsRefProp, scrollParentRef, estimate }) {
+function ProjectSummary({ website, maxHeight, stablePosition = false, allowScroll = true, showScrollAffordance = true, showEstimate = false, alwaysOpen = false, detailsRef: detailsRefProp, scrollParentRef, estimate }) {
     // The side panel needs the desktop modal's full content width. Below xl the
     // same details stay in the normal estimator flow instead of becoming a
     // cramped, independently scrolling column.
@@ -143,7 +146,7 @@ function ProjectSummary({ website, maxHeight, stablePosition = false, allowScrol
     const [summaryNeedsHeightLimit, setSummaryNeedsHeightLimit] = useState(false);
     const localDetailsRef = useRef(null);
     const detailsRef = detailsRefProp ?? localDetailsRef;
-    const summaryOpen = isPanelLayout || isOpen;
+    const summaryOpen = alwaysOpen || isPanelLayout || isOpen;
     const summaryStyle = isPanelLayout && maxHeight ? {
         "--summary-max-height": `${maxHeight}px`,
         ...(summaryNeedsHeightLimit ? { "--summary-height": `${maxHeight}px` } : {}),
@@ -220,10 +223,10 @@ function ProjectSummary({ website, maxHeight, stablePosition = false, allowScrol
 
     return (
         <aside className={`${styles.projectSummary}${stablePosition ? ` ${styles.projectSummaryStable}` : ""}`} aria-label={`${website.label} package details`}>
-            <details className={`${styles.summaryDetails}${allowScroll ? "" : ` ${styles.summaryDetailsStatic}`}`} data-website-type={website.id} style={summaryStyle} open={summaryOpen} onToggle={(event) => { if (!isPanelLayout) setIsOpen(event.currentTarget.open); }}>
+            <details className={`${styles.summaryDetails}${allowScroll ? "" : ` ${styles.summaryDetailsStatic}`}${alwaysOpen ? ` ${styles.summaryDetailsAlwaysOpen}` : ""}`} data-website-type={website.id} style={summaryStyle} open={summaryOpen} onToggle={(event) => { if (!isPanelLayout && !alwaysOpen) setIsOpen(event.currentTarget.open); }}>
                 <summary>
                     <span>{website.label}</span>
-                    <span className={styles.summaryToggle}>{summaryOpen ? "Hide included" : "View included"}</span>
+                    {!alwaysOpen && <span className={styles.summaryToggle}>{summaryOpen ? "Hide included" : "View included"}</span>}
                 </summary>
                 <div className={styles.summaryContent}>
                     <div className={styles.summaryTitleRow}>
@@ -367,8 +370,9 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
             }
 
             previousScrollTop = currentScrollTop;
-            const canScroll = body.scrollHeight > body.clientHeight;
-            const isAtEnd = body.scrollTop + body.clientHeight >= body.scrollHeight - 1;
+            const maxScrollTop = Math.max(0, body.scrollHeight - body.clientHeight);
+            const canScroll = maxScrollTop > scrollOverflowEpsilon;
+            const isAtEnd = body.scrollTop >= maxScrollTop - 1;
 
             const shouldShowBodyScrollHint = currentStep === 0 || currentStep === 2 || showResult;
             setShowBodyScrollHint(shouldShowBodyScrollHint && canScroll && !isAtEnd);
@@ -415,65 +419,8 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
     }, [currentStep, isPanelLayout, showResult]);
 
     useEffect(() => {
-        const selectedWebsiteId = answers.websiteTypeId;
-
-        if (
-            !selectedWebsiteId
-            || pendingWebsiteScrollRef.current !== selectedWebsiteId
-            || currentStep !== 0
-            || isPanelLayout
-            || showResult
-        ) return undefined;
-
-        const body = bodyRef.current;
-        const header = websiteOptionHeaderRefs.current[selectedWebsiteId];
-        const card = header?.closest(`[data-website-option="${selectedWebsiteId}"]`);
-        const reveal = card?.querySelector(`.${styles.websiteIncluded}`);
-
-        if (!body || !header || !reveal) return undefined;
-
-        let userInterrupted = false;
-        const markUserInterruption = () => { userInterrupted = true; };
-        const scrollToCardHeader = () => {
-            if (userInterrupted || pendingWebsiteScrollRef.current !== selectedWebsiteId) return;
-
-            const bodyRect = body.getBoundingClientRect();
-            const headerRect = header.getBoundingClientRect();
-            const bodyPaddingTop = Number.parseFloat(window.getComputedStyle(body).paddingTop) || 0;
-            const targetScrollTop = body.scrollTop + headerRect.top - bodyRect.top - bodyPaddingTop;
-            const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-            body.scrollTo({ top: Math.max(0, targetScrollTop), behavior: reducedMotion ? "auto" : "smooth" });
-            pendingWebsiteScrollRef.current = null;
-        };
-        const handleRevealTransitionEnd = (event) => {
-            if (event.target === reveal && event.propertyName === "grid-template-rows") {
-                scrollToCardHeader();
-            }
-        };
-
-        body.addEventListener("wheel", markUserInterruption, { passive: true });
-        body.addEventListener("touchstart", markUserInterruption, { passive: true });
-        body.addEventListener("pointerdown", markUserInterruption, { passive: true });
-
-        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-            const frame = window.requestAnimationFrame(scrollToCardHeader);
-            return () => {
-                window.cancelAnimationFrame(frame);
-                body.removeEventListener("wheel", markUserInterruption);
-                body.removeEventListener("touchstart", markUserInterruption);
-                body.removeEventListener("pointerdown", markUserInterruption);
-            };
-        }
-
-        reveal.addEventListener("transitionend", handleRevealTransitionEnd);
-        return () => {
-            reveal.removeEventListener("transitionend", handleRevealTransitionEnd);
-            body.removeEventListener("wheel", markUserInterruption);
-            body.removeEventListener("touchstart", markUserInterruption);
-            body.removeEventListener("pointerdown", markUserInterruption);
-        };
-    }, [answers.websiteTypeId, currentStep, isPanelLayout, showResult]);
+        pendingWebsiteScrollRef.current = null;
+    }, [currentStep, answers.websiteTypeId]);
 
     useEffect(() => {
         const options = websiteOptionsRef.current;
@@ -576,7 +523,6 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
     };
     const selectWebsite = (id) => {
         if (id === answers.websiteTypeId) {
-            pendingWebsiteScrollRef.current = null;
             setAnswers((current) => ({ ...current, websiteTypeId: "", featureIds: [] }));
             return;
         }
@@ -584,10 +530,6 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
         const allowedFeatureIds = pricingConfig.features
             .filter((feature) => feature.appliesTo.includes(id))
             .map((feature) => feature.id);
-
-        if (window.matchMedia("(max-width: 79.999rem)").matches) {
-            pendingWebsiteScrollRef.current = id;
-        }
 
         setAnswers((current) => ({
             ...current,
@@ -644,8 +586,14 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
         </div>
     ) : (
         <div className={styles.step} data-step={step.id}>
-            <h2 id="estimator-heading" tabIndex="-1">{step.title}</h2>
-            <p className={styles.description}>{step.description}</p>
+            <h2 id="estimator-heading" tabIndex="-1">
+                <span className={styles.desktopTitle}>{step.title}</span>
+                {step.mobileTitle && <span className={styles.mobileTitle}>{step.mobileTitle}</span>}
+            </h2>
+            <p className={styles.description}>
+                <span className={styles.desktopDescription}>{step.description}</span>
+                {step.mobileDescription && <span className={styles.mobileDescription}>{step.mobileDescription}</span>}
+            </p>
             {step.id === "website" && <div className={styles.websiteChoiceLayout}>
                 <fieldset ref={websiteOptionsRef} className={styles.optionGroup}>
                     <legend className="visually-hidden">Website type</legend>
@@ -710,7 +658,7 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
                     <div ref={bodyRef} className={`${styles.body}${currentStep === 1 ? ` ${styles.bodyStepTwo}` : ""}${showResult ? ` ${styles.bodyResult}` : ""}`}>
                         <div className={`${styles.contentLayout}${showResult ? ` ${styles.resultContentLayout}` : ""} ${step?.id === "website" && !showResult ? styles.websiteContentLayout : ""}`}>
                             <div className={styles.contentColumn}>{content}</div>
-                            {website && step?.id !== "website" && !showResult && <ProjectSummary website={website} maxHeight={summaryPanelHeight} stablePosition showEstimate detailsRef={summaryDetailsRef} scrollParentRef={bodyRef} estimate={estimate} answers={answers} />}
+                            {website && step?.id !== "website" && !showResult && <ProjectSummary website={website} maxHeight={summaryPanelHeight} stablePosition alwaysOpen showEstimate detailsRef={summaryDetailsRef} scrollParentRef={bodyRef} estimate={estimate} answers={answers} />}
                         </div>
                     </div>
                     {showBodyScrollHint && <div className={styles.scrollHint} aria-hidden="true"><span className={styles.scrollHintContent}><span>Scroll to explore</span><img className={styles.scrollHintArrow} src={arrowIcon} alt="" width="1080" height="1350" /></span></div>}
