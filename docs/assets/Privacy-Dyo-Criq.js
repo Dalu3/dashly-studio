@@ -1,1 +1,0 @@
-import{j as n}from"./index-DNcYq9BV.js";const e="_root_1wu1i_1",i={root:e};function c({as:o="a",children:t,className:s="",...r}){return n.jsx(o,{className:`${i.root} ${s}`.trim(),...r,children:t})}export{c as I};
