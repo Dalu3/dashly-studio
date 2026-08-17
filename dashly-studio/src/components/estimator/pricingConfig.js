@@ -181,7 +181,7 @@ export const pricingConfig = {
     features: [
         { id: "cms-landing", label: "Admin Panel / Content Management", description: "Manage selected website content yourself through an easy-to-use admin area, including 4 custom blocks.", price: 300, appliesTo: ["landing"], recommendedFor: [] },
         { id: "cms-business", label: "Admin Panel / Content Management", description: "Manage selected website content yourself through an easy-to-use admin area, including 8 custom blocks.", price: 600, appliesTo: ["business"], recommendedFor: [] },
-        { id: "booking-integration", label: "Booking Integration", description: "Connect an external booking service such as Calendly.", price: 100, appliesTo: ["landing", "business", "catalogue", "ecommerce"], recommendedFor: [] },
+        { id: "booking-integration", label: "Booking Integration", description: "Connect an existing external booking service to your website.", price: 100, appliesTo: ["landing", "business", "catalogue", "ecommerce"], recommendedFor: [] },
         { id: "custom-booking", label: "Custom Booking System", description: "Custom appointment booking with availability, confirmations and admin management.", price: 300, appliesTo: ["landing", "business", "catalogue", "ecommerce"], recommendedFor: [] },
         { id: "payments-landing", label: "Online Payments / Deposits", description: "Accept online payments or deposits directly through the website.", price: 350, appliesTo: ["landing"], recommendedFor: [] },
         { id: "payments-business", label: "Online Payments / Deposits", description: "Accept online payments or deposits through the website.", price: 250, appliesTo: ["business"], recommendedFor: [] },

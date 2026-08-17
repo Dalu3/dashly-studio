@@ -222,7 +222,7 @@ function ProjectSummary({ website, maxHeight, stablePosition = false, allowScrol
     }, [allowScroll, detailsRef, isPanelLayout, maxHeight, scrollParentRef, showScrollAffordance, website.id]);
 
     return (
-        <aside className={`${styles.projectSummary}${stablePosition ? ` ${styles.projectSummaryStable}` : ""}`} aria-label={`${website.label} package details`}>
+        <aside className={`${styles.projectSummary}${stablePosition ? ` ${styles.projectSummaryStable}` : ""}`} aria-label={`${website.label} package details`} style={summaryStyle}>
             <details className={`${styles.summaryDetails}${allowScroll ? "" : ` ${styles.summaryDetailsStatic}`}${alwaysOpen ? ` ${styles.summaryDetailsAlwaysOpen}` : ""}`} data-website-type={website.id} style={summaryStyle} open={summaryOpen} onToggle={(event) => { if (!isPanelLayout && !alwaysOpen) setIsOpen(event.currentTarget.open); }}>
                 <summary>
                     <span>{website.label}</span>
@@ -605,7 +605,7 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
                 {website && isPanelLayout && <ProjectSummary
                     website={website}
                     maxHeight={websiteOptionsHeight}
-                    allowScroll={!['landing', 'business'].includes(website.id)}
+                    allowScroll={true}
                     showEstimate={false}
                     detailsRef={summaryDetailsRef}
                     scrollParentRef={bodyRef}
