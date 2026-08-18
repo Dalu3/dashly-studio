@@ -7,7 +7,6 @@ import {
     getDefaultConsentPreferences,
 } from "../utils/cookieConsent";
 import { InlineTextAction } from "./ui/InlineTextAction.jsx";
-import { TextArrowAction } from "./ui/TextArrowAction.jsx";
 
 export default function CookieConsent({ blocked = false }) {
     const {
@@ -200,9 +199,8 @@ export default function CookieConsent({ blocked = false }) {
                               id={descriptionId}
                               className="cookie-consent-modal__intro"
                           >
-                              {isMobileViewport
-                                  ? "Necessary cookies keep the website working properly. You can choose whether to allow analytics and marketing cookies."
-                                  : "Necessary cookies stay on so the website works as expected. Analytics and marketing cookies stay off until you choose to enable them."}
+                              Necessary cookies keep the website working properly.
+                              You can choose whether to allow analytics.
                           </p>
 
                           <div className="cookie-consent-modal__categories">
@@ -283,14 +281,14 @@ export default function CookieConsent({ blocked = false }) {
                                   >
                                       Save Preferences
                                   </InlineTextAction>
-                                  <TextArrowAction
+                                  <InlineTextAction
                                       as="button"
                                       type="button"
                                       className="cookie-consent-button cookie-consent-button--primary"
                                       onClick={acceptAll}
                                   >
-                                      Accept All
-                                  </TextArrowAction>
+                                      Accept Analytics
+                                  </InlineTextAction>
                               </div>
                           </div>
                       </div>
@@ -303,60 +301,55 @@ export default function CookieConsent({ blocked = false }) {
         return null;
     }
 
+    const cookieBanner =
+        !hasConsentDecision && !isPreferencesOpen
+            ? createPortal(
+                  <section
+                      className="cookie-consent-banner"
+                      role="region"
+                      aria-label="Cookie consent"
+                  >
+                      <div className="cookie-consent-banner__content">
+                          <p>
+                              We use necessary cookies and optional analytics to
+                              understand how our website is used. You can accept
+                              analytics or manage your preferences. See our{" "}
+                              <a
+                                  href="/privacy/"
+                                  className="cookie-consent-banner__link"
+                              >
+                                  Privacy Policy
+                              </a>
+                              .
+                          </p>
+                      </div>
+
+                      <div className="cookie-consent-banner__actions">
+                          <InlineTextAction
+                              as="button"
+                              type="button"
+                              className="cookie-consent-banner__link cookie-consent-banner__manage"
+                              onClick={openPreferences}
+                          >
+                              Manage Preferences
+                          </InlineTextAction>
+                          <InlineTextAction
+                              as="button"
+                              type="button"
+                              className="cookie-consent-button cookie-consent-button--primary"
+                              onClick={acceptAll}
+                          >
+                              Accept Analytics
+                          </InlineTextAction>
+                      </div>
+                  </section>,
+                  document.body,
+              )
+            : null;
+
     return (
         <>
-            {!hasConsentDecision && !isPreferencesOpen && (
-                <section
-                    className="cookie-consent-banner"
-                    role="region"
-                    aria-label="Cookie consent"
-                >
-                    <div className="cookie-consent-banner__content">
-                        <p>
-                            {isMobileViewport ? (
-                                <>
-                                    We use cookies to improve your experience.
-                                    Accept all or manage preferences. See our{" "}
-                                </>
-                            ) : (
-                                <>
-                                    We use cookies to improve your experience,
-                                    analyse traffic, and support our marketing.
-                                    You can accept all cookies or manage your
-                                    preferences. See our{" "}
-                                </>
-                            )}
-                            <a
-                                href="/privacy/"
-                                className="cookie-consent-banner__link"
-                            >
-                                Privacy Policy
-                            </a>
-                            .
-                        </p>
-                    </div>
-
-                    <div className="cookie-consent-banner__actions">
-                        <InlineTextAction
-                            as="button"
-                            type="button"
-                            className="cookie-consent-banner__link cookie-consent-banner__manage"
-                            onClick={openPreferences}
-                        >
-                            Manage Preferences
-                        </InlineTextAction>
-                        <TextArrowAction
-                            as="button"
-                            type="button"
-                            className="cookie-consent-button cookie-consent-button--primary"
-                            onClick={acceptAll}
-                        >
-                            Accept All
-                        </TextArrowAction>
-                    </div>
-                </section>
-            )}
-
+            {cookieBanner}
             {preferencesDialog}
         </>
     );

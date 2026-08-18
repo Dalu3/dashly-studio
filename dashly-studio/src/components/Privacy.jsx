@@ -14,8 +14,9 @@ export default function Privacy() {
             <section>
                 <h2>1. Who We Are</h2>
                 <p>
-                    Dashly Studio is a web design and development studio based in
-                    Scotland, United Kingdom.
+                    Dashly Studio is the trading name under which Daria Lysunets
+                    provides web design and development services in Scotland,
+                    United Kingdom.
                 </p>
                 <p>
                     This Privacy Policy explains how Dashly Studio (“Dashly
@@ -31,9 +32,10 @@ export default function Privacy() {
                     <li>otherwise interact with Dashly Studio.</li>
                 </ul>
                 <p>
-                    For the purposes of applicable UK data protection law, Dashly
-                    Studio is the data controller responsible for the personal
-                    information described in this Privacy Policy.
+                    For the purposes of applicable UK data protection law, Daria
+                    Lysunets, trading as Dashly Studio, is the data controller
+                    responsible for the personal information described in this
+                    Privacy Policy.
                 </p>
                 <p>
                     If you have any questions about this Privacy Policy or how we
@@ -281,12 +283,9 @@ export default function Privacy() {
                 </p>
                 <p>
                     We rely on consent where required, including for certain
-                    optional cookies, analytics, marketing technologies or
-                    marketing communications.
-                </p>
-                <p>
-                    Where processing is based on consent, you may withdraw your
-                    consent at any time.
+                    optional analytics or marketing communications. Where
+                    processing is based on consent, you may withdraw your consent
+                    at any time.
                 </p>
                 <p>
                     <strong>Legal obligation</strong>
@@ -380,8 +379,8 @@ export default function Privacy() {
                 <h2>8. Cookies and Similar Technologies</h2>
                 <p>
                     Our website may use cookies and similar technologies to provide
-                    functionality, remember your preferences, understand website
-                    usage and support optional analytics or marketing features.
+                    functionality, remember your preferences and understand website
+                    usage through optional analytics.
                 </p>
                 <p>These technologies may include:</p>
                 <ul>
@@ -425,19 +424,7 @@ export default function Privacy() {
                     not be activated until you choose to allow them.
                 </p>
                 <p>
-                    <strong>8.3 Marketing Technologies</strong>
-                </p>
-                <p>
-                    If we use marketing or advertising technologies, they may be
-                    used to understand campaign performance or interactions with
-                    marketing content.
-                </p>
-                <p>
-                    Where consent is required, marketing technologies will only
-                    operate after you have actively allowed them.
-                </p>
-                <p>
-                    <strong>8.4 Cookie Preferences</strong>
+                    <strong>8.3 Cookie Preferences</strong>
                 </p>
                 <p>
                     When our website presents cookie or privacy controls, you can
@@ -468,7 +455,7 @@ export default function Privacy() {
                     before consent was withdrawn.
                 </p>
                 <p>
-                    <strong>8.5 Browser Controls</strong>
+                    <strong>8.4 Browser Controls</strong>
                 </p>
                 <p>Most browsers also allow you to:</p>
                 <ul>
@@ -521,9 +508,9 @@ export default function Privacy() {
                     separate third-party tracking provider.
                 </p>
                 <p>
-                    We do not currently use a CAPTCHA, bot-protection provider or
-                    separate marketing technology. We will update this Policy if
-                    the services we use materially change.
+                    We do not currently use a CAPTCHA or bot-protection provider.
+                    We will update this Policy if the services we use materially
+                    change.
                 </p>
             </section>
 
@@ -640,8 +627,8 @@ export default function Privacy() {
             <section>
                 <h2>13. How Long We Keep Your Information</h2>
                 <p>
-                    We do not keep personal information for longer than reasonably
-                    necessary.
+                    We keep personal information only for as long as necessary for
+                    the purposes described in this Privacy Policy.
                 </p>
                 <p>How long information is retained depends on:</p>
                 <ul>
@@ -660,15 +647,18 @@ export default function Privacy() {
                 </p>
                 <p>
                     Information from enquiries that do not become projects may be
-                    retained for a reasonable period while the enquiry remains
-                    relevant and may then be deleted.
+                    retained for up to 12 months after our last communication with
+                    you, after which it will be deleted unless it is necessary to
+                    keep it for a longer period permitted by law or to establish,
+                    exercise or defend a legal claim.
                 </p>
                 <p>
                     <strong>Client information</strong>
                 </p>
                 <p>
                     Information relating to completed client projects may be
-                    retained for longer where necessary for:
+                    retained for up to 6 years after the end of the business
+                    relationship where necessary for:
                 </p>
                 <ul>
                     <li>project records;</li>
@@ -683,7 +673,14 @@ export default function Privacy() {
                 </p>
                 <p>
                     Cookie and consent preferences may remain stored until they
-                    expire, are replaced or are cleared by you.
+                    expire, are replaced or are cleared by you. In the current
+                    website implementation, these preferences are stored in local
+                    storage without a separate expiry period.
+                </p>
+                <p>
+                    Some information may need to be kept for longer where required
+                    by law or where necessary to establish, exercise or defend
+                    legal claims.
                 </p>
                 <p>
                     When information is no longer required, we will delete,
@@ -792,8 +789,9 @@ export default function Privacy() {
                 <p>Website: dashly.studio</p>
                 <p>Location: Scotland, United Kingdom</p>
                 <p>
-                    Dashly Studio is the data controller for personal information
-                    processed through this website.
+                    Daria Lysunets, trading as Dashly Studio, is the data
+                    controller for personal information processed through this
+                    website.
                 </p>
             </section>
 

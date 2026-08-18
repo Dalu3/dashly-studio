@@ -25,6 +25,13 @@
     line-height: var(--line-height-relaxed);
 }
 
+/* Standalone bold paragraphs act as document subheadings. Give them the same
+   breathing room as other information-document headings without adding space
+   before inline emphasis inside a regular paragraph. */
+.privacy-container p:has(> strong:only-child) {
+    margin-block-start: var(--space-md);
+}
+
 .privacy-container a {
     color: var(--color-text-primary);
     text-decoration: underline;

@@ -56,7 +56,16 @@ function Header() {
             documentElement.style.overscrollBehavior =
                 previousStyles.htmlOverscrollBehavior;
             document.removeEventListener("keydown", closeOnEscape);
-            window.scrollTo(scrollPositionRef.current.x, scrollPositionRef.current.y);
+            // Restore the locked position only while transitioning directly
+            // from the open menu state. Once the close transition is active,
+            // navigation may already have started a smooth scroll; restoring
+            // here would overwrite it with an instant jump in Safari.
+            if (isMenuOpen) {
+                window.scrollTo(
+                    scrollPositionRef.current.x,
+                    scrollPositionRef.current.y,
+                );
+            }
         };
     }, [isMenuOpen, isMenuClosing]);
 

@@ -34,11 +34,13 @@
 
     /* ---- Primitives: feedback ------------------------------------------ */
     --c-error-500: #d92d20;
+    --c-success-500: #52b83c;
 
     /* ---- Primitives: channels (for alpha composition) ------------------- */
     --c-ink-800-rgb: 42 42 38;
     --c-accent-400-rgb: 99 213 255;
     --c-error-500-rgb: 217 45 32;
+    --c-success-500-rgb: 82 184 60;
     --c-black-rgb: 0 0 0;
     --c-white-rgb: 255 255 255;
     --c-paper-050-rgb: 246 246 246;
@@ -92,6 +94,8 @@
 
     /* ---- Semantic: feedback --------------------------------------------- */
     --color-feedback-error: var(--c-error-500);
+    --color-feedback-success: var(--c-success-500);
+    --color-feedback-success-bg: rgb(var(--c-success-500-rgb) / 0.1);
 
     /* ---- Semantic: overlays --------------------------------------------- */
     --color-overlay-scrim: rgb(var(--c-black-rgb) / 0.5);

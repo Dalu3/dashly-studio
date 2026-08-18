@@ -182,7 +182,7 @@
 .description {
     margin: 0;
     font-size: var(--type-project-card-caption);
-    font-weight: var(--font-weight-bold);
+    font-weight: var(--font-weight-regular);
     line-height: var(--line-height-type-body);
     letter-spacing: var(--letter-spacing-tight);
     color: var(--color-text-primary);

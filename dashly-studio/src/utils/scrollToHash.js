@@ -3,8 +3,6 @@ import { markHeroScrollActivity } from "../components/hero/heroResumeScheduler";
 export const VIEWPORT_CHECK_EVENT = "dashly:viewport-check";
 
 const DEFAULT_SCROLL_DURATION = 420;
-const DESKTOP_NATIVE_SCROLL_MEDIA_QUERY =
-    "(min-width: 1061px) and (hover: hover) and (pointer: fine)";
 const TOUCH_SCROLL_MEDIA_QUERY = "(max-width: 63.999rem)";
 const PHONE_SCROLL_MEDIA_QUERY = "(max-width: 47.999rem)";
 const CONTENT_SCROLL_CLEARANCE = 50;
@@ -141,12 +139,24 @@ function dispatchViewportCheck() {
     window.dispatchEvent(new Event(VIEWPORT_CHECK_EVENT));
 }
 
-function shouldUseDesktopNativeSmoothScroll() {
-    if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
+function shouldUseNativeSmoothScroll() {
+    if (
+        typeof window === "undefined" ||
+        typeof window.matchMedia !== "function" ||
+        typeof window.CSS?.supports !== "function"
+    ) {
         return false;
     }
 
-    return window.matchMedia(DESKTOP_NATIVE_SCROLL_MEDIA_QUERY).matches;
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+        return false;
+    }
+
+    // Safari on touch devices supports native smooth scrolling, but the
+    // previous desktop-only gate forced it through a less reliable JS frame
+    // loop. Prefer the browser compositor wherever the platform advertises
+    // scroll-behavior support; keep the JS loop as the legacy fallback.
+    return window.CSS.supports("scroll-behavior", "smooth");
 }
 
 function detachActiveScrollInterrupts() {
@@ -297,7 +307,7 @@ export function scrollToElement(element, options = {}) {
     const behavior = options.behavior ?? "smooth";
 
     if (behavior === "smooth") {
-        if (shouldUseDesktopNativeSmoothScroll()) {
+        if (shouldUseNativeSmoothScroll()) {
             nativeSmoothScrollWindowTo(nextScrollTop);
             return true;
         }

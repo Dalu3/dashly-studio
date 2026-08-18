@@ -173,6 +173,19 @@
     opacity: 0.7;
 }
 
+.privacyNotice {
+    color: var(--color-text-muted);
+    font-size: var(--font-size-xs);
+    line-height: var(--line-height-small);
+    text-align: center;
+}
+
+.privacyNotice a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 0.125rem;
+}
+
 .status {
     display: block;
     text-align: center;
@@ -183,6 +196,109 @@
 .statusError {
     color: var(--color-feedback-error);
     font-weight: var(--font-weight-medium);
+}
+
+.successModalBackdrop {
+    box-sizing: border-box;
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-modal);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-md);
+    background: var(--color-overlay-scrim);
+    backdrop-filter: blur(0.375rem);
+    -webkit-backdrop-filter: blur(0.375rem);
+}
+
+.successModal {
+    box-sizing: border-box;
+    width: min(100%, 32rem);
+    max-height: calc(100svh - var(--space-lg));
+    overflow-y: auto;
+    padding: var(--space-lg) var(--space-md);
+    border: 1px solid var(--color-border-glass);
+    border-radius: var(--radius-xl);
+    background: var(--color-surface-page);
+    box-shadow: var(--shadow-xl);
+    color: var(--color-text-primary);
+    text-align: center;
+    animation: contact-success-enter var(--duration-normal) var(--ease-entrance) both;
+}
+
+@keyframes contact-success-enter {
+    from {
+        opacity: 0;
+        transform: translateY(var(--space-sm)) scale(0.98);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(var(--space-0)) scale(1);
+    }
+}
+
+.successIcon {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: clamp(3.5rem, 10vw, 4.5rem);
+    aspect-ratio: 1;
+    margin-inline: auto;
+    border-radius: var(--radius-circle);
+    background: var(--color-feedback-success-bg);
+}
+
+.successIcon span {
+    width: 1.5rem;
+    height: 0.875rem;
+    border-bottom: 0.21875rem solid var(--color-feedback-success);
+    border-left: 0.21875rem solid var(--color-feedback-success);
+    transform: translateY(-0.125rem) rotate(-45deg);
+}
+
+.successModal h2 {
+    margin-top: var(--space-md);
+    color: var(--color-text-black);
+    font-size: var(--font-size-lg);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-tight);
+}
+
+.successModal p {
+    max-width: none;
+    margin: var(--space-sm) auto 0;
+    color: var(--color-text-secondary);
+    font-size: var(--font-size-sm);
+    line-height: var(--line-height-normal);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .successModal {
+        animation: none;
+    }
+}
+
+@media (max-width: 30rem) {
+    .successModalBackdrop {
+        padding: var(--space-sm);
+    }
+
+    .successModal {
+        padding: var(--space-md) var(--space-sm);
+        border-radius: var(--radius-lg);
+    }
+
+    .successIcon {
+        width: 3.25rem;
+    }
+
+    .successIcon span {
+        width: 1.375rem;
+        height: 0.8125rem;
+        border-width: 0.1875rem;
+    }
 }
 
 /* Laptop type scale: submit/status text is the "form & links" size. Placed

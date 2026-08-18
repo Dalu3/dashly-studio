@@ -1,5 +1,6 @@
 import emailjs from "@emailjs/browser";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { ChangeEvent, FocusEvent, FormEvent } from "react";
 
 import { cn } from "@/utils/cn";
@@ -189,6 +190,21 @@ export function ContactForm() {
         const timer = setTimeout(() => setShowStatus(false), 4000);
         return () => clearTimeout(timer);
     }, [showStatus]);
+
+    useEffect(() => {
+        if (!showStatus || isError) {
+            return undefined;
+        }
+
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (event.key === "Escape") {
+                setShowStatus(false);
+            }
+        };
+
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [isError, showStatus]);
 
     useEffect(() => {
         if (formErrorSummary) {
@@ -399,15 +415,46 @@ export function ContactForm() {
                 {isSubmitting ? "Sending…" : "Send"}
             </button>
 
-            {showStatus && (
+            <p className={cn(styles.fullWidth, styles.privacyNotice)}>
+                By submitting, you agree to our{" "}
+                <a href="/privacy/">Privacy Policy</a>.
+            </p>
+
+            {showStatus && isError && (
                 <span
-                    className={cn(styles.status, isError && styles.statusError)}
+                    className={cn(styles.status, styles.statusError)}
                     role="status"
                     aria-live="polite"
                 >
                     {statusMessage}
                 </span>
             )}
+
+            {showStatus && !isError && typeof document !== "undefined" &&
+                createPortal(
+                    <div
+                        className={styles.successModalBackdrop}
+                        onClick={() => setShowStatus(false)}
+                    >
+                        <div
+                            className={styles.successModal}
+                            role="dialog"
+                            aria-modal="true"
+                            aria-labelledby="contact-success-title"
+                            aria-describedby="contact-success-description"
+                            onClick={(event) => event.stopPropagation()}
+                        >
+                            <div className={styles.successIcon} aria-hidden="true">
+                                <span />
+                            </div>
+                            <h2 id="contact-success-title">Thank you!</h2>
+                            <p id="contact-success-description">
+                                We&rsquo;ll get back to you within one business day.
+                            </p>
+                        </div>
+                    </div>,
+                    document.body,
+                )}
         </form>
     );
 }

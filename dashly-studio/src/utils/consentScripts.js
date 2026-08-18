@@ -17,7 +17,6 @@ let lastConsentModeSignature = null;
 export const COOKIE_INTEGRATIONS = {
     necessary: [],
     analytics: ["Google Analytics 4"],
-    marketing: [],
 };
 
 function ensureGtag() {
@@ -206,7 +205,10 @@ function disableAnalytics() {
 export function syncConsentScripts(consent) {
     initializeGoogleConsentMode();
 
-    const preferences = consent?.preferences ?? getDefaultConsentPreferences();
+    const preferences = consent?.preferences ?? {
+        ...getDefaultConsentPreferences(),
+        analytics: false,
+    };
     const analyticsEnabled = Boolean(preferences.analytics);
     const hasConsentDecision = Boolean(consent);
 

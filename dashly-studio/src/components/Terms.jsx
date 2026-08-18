@@ -14,16 +14,17 @@ export default function Terms() {
             <section>
                 <h2>1. Who We Are</h2>
                 <p>
-                    Dashly Studio is a web design and development studio based in
-                    Scotland, United Kingdom.
+                    Dashly Studio is the trading name under which Daria Lysunets
+                    provides web design and development services in Scotland,
+                    United Kingdom.
                 </p>
                 <p>
                     These Terms and Conditions (“Terms”) govern your access to and
                     use of the Dashly Studio website (“Site”).
                 </p>
                 <p>
-                    References to “Dashly Studio”, “we”, “us” or “our” mean the
-                    person or business operating Dashly Studio.
+                    References to “Dashly Studio”, “we”, “us” or “our” in these
+                    Terms mean Daria Lysunets trading as Dashly Studio.
                 </p>
                 <p>
                     By accessing or using this Site, you agree to use it in
@@ -674,11 +675,13 @@ export default function Terms() {
             <section>
                 <h2>21. Cookies</h2>
                 <p>
-                    The Site may use cookies, local storage and similar technologies.
+                    The Site uses necessary technologies, including local storage,
+                    to provide functionality and remember your preferences. It may
+                    also use optional analytics to understand how the Site is used.
                 </p>
                 <p>
-                    Where required, optional analytics or marketing technologies
-                    will be controlled through the website’s consent settings.
+                    Where required, optional analytics technologies will be
+                    controlled through the website’s consent settings.
                 </p>
                 <p>
                     You can review or update your choices through the{" "}
@@ -774,7 +777,7 @@ export default function Terms() {
             <section>
                 <h2>27. Contact Us</h2>
                 <p>If you have questions about these Terms, please contact:</p>
-                <p>Dashly Studio</p>
+                <p>Daria Lysunets trading as Dashly Studio</p>
                 <p>
                     Email: <a href={`mailto:${SITE_EMAIL}`}>{SITE_EMAIL}</a>
                 </p>
