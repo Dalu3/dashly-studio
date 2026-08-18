@@ -28,8 +28,8 @@ export const PROJECT_METADATA = [
     {
         id: "private-practice",
         title: "Private Practice",
-        description: "Responsive practice website for a Ukrainian doctor.",
-        mobileDescription: "Responsive practice website for a doctor.",
+        description: "Responsive website for a Ukrainian doctor.",
+        mobileDescription: "Responsive website for a Ukrainian doctor.",
         imageAlt: "Private Practice responsive website for a Ukrainian doctor",
         assetBase: "private-doc-work",
         width: 630,

@@ -187,6 +187,7 @@
 .projectSummary {
     order: 1;
     min-width: 0;
+    min-height: 0;
 }
 
 .compactSummaryCard {
@@ -590,12 +591,6 @@
     flex: 0 0 auto;
     object-fit: contain;
     transform: rotate(135deg);
-}
-
-/* The hint reaches the body edge, so the footer divider must not cut across
-   its opaque lower fade while there is real content left to explore. */
-.bodyRegion:has(.scrollHint) + .actions {
-    border-top-color: transparent;
 }
 
 .step {
@@ -1146,9 +1141,12 @@
 
 .actions {
     display: flex;
+    box-sizing: border-box;
+    flex: 0 0 auto;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-sm);
+    min-height: calc(var(--space-xl) + var(--space-lg));
     padding-block: var(--space-sm) max(var(--space-sm), env(safe-area-inset-bottom));
     border-top: 1px solid var(--color-border-subtle);
     background: var(--color-surface-raised);
@@ -1157,6 +1155,7 @@
 .secondaryActions {
     display: flex;
     min-width: 0;
+    min-height: var(--space-xl);
     align-items: center;
     gap: var(--space-xs);
 }
@@ -1495,6 +1494,7 @@
     .contentLayout > .projectSummary .summaryDetails {
         height: var(--summary-height, auto);
         max-height: var(--summary-max-height, none);
+        min-height: 0;
         overflow: hidden;
     }
 
@@ -1515,6 +1515,7 @@
     .summaryDetails {
         display: flex;
         flex-direction: column;
+        min-height: 0;
     }
 
     .summaryDetails::details-content {
@@ -1532,6 +1533,41 @@
         flex: 1 1 auto;
         padding: var(--space-md);
         border-top: 0;
+    }
+
+    .contentLayout > .projectSummary .summaryContent,
+    .contentLayout > .projectSummary .summarySection,
+    .contentLayout > .projectSummary .summaryIncludedViewport {
+        min-height: 0;
+    }
+
+    .contentLayout > .projectSummary .summaryContent {
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .contentLayout > .projectSummary .summarySection {
+        display: flex;
+        flex: 1 1 auto;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .contentLayout > .projectSummary .summaryIncludedViewport {
+        display: flex;
+        flex: 1 1 auto;
+        overflow: hidden;
+    }
+
+    .contentLayout > .projectSummary .summaryIncludedScroll {
+        flex: 1 1 auto;
+        height: auto;
+        min-height: 0;
+        max-height: var(--summary-max-height, none);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
     }
 }
 

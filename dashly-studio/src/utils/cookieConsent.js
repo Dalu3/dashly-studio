@@ -13,18 +13,12 @@ export const COOKIE_CATEGORY_DETAILS = {
         description:
             "These cookies help us understand how visitors use the website so we can improve performance and content.",
     },
-    marketing: {
-        label: "Marketing",
-        description:
-            "These cookies support campaign measurement and remarketing when marketing tools are enabled.",
-    },
 };
 
 export function getDefaultConsentPreferences() {
     return {
         necessary: true,
-        analytics: false,
-        marketing: false,
+        analytics: true,
     };
 }
 
@@ -34,23 +28,23 @@ export function getGoogleConsentModeState(preferences = {}) {
         ...preferences,
         necessary: true,
     };
-    const marketingGranted = Boolean(normalizedPreferences.marketing);
-
     return {
         analytics_storage: normalizedPreferences.analytics
             ? "granted"
             : "denied",
-        ad_storage: marketingGranted ? "granted" : "denied",
-        ad_user_data: marketingGranted ? "granted" : "denied",
-        ad_personalization: marketingGranted ? "granted" : "denied",
+        ad_storage: "denied",
+        ad_user_data: "denied",
+        ad_personalization: "denied",
     };
 }
 
 function normalizePreferences(preferences = {}) {
     return {
         ...getDefaultConsentPreferences(),
-        analytics: Boolean(preferences.analytics),
-        marketing: Boolean(preferences.marketing),
+        analytics:
+            typeof preferences.analytics === "boolean"
+                ? preferences.analytics
+                : getDefaultConsentPreferences().analytics,
         necessary: true,
     };
 }
@@ -87,7 +81,6 @@ export function createAcceptedConsent() {
     return createConsentRecord(
         {
             analytics: true,
-            marketing: true,
         },
         "accept_all",
     );
@@ -97,7 +90,6 @@ export function createRejectedConsent() {
     return createConsentRecord(
         {
             analytics: false,
-            marketing: false,
         },
         "reject_all",
     );
