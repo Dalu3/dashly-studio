@@ -265,13 +265,10 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
     const [showBodyScrollHint, setShowBodyScrollHint] = useState(false);
     const [summaryPanelHeight, setSummaryPanelHeight] = useState(null);
     const [websiteOptionsHeight, setWebsiteOptionsHeight] = useState(null);
-    const [pageSliderPosition, setPageSliderPosition] = useState(() => Number(answers.pageCount));
     const isPanelLayout = useBreakpointUp("xl");
     const websiteOptionsRef = useRef(null);
     const summaryDetailsRef = useRef(null);
     const forwardedBodyScrollRef = useRef(null);
-    const pageSliderRef = useRef(null);
-    const isDraggingPageSliderRef = useRef(false);
     const websiteOptionHeaderRefs = useRef({});
     const pendingWebsiteScrollRef = useRef(null);
     const estimate = useMemo(() => calculateEstimate(answers, pricingConfig), [answers]);
@@ -284,18 +281,12 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
         ? ((Math.min(includedPages, pageRange.maximum) - pageRange.minimum) / (pageRange.maximum - pageRange.minimum)) * 100
         : 100;
     const selectedRatio = pageRange.maximum > pageRange.minimum
-        ? ((pageSliderPosition - pageRange.minimum) / (pageRange.maximum - pageRange.minimum)) * 100
+        ? ((estimate.pageCount - pageRange.minimum) / (pageRange.maximum - pageRange.minimum)) * 100
         : 100;
     const pageSliderStyle = {
         "--included-width": String(Math.max(4, Math.min(100, includedRatio))) + "%",
         "--selected-width": String(Math.max(0, Math.min(100, selectedRatio))) + "%",
     };
-
-    useEffect(() => {
-        if (!isDraggingPageSliderRef.current) {
-            setPageSliderPosition(estimate.pageCount);
-        }
-    }, [estimate.pageCount]);
 
     useEffect(() => {
         if (currentStep !== 0 || !isPanelLayout || answers.websiteTypeId) return;
@@ -479,47 +470,14 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
     }, [isClosing, onClose]);
 
     const update = (patch) => setAnswers((current) => ({ ...current, ...patch }));
-    const setPageSliderPositionFromPointer = (clientX) => {
-        const slider = pageSliderRef.current;
-        if (!slider) return null;
-
-        const { left, width } = slider.getBoundingClientRect();
-        const ratio = width > 0 ? Math.min(1, Math.max(0, (clientX - left) / width)) : 0;
-        const position = pageRange.minimum + ratio * (pageRange.maximum - pageRange.minimum);
-
-        setPageSliderPosition(position);
-        return position;
-    };
     const updatePageCount = (position) => {
         if (position === null) return;
 
         const pageCount = Math.round(position);
         setAnswers((current) => current.pageCount === pageCount ? current : { ...current, pageCount });
     };
-    const handlePageSliderPointerDown = (event) => {
-        isDraggingPageSliderRef.current = true;
-        event.currentTarget.setPointerCapture?.(event.pointerId);
-        updatePageCount(setPageSliderPositionFromPointer(event.clientX));
-    };
-    const handlePageSliderPointerMove = (event) => {
-        if (isDraggingPageSliderRef.current) {
-            updatePageCount(setPageSliderPositionFromPointer(event.clientX));
-        }
-    };
-    const handlePageSliderPointerEnd = (event) => {
-        if (event.type !== "pointercancel") {
-            updatePageCount(setPageSliderPositionFromPointer(event.clientX));
-        }
-        isDraggingPageSliderRef.current = false;
-        event.currentTarget.releasePointerCapture?.(event.pointerId);
-    };
     const handlePageSliderChange = (event) => {
-        const pageCount = Number(event.target.value);
-
-        if (!isDraggingPageSliderRef.current) {
-            setPageSliderPosition(pageCount);
-        }
-        updatePageCount(pageCount);
+        updatePageCount(Number(event.target.value));
     };
     const selectWebsite = (id) => {
         if (id === answers.websiteTypeId) {
@@ -618,9 +576,8 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
                     <span className={styles.rangeLabel}>Pages <PageInfo website={website} /></span>
                     <strong>{estimate.pageCount === pageRange.maximum ? pageRange.maximum + "+" : estimate.pageCount}</strong>
                 </div>
-                <div ref={pageSliderRef} className={styles.pageSlider} style={pageSliderStyle}>
+                <div className={styles.pageSlider} style={pageSliderStyle}>
                     <span className={styles.pageSliderTrack} aria-hidden="true"><span className={styles.pageSliderIncluded} /><span className={styles.pageSliderSelected} /></span>
-                    <span className={styles.pageSliderThumb} aria-hidden="true" />
                     <input
                         className={styles.range}
                         type="range"
@@ -628,10 +585,6 @@ export default function PriceEstimator({ answers, setAnswers, currentStep, setCu
                         max={pageRange.maximum}
                         value={estimate.pageCount}
                         onChange={handlePageSliderChange}
-                        onPointerDown={handlePageSliderPointerDown}
-                        onPointerMove={handlePageSliderPointerMove}
-                        onPointerUp={handlePageSliderPointerEnd}
-                        onPointerCancel={handlePageSliderPointerEnd}
                         aria-label="Number of pages"
                         aria-valuetext={estimate.pageCount + " pages, " + includedPages + " included, " + estimate.extraPages + " additional"}
                     />

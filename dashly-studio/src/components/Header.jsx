@@ -1,5 +1,5 @@
 import "./Header.css";
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { navigateToHash, scrollToTop } from "../utils/scrollToHash";
 import { openEstimator } from "./estimator/estimatorEvents";
@@ -23,6 +23,7 @@ function Header() {
     const pendingLogoScrollRef = useRef(false);
     const pendingHashScrollRef = useRef(null);
     const pendingEstimatorOpenRef = useRef(null);
+    const menuCloseCompletedRef = useRef(true);
     const menuRef = useRef(null);
     const menuTriggerRef = useRef(null);
 
@@ -198,15 +199,44 @@ function Header() {
         }
 
         scrollPositionRef.current = { x: window.scrollX, y: window.scrollY };
+        menuCloseCompletedRef.current = true;
         setIsMenuClosing(false);
         setIsMenuOpen(true);
     };
 
     const closeMobileMenu = () => {
+        menuCloseCompletedRef.current = false;
         setIsMenuOpen(false);
         setIsMenuClosing(true);
         window.requestAnimationFrame(() => menuTriggerRef.current?.focus());
     };
+
+    const completeMobileMenuClose = useCallback(() => {
+        if (menuCloseCompletedRef.current) return;
+
+        menuCloseCompletedRef.current = true;
+        setIsMenuClosing(false);
+
+        if (pendingLogoScrollRef.current) {
+            pendingLogoScrollRef.current = false;
+            scrollToTop();
+        }
+
+        if (pendingHashScrollRef.current) {
+            const hash = pendingHashScrollRef.current;
+            pendingHashScrollRef.current = null;
+
+            window.requestAnimationFrame(() =>
+                navigateToHash(null, hash, "/"),
+            );
+        }
+
+        if (pendingEstimatorOpenRef.current) {
+            const trigger = pendingEstimatorOpenRef.current;
+            pendingEstimatorOpenRef.current = null;
+            window.requestAnimationFrame(() => openEstimator(trigger));
+        }
+    }, []);
 
     const handleMenuTransitionEnd = (event) => {
         if (
@@ -214,29 +244,33 @@ function Header() {
             event.propertyName === "opacity" &&
             !isMenuOpen
         ) {
-            setIsMenuClosing(false);
-
-            if (pendingLogoScrollRef.current) {
-                pendingLogoScrollRef.current = false;
-                scrollToTop();
-            }
-
-            if (pendingHashScrollRef.current) {
-                const hash = pendingHashScrollRef.current;
-                pendingHashScrollRef.current = null;
-
-                window.requestAnimationFrame(() =>
-                    navigateToHash(null, hash, "/"),
-                );
-            }
-
-            if (pendingEstimatorOpenRef.current) {
-                const trigger = pendingEstimatorOpenRef.current;
-                pendingEstimatorOpenRef.current = null;
-                window.requestAnimationFrame(() => openEstimator(trigger));
-            }
+            completeMobileMenuClose();
         }
     };
+
+    useEffect(() => {
+        if (!isMenuClosing) return undefined;
+
+        const rawDuration = window
+            .getComputedStyle(document.documentElement)
+            .getPropertyValue("--duration-normal")
+            .trim();
+        const parsedDuration = Number.parseFloat(rawDuration);
+        const duration = Number.isFinite(parsedDuration)
+            ? rawDuration.endsWith("ms")
+                ? parsedDuration
+                : parsedDuration * 1000
+            : 0;
+        let frameId = 0;
+        const timerId = window.setTimeout(() => {
+            frameId = window.requestAnimationFrame(completeMobileMenuClose);
+        }, duration);
+
+        return () => {
+            window.clearTimeout(timerId);
+            window.cancelAnimationFrame(frameId);
+        };
+    }, [completeMobileMenuClose, isMenuClosing]);
 
     return (
         <>
