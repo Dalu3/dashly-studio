@@ -12,10 +12,13 @@ if ("scrollRestoration" in window.history) {
 
 window.scrollTo(0, 0);
 
-// The build inserts semantic no-JS content before the React root. Keep it in
-// place if the application fails to load, and remove it only after React has
-// successfully accepted the root so the fallback remains a real resilience
-// path rather than a temporary placeholder that can disappear too early.
+// The build inserts semantic no-JS content before the React root. Hide it as
+// soon as JavaScript starts, so it cannot flash beneath the application loader.
+// It remains available when JavaScript is disabled because this code never runs.
+const staticPageContent = document.getElementById("static-page-content");
+staticPageContent?.setAttribute("aria-hidden", "true");
+staticPageContent?.setAttribute("hidden", "");
+
 const root = createRoot(document.getElementById("root"));
 
 root.render(
@@ -24,4 +27,4 @@ root.render(
     </StrictMode>,
 );
 
-document.getElementById("static-page-content")?.remove();
+staticPageContent?.remove();

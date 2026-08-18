@@ -286,6 +286,7 @@
     }
 
     .successModal {
+        width: min(100%, 20rem);
         padding: var(--space-md) var(--space-sm);
         border-radius: var(--radius-lg);
     }

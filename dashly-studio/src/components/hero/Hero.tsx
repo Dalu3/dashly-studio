@@ -4,7 +4,6 @@ import {
     useCallback,
     useEffect,
     useMemo,
-    useState,
     type ReactNode,
 } from "react";
 
@@ -58,7 +57,6 @@ export interface HeroProps {
  */
 export function Hero({ children, onReady }: HeroProps) {
     const reducedMotion = usePrefersReducedMotion();
-    const [shouldMountModel, setShouldMountModel] = useState(false);
     const enhancementAllowed = useMemo(canEnhanceHero, []);
     const handleModelReady = useCallback(() => onReady?.(), [onReady]);
 
@@ -68,53 +66,10 @@ export function Hero({ children, onReady }: HeroProps) {
         }
     }, [enhancementAllowed, onReady]);
 
-    useEffect(() => {
-        if (!enhancementAllowed) {
-            setShouldMountModel(false);
-            return undefined;
-        }
-
-        let cancelled = false;
-        let timeoutId = 0;
-        let idleId = 0;
-
-        const mountModel = () => {
-            if (!cancelled) {
-                setShouldMountModel(true);
-            }
-        };
-        const scheduleAfterLoad = () => {
-            const requestIdle = Reflect.get(window, "requestIdleCallback");
-
-            if (typeof requestIdle === "function") {
-                idleId = requestIdle.call(window, mountModel, { timeout: 2000 });
-                return;
-            }
-
-            timeoutId = window.setTimeout(mountModel, 1200);
-        };
-
-        if (document.readyState === "complete") {
-            scheduleAfterLoad();
-        } else {
-            window.addEventListener("load", scheduleAfterLoad, { once: true });
-        }
-
-        return () => {
-            cancelled = true;
-            window.removeEventListener("load", scheduleAfterLoad);
-            window.clearTimeout(timeoutId);
-            const cancelIdle = Reflect.get(window, "cancelIdleCallback");
-            if (idleId && typeof cancelIdle === "function") {
-                cancelIdle.call(window, idleId);
-            }
-        };
-    }, [enhancementAllowed]);
-
     return (
         <section className={styles.root} aria-labelledby="hero-title">
             <HeroBackground staticOnly={reducedMotion} />
-            {shouldMountModel && (
+            {enhancementAllowed && (
                 <Suspense fallback={null}>
                     <HelloModel onReady={handleModelReady} />
                 </Suspense>
