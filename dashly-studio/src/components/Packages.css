@@ -301,18 +301,17 @@
     }
 }
 
-/* The reveal has two phases. JS first adds --motion-ready, then starts the
-   sequence in the following painted frame so every browser sees the motion. */
-.packages-section--motion-ready .packages-intro,
+/* The reveal has two phases. The intro stays visible while JS prepares the
+   service rows, so entering the section cannot make the explanatory copy
+   disappear before the row animation starts. */
 .packages-section--motion-ready .package-row h3,
 .packages-section--motion-ready .package-row p,
 .packages-section--motion-ready .packages-estimate {
     opacity: 0;
 }
 
-.packages-section--motion-ready .packages-intro,
 .packages-section--motion-ready .packages-estimate {
-    transform: translateY(var(--space-md));
+    transform: translateX(calc(var(--space-lg) * -1));
 }
 
 .packages-section--motion-ready .package-row h3 {
@@ -343,9 +342,12 @@
     border-top-color: transparent;
 }
 
-.packages-section--revealed .packages-intro,
+.packages-section--motion-ready .packages-list {
+    border-bottom-color: transparent;
+}
+
 .packages-section--revealed .packages-estimate {
-    animation: packages-reveal-up var(--duration-slow) var(--ease-entrance) both;
+    animation: packages-reveal-from-left var(--duration-slow) var(--ease-entrance) both;
 }
 
 .packages-section--revealed .package-row h3 {
@@ -386,21 +388,12 @@
 
 .packages-section--revealed .package-row:nth-child(5) h3,
 .packages-section--revealed .package-row:nth-child(5) p,
-.packages-section--revealed .package-row:nth-child(5)::after,
-.packages-section--revealed .packages-estimate {
+.packages-section--revealed .package-row:nth-child(5)::after {
     animation-delay: var(--duration-deliberate);
 }
 
-@keyframes packages-reveal-up {
-    from {
-        opacity: 0;
-        transform: translateY(var(--space-md));
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(var(--space-0));
-    }
+.packages-section--revealed .packages-estimate {
+    animation-delay: calc(var(--duration-deliberate) + var(--duration-fast));
 }
 
 @keyframes packages-reveal-from-left {
@@ -439,20 +432,25 @@
    entrance to opacity with only a small vertical lift. Desktop keeps the
    authored left/right motion above. */
 @media (max-width: 63.999rem) {
+    .packages-section--motion-ready .packages-estimate {
+        transform: translateY(var(--space-3xs));
+    }
+
     .packages-section--motion-ready .package-row h3,
     .packages-section--motion-ready .package-row p {
         transform: translateY(var(--space-3xs));
+    }
+
+    .packages-section--revealed .packages-estimate {
+        animation: packages-reveal-from-bottom var(--duration-slow)
+            var(--ease-entrance) both;
+        animation-delay: calc(var(--duration-deliberate) + var(--duration-fast));
     }
 
     .packages-section--revealed .package-row h3,
     .packages-section--revealed .package-row p {
         animation: packages-reveal-from-bottom var(--duration-slow)
             var(--ease-entrance) both;
-    }
-
-    .packages-section--revealed .package-row::after {
-        animation: none;
-        transform: scaleX(1);
     }
 }
 
@@ -463,7 +461,6 @@
         background-image: none;
     }
 
-    .packages-section--motion-ready .packages-intro,
     .packages-section--motion-ready .package-row h3,
     .packages-section--motion-ready .package-row p,
     .packages-section--motion-ready .packages-estimate {
@@ -475,11 +472,14 @@
         border-top-color: var(--color-border-subtle);
     }
 
+    .packages-section--motion-ready .packages-list {
+        border-bottom-color: var(--color-border-subtle);
+    }
+
     .packages-section--motion-ready .package-row::after {
         display: none;
     }
 
-    .packages-section--revealed .packages-intro,
     .packages-section--revealed .package-row h3,
     .packages-section--revealed .package-row p,
     .packages-section--revealed .package-row::after,
