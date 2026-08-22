@@ -13,8 +13,9 @@ if ("scrollRestoration" in window.history) {
 window.scrollTo(0, 0);
 
 // The build inserts semantic no-JS content before the React root. Hide it as
-// soon as JavaScript starts, so it cannot flash beneath the application loader.
-// It remains available when JavaScript is disabled because this code never runs.
+// soon as JavaScript starts; the critical HTML loader already covers the page
+// while this module is downloading. It remains available when JavaScript is
+// disabled because this code never runs.
 const staticPageContent = document.getElementById("static-page-content");
 staticPageContent?.setAttribute("aria-hidden", "true");
 staticPageContent?.setAttribute("hidden", "");

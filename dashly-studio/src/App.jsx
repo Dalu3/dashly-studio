@@ -122,6 +122,15 @@ function AppFrame({ pathname, onHeroReady }) {
 }
 
 function App() {
+    useLayoutEffect(() => {
+        // The HTML loader covers the prerendered fallback while the module
+        // bundle is downloading. Hand it off only after React has committed
+        // the first application tree, so there is no uncovered frame between
+        // the static shell and the React loader/content.
+        document.getElementById("initial-loader")?.remove();
+        document.documentElement.removeAttribute("data-js-loading");
+    }, []);
+
     const initialPathname = normalizePathname(window.location.pathname);
     const didReload = window.performance
         ?.getEntriesByType("navigation")

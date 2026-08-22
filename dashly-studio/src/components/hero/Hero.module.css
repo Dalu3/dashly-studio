@@ -75,7 +75,10 @@
    copy inwards by an extra 1rem. */
 @media (max-width: 29.999rem) {
     .root {
-        min-height: 100dvh;
+        /* Keep bottom-anchored Hero copy stable while mobile browser chrome
+           expands or collapses during scroll. The base 100svh value gives us
+           a fixed containing block instead of a dynamic viewport height. */
+        min-height: 100svh;
     }
 
     .content {
