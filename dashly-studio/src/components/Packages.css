@@ -417,8 +417,41 @@
     }
 }
 
+@keyframes packages-reveal-from-bottom {
+    from {
+        opacity: 0;
+        transform: translateY(var(--space-3xs));
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(var(--space-0));
+    }
+}
+
 @keyframes packages-line-grow {
     to {
+        transform: scaleX(1);
+    }
+}
+
+/* On phones and tablets, keep each service item in place and soften the
+   entrance to opacity with only a small vertical lift. Desktop keeps the
+   authored left/right motion above. */
+@media (max-width: 63.999rem) {
+    .packages-section--motion-ready .package-row h3,
+    .packages-section--motion-ready .package-row p {
+        transform: translateY(var(--space-3xs));
+    }
+
+    .packages-section--revealed .package-row h3,
+    .packages-section--revealed .package-row p {
+        animation: packages-reveal-from-bottom var(--duration-slow)
+            var(--ease-entrance) both;
+    }
+
+    .packages-section--revealed .package-row::after {
+        animation: none;
         transform: scaleX(1);
     }
 }

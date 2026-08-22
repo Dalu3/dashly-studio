@@ -44,11 +44,117 @@
                 padding: 0;
             }
         </style>
-      <script type="module" crossorigin src="/assets/index-xnY0wYDQ.js"></script>
-      <link rel="stylesheet" crossorigin href="/assets/index-Di811aEh.css">
+        <script>
+            document.documentElement.setAttribute("data-js-loading", "");
+        </script>
+        <style>
+            /*
+             * This is the only loading shell that may run before the bundled
+             * stylesheet and React code. It deliberately lives in the HTML
+             * document so a slow module fetch cannot expose the prerendered
+             * fallback before the application loader mounts.
+             */
+            #initial-loader {
+                display: none;
+            }
+
+            html[data-js-loading] #initial-loader {
+                position: fixed;
+                inset: 0;
+                z-index: var(--z-max, 100);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                background-color: var(--color-surface-page, #f6f6f6);
+            }
+
+            #initial-loader .loader-dots {
+                display: inline-block;
+                position: relative;
+                width: 5rem;
+                height: 1.625rem;
+            }
+
+            #initial-loader .loader-dot {
+                position: absolute;
+                top: 0;
+                width: 0.8125rem;
+                height: 0.8125rem;
+                border-radius: 50%;
+                background-color: var(--c-accent-400, #63d5ff);
+                animation-duration: var(--duration-slower, 650ms);
+                animation-iteration-count: infinite;
+                animation-timing-function: cubic-bezier(0, 1, 1, 0);
+            }
+
+            #initial-loader .loader-dot:nth-child(1) {
+                left: 0.5rem;
+                animation-name: initial-loader-grow;
+            }
+
+            #initial-loader .loader-dot:nth-child(2) {
+                left: 0.5rem;
+                animation-name: initial-loader-slide;
+            }
+
+            #initial-loader .loader-dot:nth-child(3) {
+                left: 2rem;
+                animation-name: initial-loader-slide;
+            }
+
+            #initial-loader .loader-dot:nth-child(4) {
+                left: 3.5rem;
+                animation-name: initial-loader-shrink;
+            }
+
+            @keyframes initial-loader-grow {
+                from { transform: scale(0); }
+                to { transform: scale(1); }
+            }
+
+            @keyframes initial-loader-shrink {
+                from { transform: scale(1); }
+                to { transform: scale(0); }
+            }
+
+            @keyframes initial-loader-slide {
+                from { transform: translate(0, 0); }
+                to { transform: translate(1.5rem, 0); }
+            }
+
+            #initial-loader .loader-label {
+                position: absolute;
+                width: 1px;
+                height: 1px;
+                margin: -1px;
+                padding: 0;
+                overflow: hidden;
+                clip: rect(0, 0, 0, 0);
+                white-space: nowrap;
+                border: 0;
+            }
+
+            @media (prefers-reduced-motion: reduce) {
+                #initial-loader .loader-dot {
+                    animation: none;
+                    transform: scale(1);
+                }
+            }
+        </style>
+      <script type="module" crossorigin src="/assets/index-D3HeNocw.js"></script>
+      <link rel="stylesheet" crossorigin href="/assets/index-3vqpdFWu.css">
     </head>
 
     <body>
+        <div id="initial-loader" role="status" aria-live="polite" aria-hidden="true">
+            <span class="loader-dots" aria-hidden="true">
+                <span class="loader-dot"></span>
+                <span class="loader-dot"></span>
+                <span class="loader-dot"></span>
+                <span class="loader-dot"></span>
+            </span>
+            <span class="loader-label">Loading</span>
+        </div>
         <div id="static-page-content"><a class="skip-to-main-content" href="#main-content">Skip to main content</a><header>
     <a href="/" aria-label="Dashly Studio home">Dashly Studio</a>
     <nav aria-label="Primary">
