@@ -18,7 +18,75 @@
 }
 
 .fallback {
+    position: relative;
     display: block;
     width: 100%;
     height: 100%;
+}
+
+.fallback .poster {
+    transform: scale(var(--hero-fallback-base-scale));
+}
+
+.fallbackSheen,
+.fallbackGlow {
+    position: absolute;
+    inset: var(--hero-fallback-layer-inset);
+    display: block;
+    pointer-events: none;
+    will-change: transform, opacity;
+}
+
+.fallbackSheen {
+    background: var(--hero-fallback-sheen-gradient);
+    opacity: var(--hero-fallback-sheen-opacity);
+    animation: fallback-sheen-drift var(--hero-fallback-drift-duration)
+        var(--ease-standard) infinite alternate;
+}
+
+.fallbackGlow {
+    background: var(--hero-fallback-glow-gradient);
+    opacity: var(--hero-fallback-glow-opacity);
+    animation: fallback-glow-drift var(--hero-fallback-glow-duration)
+        var(--ease-standard) infinite alternate-reverse;
+}
+
+@keyframes fallback-sheen-drift {
+    from {
+        transform: translate3d(
+                calc(var(--hero-fallback-drift-x) * -1),
+                calc(var(--hero-fallback-drift-y) * -1),
+                0
+            )
+            scale(var(--hero-fallback-base-scale));
+    }
+
+    to {
+        transform: translate3d(
+                var(--hero-fallback-drift-x),
+                var(--hero-fallback-drift-y),
+                0
+            )
+            scale(var(--hero-fallback-base-scale));
+    }
+}
+
+@keyframes fallback-glow-drift {
+    from {
+        transform: translate3d(
+                calc(var(--hero-fallback-glow-drift-x) * -1),
+                var(--hero-fallback-drift-y),
+                0
+            )
+            scale(var(--hero-fallback-base-scale));
+    }
+
+    to {
+        transform: translate3d(
+                var(--hero-fallback-glow-drift-x),
+                calc(var(--hero-fallback-drift-y) * -1),
+                0
+            )
+            scale(var(--hero-fallback-base-scale));
+    }
 }
