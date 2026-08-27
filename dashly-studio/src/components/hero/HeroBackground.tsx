@@ -1,8 +1,15 @@
 import { useEffect, useRef, useState } from "react";
 
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+
 import styles from "./HeroBackground.module.css";
 
 const VIDEO_PLAYBACK_RATE = 0.8;
+const MOBILE_BACKGROUND_QUERY = "(max-width: 47.999rem)";
+
+function isAppleSafari(): boolean {
+    return navigator.vendor === "Apple Computer, Inc.";
+}
 
 /**
  * Lightweight looping Hero backdrop. The fur/WebGL scene and foreground
@@ -15,6 +22,7 @@ export interface HeroBackgroundProps {
 export function HeroBackground({ staticOnly = false }: HeroBackgroundProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
     const [autoplayDenied, setAutoplayDenied] = useState(false);
+    const isMobileBackground = useMediaQuery(MOBILE_BACKGROUND_QUERY);
 
     useEffect(() => {
         const video = videoRef.current;
@@ -61,11 +69,14 @@ export function HeroBackground({ staticOnly = false }: HeroBackgroundProps) {
                         error instanceof DOMException &&
                         error.name === "NotAllowedError"
                     ) {
-                        // Safari can deny even muted autoplay at the platform
-                        // level. An animated image is not governed by media
-                        // autoplay policy, so it preserves the moving Hero
-                        // without waiting for a user gesture.
-                        setAutoplayDenied(true);
+                        // WebKit can deny even muted HTML media autoplay at
+                        // the platform level. Safari also supports H.264 MP4
+                        // as an animated image resource, which is outside the
+                        // HTMLMediaElement autoplay policy. Keep other
+                        // browsers on their normal video lifecycle.
+                        if (isAppleSafari()) {
+                            setAutoplayDenied(true);
+                        }
                     }
                 })
                 .finally(() => {
@@ -137,17 +148,17 @@ export function HeroBackground({ staticOnly = false }: HeroBackgroundProps) {
                     height="1080"
                 />
             ) : autoplayDenied ? (
-                <div className={styles.fallback}>
-                    <img
-                        className={styles.poster}
-                        src="/videos/hero-background-fallback.webp"
-                        alt=""
-                        width="1920"
-                        height="1080"
-                    />
-                    <span className={styles.fallbackSheen} aria-hidden="true" />
-                    <span className={styles.fallbackGlow} aria-hidden="true" />
-                </div>
+                <img
+                    className={styles.poster}
+                    src={
+                        isMobileBackground
+                            ? "/videos/hero-background-loop-mobile.mp4"
+                            : "/videos/hero-background-loop.mp4"
+                    }
+                    alt=""
+                    width={isMobileBackground ? "1280" : "1920"}
+                    height={isMobileBackground ? "720" : "1080"}
+                />
             ) : (
                 <video
                     className={styles.video}
