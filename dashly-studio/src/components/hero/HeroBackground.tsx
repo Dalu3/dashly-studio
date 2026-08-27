@@ -137,20 +137,17 @@ export function HeroBackground({ staticOnly = false }: HeroBackgroundProps) {
                     height="1080"
                 />
             ) : autoplayDenied ? (
-                <picture className={styles.fallback}>
-                    <source
-                        media="(max-width: 47.999rem)"
-                        srcSet="/videos/hero-background-loop-mobile-fallback.webp"
-                        type="image/webp"
-                    />
+                <div className={styles.fallback}>
                     <img
                         className={styles.poster}
-                        src="/videos/hero-background-loop-fallback.webp"
+                        src="/videos/hero-background-fallback.webp"
                         alt=""
-                        width="960"
-                        height="540"
+                        width="1920"
+                        height="1080"
                     />
-                </picture>
+                    <span className={styles.fallbackSheen} aria-hidden="true" />
+                    <span className={styles.fallbackGlow} aria-hidden="true" />
+                </div>
             ) : (
                 <video
                     className={styles.video}
