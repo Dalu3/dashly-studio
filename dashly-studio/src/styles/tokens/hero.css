@@ -25,27 +25,4 @@
     --hero-mobile-meta-size: 0.875rem;
     --hero-mobile-scroll-control-size: clamp(2rem, calc(1.273rem + 3.64vw), 2.25rem);
 
-    /* Safari fallback motion. These compositor-only layers preserve a moving
-       Hero when WebKit denies HTML media autoplay. */
-    --hero-fallback-drift-duration: 18s;
-    --hero-fallback-glow-duration: 13s;
-    --hero-fallback-base-scale: 1.08;
-    --hero-fallback-layer-inset: -10%;
-    --hero-fallback-drift-x: 3.5rem;
-    --hero-fallback-drift-y: 1.5rem;
-    --hero-fallback-glow-drift-x: 2.1rem;
-    --hero-fallback-sheen-opacity: 0.42;
-    --hero-fallback-glow-opacity: 0.34;
-    --hero-fallback-sheen-gradient: radial-gradient(
-        ellipse at 32% 42%,
-        rgb(var(--c-paper-050-rgb) / 0.72) 0%,
-        rgb(var(--c-paper-050-rgb) / 0.24) 28%,
-        transparent 62%
-    );
-    --hero-fallback-glow-gradient: linear-gradient(
-        112deg,
-        transparent 18%,
-        rgb(var(--c-paper-050-rgb) / 0.46) 43%,
-        transparent 68%
-    );
 }
