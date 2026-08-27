@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import styles from "./HeroBackground.module.css";
 
@@ -14,6 +14,7 @@ export interface HeroBackgroundProps {
 
 export function HeroBackground({ staticOnly = false }: HeroBackgroundProps) {
     const videoRef = useRef<HTMLVideoElement>(null);
+    const [autoplayDenied, setAutoplayDenied] = useState(false);
 
     useEffect(() => {
         const video = videoRef.current;
@@ -51,10 +52,21 @@ export function HeroBackground({ staticOnly = false }: HeroBackgroundProps) {
             playRequest = request;
 
             void request
-                .catch(() => {
+                .catch((error: unknown) => {
                     // A rejected autoplay request is not retried in a timer
                     // loop. The next real media/page lifecycle boundary below
                     // gets one fresh attempt when the browser is ready again.
+                    if (
+                        !disposed &&
+                        error instanceof DOMException &&
+                        error.name === "NotAllowedError"
+                    ) {
+                        // Safari can deny even muted autoplay at the platform
+                        // level. An animated image is not governed by media
+                        // autoplay policy, so it preserves the moving Hero
+                        // without waiting for a user gesture.
+                        setAutoplayDenied(true);
+                    }
                 })
                 .finally(() => {
                     if (playRequest === request) {
@@ -112,7 +124,7 @@ export function HeroBackground({ staticOnly = false }: HeroBackgroundProps) {
             );
             window.removeEventListener("pageshow", handlePageShow);
         };
-    }, [staticOnly]);
+    }, [staticOnly, autoplayDenied]);
 
     return (
         <div className={styles.root} aria-hidden="true">
@@ -124,6 +136,21 @@ export function HeroBackground({ staticOnly = false }: HeroBackgroundProps) {
                     width="1920"
                     height="1080"
                 />
+            ) : autoplayDenied ? (
+                <picture className={styles.fallback}>
+                    <source
+                        media="(max-width: 47.999rem)"
+                        srcSet="/videos/hero-background-loop-mobile-fallback.webp"
+                        type="image/webp"
+                    />
+                    <img
+                        className={styles.poster}
+                        src="/videos/hero-background-loop-fallback.webp"
+                        alt=""
+                        width="960"
+                        height="540"
+                    />
+                </picture>
             ) : (
                 <video
                     className={styles.video}
