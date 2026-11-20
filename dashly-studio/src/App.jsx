@@ -3,9 +3,9 @@ import "./App.css";
 import "./components/NotFound.css";
 import Header from "./components/Header.jsx";
 import Footer from "./components/footer/Footer";
-import Loader from "./components/Loader.jsx";
 import CookieConsent from "./components/CookieConsent.jsx";
 import HomePage from "./components/HomePage.jsx";
+import ThankYou from "./components/ThankYou.jsx";
 import { TextArrowAction } from "./components/ui/TextArrowAction.jsx";
 import { scrollToHash } from "./utils/scrollToHash";
 import { CookieConsentProvider } from "./context/CookieConsentContext.jsx";
@@ -64,7 +64,7 @@ function AnalyticsPageTracker({ pathname, routeKey }) {
     return null;
 }
 
-function AppFrame({ pathname, onHeroReady }) {
+function AppFrame({ pathname }) {
     const page = getPageMetadataByPath(pathname);
 
     if (!page) {
@@ -100,6 +100,16 @@ function AppFrame({ pathname, onHeroReady }) {
         );
     }
 
+    if (page.key === "thankYou") {
+        return (
+            <>
+                <Header />
+                <ThankYou />
+                <Footer />
+            </>
+        );
+    }
+
     if (page.key === "terms") {
         return (
             <>
@@ -115,7 +125,7 @@ function AppFrame({ pathname, onHeroReady }) {
     return (
         <>
             <Header />
-            <HomePage onHeroReady={onHeroReady} />
+            <HomePage />
             <Footer />
         </>
     );
@@ -123,11 +133,11 @@ function AppFrame({ pathname, onHeroReady }) {
 
 function App() {
     useLayoutEffect(() => {
-        // The HTML loader covers the prerendered fallback while the module
-        // bundle is downloading. Hand it off only after React has committed
-        // the first application tree, so there is no uncovered frame between
-        // the static shell and the React loader/content.
-        document.getElementById("initial-loader")?.remove();
+        // The pre-mount backdrop holds the hero's own poster so the first
+        // paint is already the finished hero background rather than the
+        // prerendered no-JS fallback. Hand off only once React has committed
+        // its first tree, so the two never both show.
+        document.getElementById("initial-hero-poster")?.remove();
         document.documentElement.removeAttribute("data-js-loading");
     }, []);
 
@@ -140,27 +150,7 @@ function App() {
         search: window.location.search,
     }));
     const { pathname, search } = route;
-    const startsOnHomeRoute = useRef(
-        getPageMetadataByPath(pathname)?.key === "home",
-    );
     const shouldResetScrollOnReload = useRef(didReload);
-    const [isReady, setIsReady] = useState(() => !startsOnHomeRoute.current);
-    const [showLoader, setShowLoader] = useState(
-        () => startsOnHomeRoute.current,
-    );
-    const heroReadyRef = useRef(null);
-
-    if (heroReadyRef.current === null) {
-        let resolve;
-        const promise = new Promise((res) => {
-            resolve = res;
-        });
-        heroReadyRef.current = { promise, resolve };
-    }
-
-    const handleHeroReady = useCallback(() => {
-        heroReadyRef.current.resolve();
-    }, []);
 
     const focusMainContent = useCallback(() => {
         window.requestAnimationFrame(() => {
@@ -169,47 +159,6 @@ function App() {
             });
         });
     }, []);
-
-    useEffect(() => {
-        if (!startsOnHomeRoute.current) {
-            return undefined;
-        }
-
-        const MIN_DISPLAY_MS = 2000;
-        const MAX_WAIT_MS = 6000;
-        let cancelled = false;
-        const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-        Promise.race([
-            Promise.all([wait(MIN_DISPLAY_MS), heroReadyRef.current.promise]),
-            wait(MAX_WAIT_MS),
-        ]).then(() => {
-            if (!cancelled) setIsReady(true);
-        });
-
-        return () => {
-            cancelled = true;
-        };
-    }, []);
-
-    useEffect(() => {
-        if (!showLoader) return undefined;
-        const documentElement = document.documentElement;
-        const previousHtmlOverflow = documentElement.style.overflow;
-        const previousBodyOverflow = document.body.style.overflow;
-        documentElement.style.overflow = "hidden";
-        document.body.style.overflow = "hidden";
-        return () => {
-            documentElement.style.overflow = previousHtmlOverflow;
-            document.body.style.overflow = previousBodyOverflow;
-        };
-    }, [showLoader]);
-
-    useEffect(() => {
-        if (!isReady || !showLoader) return undefined;
-        const timer = window.setTimeout(() => setShowLoader(false), 600);
-        return () => window.clearTimeout(timer);
-    }, [isReady, showLoader]);
 
     useLayoutEffect(() => {
         window.history.scrollRestoration = "manual";
@@ -244,8 +193,6 @@ function App() {
     }, []);
 
     useEffect(() => {
-        if (!isReady) return undefined;
-
         if (!window.location.hash) return undefined;
 
         let frameId = 0;
@@ -270,11 +217,9 @@ function App() {
         frameId = requestAnimationFrame(scrollWhenReady);
 
         return () => cancelAnimationFrame(frameId);
-    }, [isReady, pathname]);
+    }, [pathname]);
 
     useEffect(() => {
-        if (!isReady) return undefined;
-
         const handleNavigationScroll = () => {
             if (window.location.hash) {
                 scrollToHash(window.location.hash);
@@ -291,7 +236,7 @@ function App() {
             window.removeEventListener("popstate", handleNavigationScroll);
             window.removeEventListener("hashchange", handleNavigationScroll);
         };
-    }, [isReady]);
+    }, []);
 
     return (
         <CookieConsentProvider>
@@ -303,18 +248,8 @@ function App() {
                 Skip to main content
             </a>
             <AnalyticsPageTracker pathname={pathname} routeKey={`${pathname}${search}`} />
-            <AppFrame pathname={pathname} onHeroReady={handleHeroReady} />
-            {showLoader && (
-                <Loader
-                    fadingOut={isReady}
-                    onFadeOutEnd={() => setShowLoader(false)}
-                />
-            )}
-            {/* Keep the fixed consent UI in the first render. The loader still
-                covers it visually on the home route, but it cannot become a
-                late LCP candidate when the WebGL readiness gate takes several
-                seconds on mobile. */}
-            <CookieConsent blocked={showLoader} />
+            <AppFrame pathname={pathname} />
+            <CookieConsent />
         </CookieConsentProvider>
     );
 }

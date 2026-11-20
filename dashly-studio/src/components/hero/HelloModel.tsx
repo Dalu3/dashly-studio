@@ -23,7 +23,11 @@ import {
     type PreparedFurData,
 } from "./fur/furDataWorker";
 import { createFrameLoop } from "./fur/frameLoop";
-import { resolveFurPixelRatio, resolveFurQuality } from "./fur/quality";
+import {
+    MOBILE_QUALITY_MAX_WIDTH,
+    resolveFurPixelRatio,
+    resolveFurQuality,
+} from "./fur/quality";
 import type { FurQualityPreset } from "./fur/quality";
 import type { StrandMaterial } from "./fur/createStrandMaterial";
 import type { SupportMaterial } from "./fur/createSupportMaterial";
@@ -78,7 +82,6 @@ export interface HelloModelDebugHandle {
 
 export interface HelloModelProps {
     className?: string;
-    onReady?: (handles: HelloModelHandles | null) => void;
     debug?: boolean;
 }
 
@@ -132,6 +135,45 @@ const LAYOUT = {
     },
 } as const;
 
+/**
+ * Markers used by the software rasterisers that stand in for a GPU: Chrome's
+ * SwiftShader, Mesa's llvmpipe, and the Windows/ANGLE software paths. Audit
+ * runners (PageSpeed, CI containers) and GPU-blocklisted machines land here,
+ * and ~160k strand instances cost them seconds per frame rather than
+ * milliseconds — long enough to exhaust the renderer before it ever settles.
+ */
+const SOFTWARE_RENDERER_MARKERS = [
+    "swiftshader",
+    "llvmpipe",
+    "softpipe",
+    "software",
+    "basic render",
+    "microsoft basic",
+    "mesa offscreen",
+];
+
+function isSoftwareRenderer(
+    context: WebGLRenderingContext | WebGL2RenderingContext,
+): boolean {
+    const debugInfo = context.getExtension("WEBGL_debug_renderer_info");
+    const renderer = debugInfo
+        ? context.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL)
+        : context.getParameter(context.RENDERER);
+
+    // A masked or missing renderer string tells us nothing, so it counts as
+    // hardware: privacy-hardened browsers on perfectly capable devices must
+    // keep the hero rather than silently dropping to the poster.
+    if (typeof renderer !== "string") {
+        return false;
+    }
+
+    const normalized = renderer.toLowerCase();
+
+    return SOFTWARE_RENDERER_MARKERS.some((marker) =>
+        normalized.includes(marker),
+    );
+}
+
 const CAMERA_FOV = 20;
 const CAMERA_Z = 6.5;
 const LAYOUT_EPSILON = 1e-7;
@@ -159,12 +201,10 @@ const FUR_ROOT_COLOR = "#159fdf";
  * lives in `fur/` — this component only calls `createFur()` and places the
  * result.
  */
-export function HelloModel({ className, onReady, debug = false }: HelloModelProps) {
+export function HelloModel({ className, debug = false }: HelloModelProps) {
     const hostRef = useRef<HTMLDivElement>(null);
-    const onReadyRef = useRef(onReady);
-    onReadyRef.current = onReady;
 
-    // Read once per mount via a ref, same pattern as onReadyRef above — the
+    // Read once per mount via a ref — the
     // effect below builds the whole scene exactly once ([] deps); a live
     // mid-session change to this OS-level preference re-triggering that
     // whole rebuild would be a much bigger disruption than just not
@@ -196,23 +236,32 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
         const webglContext =
             probeCanvas.getContext("webgl2") ?? probeCanvas.getContext("webgl");
 
-        if (!webglContext) {
+        // Leaving the host at its default zero opacity keeps the Hero's
+        // poster as the finished background; nothing further is needed to
+        // "fall back", because the fallback is what is already on screen.
+        if (!webglContext || isSoftwareRenderer(webglContext)) {
             host.dataset.webglUnavailable = "true";
-            onReadyRef.current?.(null);
             return undefined;
         }
+
+        // Context attributes are fixed at creation, before any layout pass has
+        // measured the host, so this reads the viewport directly against the
+        // same threshold `resolveFurQuality` will use for the preset.
+        const lightweightRaster =
+            window.innerWidth <= MOBILE_QUALITY_MAX_WIDTH;
 
         let renderer: WebGLRenderer;
 
         try {
             renderer = new WebGLRenderer({
-                antialias: true,
+                // MSAA multiplies the cost of every one of ~1.6M strand
+                // triangles. Phones carry the pile at 1.5x DPR instead.
+                antialias: !lightweightRaster,
                 alpha: true,
                 powerPreference: "high-performance",
             });
         } catch {
             host.dataset.webglUnavailable = "true";
-            onReadyRef.current?.(null);
             return undefined;
         }
         renderer.setClearAlpha(0);
@@ -240,7 +289,10 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
         const key = new DirectionalLight(0xffffff, 1.4);
         key.position.set(-1.1, 2.0, 3.4);
         key.castShadow = true;
-        key.shadow.mapSize.set(2048, 2048);
+        key.shadow.mapSize.set(
+            lightweightRaster ? 1024 : 2048,
+            lightweightRaster ? 1024 : 2048,
+        );
         key.shadow.bias = -0.0008;
         key.shadow.normalBias = 0.015;
         key.shadow.camera.left = -2;
@@ -277,8 +329,11 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
         const handleContextLost = (event: Event) => {
             event.preventDefault();
             webglContextAvailable = false;
-            renderer.domElement.style.visibility = "hidden";
             host.dataset.webglUnavailable = "true";
+            // Fade back out rather than cutting to the poster: a context can
+            // be lost after the word is already on screen, and an abrupt
+            // disappearance reads as a glitch.
+            delete host.dataset.ready;
         };
 
         renderer.domElement.addEventListener("webglcontextlost", handleContextLost);
@@ -933,14 +988,14 @@ export function HelloModel({ className, onReady, debug = false }: HelloModelProp
                 ).__helloFur = { ...handles, furHandles };
             }
 
-            // One more frame boundary before announcing "ready": by the
-            // time THIS callback runs, the browser has had a real
-            // opportunity to composite the frame render() just issued, so
-            // the caller (Hero -> App's loader gate) is reacting to an
-            // actually-presented frame, not just "the JS finished running".
+            // One more frame boundary before starting the fade: by the time
+            // THIS callback runs, the browser has had a real opportunity to
+            // composite the frame render() just issued, so the word crosses
+            // in over an actually-presented frame rather than fading up on
+            // an empty canvas while the shaders are still compiling.
             readyFrameId = requestAnimationFrame(() => {
                 if (!disposed) {
-                    onReadyRef.current?.(handles);
+                    host.dataset.ready = "true";
                 }
             });
         };

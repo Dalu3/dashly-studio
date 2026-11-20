@@ -227,6 +227,15 @@ function renderLegalFallback(page) {
 </main>`;
 }
 
+function renderThankYouFallback() {
+    return `<main id="main-content" tabindex="-1">
+    <h1>Thank you!</h1>
+    <p>Your enquiry is on its way. We will reply within one working day with the best next step for your project.</p>
+    <p>${renderLink("/#work", "See our work")}</p>
+    <p>${renderLink("/", "Back to homepage")}</p>
+</main>`;
+}
+
 function renderNotFoundFallback() {
     return `<main class="not-found-page" id="main-content" tabindex="-1">
     <div class="not-found-page__inner">
@@ -245,7 +254,9 @@ function renderStaticFallback(page) {
         ? renderHomeFallback()
         : page.key === "privacy" || page.key === "terms"
             ? renderLegalFallback(page)
-            : renderNotFoundFallback();
+            : page.key === "thankYou"
+                ? renderThankYouFallback()
+                : renderNotFoundFallback();
 
     return `<div id="static-page-content"><a class="skip-to-main-content" href="#main-content">Skip to main content</a>${renderSiteNavigation()}${content}${renderSiteFooter()}</div>`;
 }

@@ -8,7 +8,7 @@ import {
 } from "../utils/cookieConsent";
 import { InlineTextAction } from "./ui/InlineTextAction.jsx";
 
-export default function CookieConsent({ blocked = false }) {
+export default function CookieConsent() {
     const {
         consent,
         hasConsentDecision,
@@ -296,10 +296,6 @@ export default function CookieConsent({ blocked = false }) {
                   document.body,
               )
             : null;
-
-    if (blocked) {
-        return null;
-    }
 
     const cookieBanner =
         !hasConsentDecision && !isPreferencesOpen

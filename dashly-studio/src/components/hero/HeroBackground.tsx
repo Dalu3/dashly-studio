@@ -166,7 +166,7 @@ export function HeroBackground({ staticOnly = false }: HeroBackgroundProps) {
                     loop
                     muted
                     playsInline
-                    preload="auto"
+                    preload="metadata"
                     width="1920"
                     height="1080"
                     poster="/videos/hero-background-poster.webp"
@@ -176,6 +176,14 @@ export function HeroBackground({ staticOnly = false }: HeroBackgroundProps) {
                         media="(max-width: 47.999rem)"
                         src="/videos/hero-background-loop-mobile.webm"
                         type="video/webm"
+                    />
+                    {/* Safari decodes no WebM, so without a phone-sized MP4
+                        here iOS skips straight past both WebM sources and
+                        downloads the 2.1 MB desktop encode on mobile data. */}
+                    <source
+                        media="(max-width: 47.999rem)"
+                        src="/videos/hero-background-loop-mobile.mp4"
+                        type="video/mp4"
                     />
                     <source
                         src="/videos/hero-background-loop.webm"

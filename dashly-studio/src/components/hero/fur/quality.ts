@@ -5,10 +5,15 @@ export type FurQualityName =
     | "mobile"
     | "mobile-low";
 
+/** Widths at or below this use the mobile rasterisation budget: a 1.5 DPR
+ *  cap, no MSAA and a half-size shadow map. Shared with HelloModel so the
+ *  context attributes it must choose before any layout pass agree with the
+ *  preset `resolveFurQuality` will pick afterwards. */
+export const MOBILE_QUALITY_MAX_WIDTH = 640;
+
 export interface FurQualityPreset {
     name: FurQualityName;
     density: number;
-    minDpr: number;
     maxDpr: number;
     maxPhysicalPixels: number;
     idleFps: number;
@@ -33,7 +38,6 @@ export const FUR_QUALITY: Record<FurQualityName, FurQualityPreset> = {
     high: {
         name: "high",
         density: 4.6e6,
-        minDpr: 1,
         maxDpr: 2,
         maxPhysicalPixels: 6e6,
         idleFps: 30,
@@ -54,7 +58,6 @@ export const FUR_QUALITY: Record<FurQualityName, FurQualityPreset> = {
     balanced: {
         name: "balanced",
         density: 4.15e6,
-        minDpr: 1.25,
         maxDpr: 1.875,
         maxPhysicalPixels: 4.5e6,
         idleFps: 30,
@@ -74,7 +77,6 @@ export const FUR_QUALITY: Record<FurQualityName, FurQualityPreset> = {
     tablet: {
         name: "tablet",
         density: 3.75e6,
-        minDpr: 1.5,
         maxDpr: 2,
         maxPhysicalPixels: 3.5e6,
         idleFps: 24,
@@ -92,8 +94,7 @@ export const FUR_QUALITY: Record<FurQualityName, FurQualityPreset> = {
     mobile: {
         name: "mobile",
         density: 3e6,
-        minDpr: 2,
-        maxDpr: 2,
+        maxDpr: 1.5,
         maxPhysicalPixels: 2.5e6,
         idleFps: 20,
         strokeRadius: 0.00875,
@@ -109,13 +110,10 @@ export const FUR_QUALITY: Record<FurQualityName, FurQualityPreset> = {
     },
     // Reduced-motion and narrow mobile screens use the fewest instances, so
     // width, length and a 3.5% fuller support stroke carry the silhouette.
-    // DPR 2 is allowed only while the compact canvas remains inside the
-    // mobile framebuffer budget; larger mobile canvases step down normally.
     "mobile-low": {
         name: "mobile-low",
         density: 2.3e6,
-        minDpr: 2,
-        maxDpr: 2,
+        maxDpr: 1.5,
         maxPhysicalPixels: 1.75e6,
         idleFps: 15,
         strokeRadius: 0.0088,
@@ -143,14 +141,12 @@ export function resolveFurPixelRatio(
     quality: FurQualityPreset,
 ): number {
     const cssPixels = Math.max(1, canvasWidth) * Math.max(1, canvasHeight);
-    // Small canvases benefit from controlled supersampling even when browser
-    // emulation reports DPR 1. This prevents a 375 CSS-pixel canvas from also
-    // having only 375 physical pixels, while the pixel budget still prevents
-    // the same policy from multiplying a large desktop framebuffer.
-    const dprCeiling = Math.min(
-        Math.max(devicePixelRatio, quality.minDpr),
-        quality.maxDpr,
-    );
+    // Never ask for more physical pixels than the device itself reports. An
+    // earlier `minDpr` floor raised DPR to 2 on small canvases to keep
+    // DevTools emulation sharp, which also forced a 1.31-Mpixel framebuffer
+    // onto real phones and onto GPU-less audit runners, where it is the
+    // single largest cost in the scene.
+    const dprCeiling = Math.min(devicePixelRatio, quality.maxDpr);
 
     for (const dpr of DPR_STEPS) {
         if (
@@ -185,7 +181,7 @@ export function resolveFurQuality(
         return FUR_QUALITY["mobile-low"];
     }
 
-    if (viewportWidth <= 640) {
+    if (viewportWidth <= MOBILE_QUALITY_MAX_WIDTH) {
         return FUR_QUALITY.mobile;
     }
 

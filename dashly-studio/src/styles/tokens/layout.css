@@ -46,6 +46,12 @@
 
     /* FAQ composition: compact intro beside a wider accordion on desktop. */
     --faq-intro-width: 24rem;
+    /* Contact's intro column. Wider than the FAQ's because Contact's heading
+       is a nowrap two-line display lockup: "HAVE A PROJECT" renders 486px
+       wide at --font-size-contact-heading, so the 24rem FAQ track made it
+       overflow its own column by 114px and run into the gap beside the form
+       card. 32rem leaves room for that plus the 12px laptop text inset. */
+    --contact-intro-width: 32rem;
     --faq-column-gap: var(--space-3xl);
     --faq-control-min-height: 3rem;
     --faq-chevron-size: 1rem;

@@ -1,17 +1,15 @@
-import { SOCIAL_LINKS } from "@/seo/siteMetadata.js";
+import {
+    SOCIAL_PROFILE_LINKS,
+    type SocialProfileLink,
+} from "@/constants/socialLinks";
 
 export interface FooterNavLink {
     label: string;
     href: string;
 }
 
-export interface FooterSocialLink {
-    /** Stable identity, not currently used for an icon — the Figma frame
-     *  shows these as plain text links. */
-    platform: "instagram" | "facebook" | "linkedin";
-    label: string;
-    href: string;
-}
+/** The Figma frame shows these as plain text links, so no icon field. */
+export type FooterSocialLink = SocialProfileLink;
 
 /**
  * In-page anchors, matching Header.jsx's own nav hrefs — plain links are
@@ -29,20 +27,5 @@ export const FOOTER_NAV_LINKS: readonly FooterNavLink[] = [
     { label: "Contact", href: "/#contact" },
 ];
 
-export const FOOTER_SOCIAL_LINKS: readonly FooterSocialLink[] = [
-    {
-        platform: "instagram",
-        label: "Instagram",
-        href: SOCIAL_LINKS[0]!,
-    },
-    {
-        platform: "facebook",
-        label: "Facebook",
-        href: SOCIAL_LINKS[1]!,
-    },
-    {
-        platform: "linkedin",
-        label: "LinkedIn",
-        href: SOCIAL_LINKS[2]!,
-    },
-];
+export const FOOTER_SOCIAL_LINKS: readonly FooterSocialLink[] =
+    SOCIAL_PROFILE_LINKS;

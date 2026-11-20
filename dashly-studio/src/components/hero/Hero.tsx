@@ -1,11 +1,4 @@
-import {
-    Suspense,
-    lazy,
-    useCallback,
-    useEffect,
-    useMemo,
-    type ReactNode,
-} from "react";
+import { Suspense, lazy, useMemo, type ReactNode } from "react";
 
 import { usePrefersReducedMotion } from "@/hooks/usePrefersReducedMotion";
 import { HeroBackground } from "./HeroBackground";
@@ -20,31 +13,53 @@ import styles from "./Hero.module.css";
 
 type NavigatorWithCapabilities = Navigator & {
     connection?: { saveData?: boolean };
+    deviceMemory?: number;
 };
 
+/** Reported gigabytes of RAM at or below which the fur hero is skipped. */
+const LOW_MEMORY_GB = 4;
+/** Reported logical cores at or below which the fur hero is skipped. */
+const LOW_CORE_COUNT = 4;
+
+/**
+ * Mobile and tablet have their own geometry and DPR budgets, so width alone
+ * is not a reason to drop HELLO — an earlier coarse-pointer gate removed it
+ * from every phone and was itself reverted. What this gates on instead is
+ * positive evidence that a device cannot afford ~160k strand instances.
+ *
+ * Both signals are optional, and an ABSENT signal always reads as capable:
+ * `deviceMemory` is Chromium-only, so treating "unknown" as low-end would
+ * take the hero away from every iPhone, iPad and Apple Silicon Mac.
+ */
 function canEnhanceHero(): boolean {
     const capabilities = navigator as NavigatorWithCapabilities;
-    const dataSaver = Boolean(capabilities.connection?.saveData);
 
-    // Mobile/tablet now have dedicated geometry and DPR budgets. The former
-    // coarse-pointer / DPR / CPU gate removed HELLO completely on a direct
-    // phone load and only appeared to work when DevTools first mounted the
-    // desktop version before resizing. Keep the explicit user preference
-    // (Save-Data) as the only capability-level opt-out; reduced motion is
-    // handled separately by the component.
-    return !dataSaver;
+    if (capabilities.connection?.saveData) {
+        return false;
+    }
+
+    const memory = capabilities.deviceMemory;
+
+    if (typeof memory === "number" && memory > 0 && memory <= LOW_MEMORY_GB) {
+        return false;
+    }
+
+    // Apple's A-series has reported 6 logical cores since the A11, and Apple
+    // Silicon Macs report 8 or more, so this threshold cannot catch a current
+    // iPhone, iPad or Mac — it is aimed at low-end Android and old tablets.
+    const cores = navigator.hardwareConcurrency;
+
+    if (typeof cores === "number" && cores > 0 && cores <= LOW_CORE_COUNT) {
+        return false;
+    }
+
+    return true;
 }
 
 export interface HeroProps {
     /** Hero content. Intentionally empty for now — text, buttons and the
      *  "hello" wordmark are a later step. */
     children?: ReactNode;
-    /** Fires once the 3D "hello" scene has been built, its shaders
-     *  compiled, and a first frame actually rendered (forwarded straight
-     *  from HelloModel's own onReady — see its comments for exactly what
-     *  "ready" means here). App.jsx's loader waits on this rather than on
-     *  the asset fetch alone. */
-    onReady?: () => void;
 }
 
 /**
@@ -55,23 +70,16 @@ export interface HeroProps {
  * <HeroBackground /> and to keep future content structurally separate from the
  * decorative layers.
  */
-export function Hero({ children, onReady }: HeroProps) {
+export function Hero({ children }: HeroProps) {
     const reducedMotion = usePrefersReducedMotion();
     const enhancementAllowed = useMemo(canEnhanceHero, []);
-    const handleModelReady = useCallback(() => onReady?.(), [onReady]);
-
-    useEffect(() => {
-        if (!enhancementAllowed) {
-            onReady?.();
-        }
-    }, [enhancementAllowed, onReady]);
 
     return (
         <section className={styles.root} aria-labelledby="hero-title">
             <HeroBackground staticOnly={reducedMotion} />
             {enhancementAllowed && (
                 <Suspense fallback={null}>
-                    <HelloModel onReady={handleModelReady} />
+                    <HelloModel />
                 </Suspense>
             )}
             <div className={styles.dissolve} aria-hidden="true" />

@@ -10,10 +10,10 @@ import Stages from "./Stages.jsx";
 import FAQ from "./FAQ.jsx";
 import Contact from "./contact/Contact";
 
-export default function HomePage({ onHeroReady }) {
+export default function HomePage() {
     return (
         <main id="main-content" tabIndex={-1}>
-            <Hero onReady={onHeroReady}>
+            <Hero>
                 <MainPage />
             </Hero>
             <SelectedWork />

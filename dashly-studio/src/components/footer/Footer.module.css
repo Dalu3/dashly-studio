@@ -532,11 +532,16 @@
     }
 
     .tagline {
-        /* Matches the Figma text box (308.17px) so the line break lands on
-           "that" / "works" exactly like the frame, not wherever the
-        inherited --footer-responsive-copy-width happens to wrap it. */
-        max-width: 19.25rem;
-        font-size: var(--font-size-p);
+        /* Phones step down from the --font-size-p (21.6px) the Figma phone
+           frame specified: at that size the tagline out-weighed the wordmark
+           under it and crowded the column. --font-size-footer-heading is the
+           footer's own approved 16px; at regular weight it sits clearly below
+           the 24px wordmark while still reading as a statement rather than
+           fine print (15px tested and rejected for that reason). The width
+           keeps the two-line "that" / "works" break the frame has,
+           re-measured for this size. */
+        max-width: 15rem;
+        font-size: var(--font-size-footer-heading);
         font-weight: var(--font-weight-regular);
     }
 

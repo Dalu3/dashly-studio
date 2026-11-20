@@ -27,6 +27,28 @@ const BUDGET_OPTIONS = [
 
 type Budget = "" | (typeof BUDGET_OPTIONS)[number];
 
+/**
+ * Anti-spam, layer two. A person cannot focus the first field and complete a
+ * valid enquiry inside this window, but a script that fills the DOM and
+ * submits can. Deliberately generous: the cost of a false positive (a real
+ * lead silently dropped) is far higher than the cost of letting a slow bot
+ * through to the honeypot.
+ */
+const MIN_FILL_MS = 3000;
+
+/**
+ * Anti-spam, layer three. Google reCAPTCHA v2 site key — public by design, it
+ * ships in the HTML whatever we do, exactly like the EmailJS public key in
+ * `handleSubmit`. The matching SECRET key is never stored here: it goes into
+ * the EmailJS template editor, Settings tab, "Enable reCAPTCHA V2
+ * verification".
+ *
+ * Empty string = reCAPTCHA off. The widget is not rendered, the script is not
+ * loaded and the form behaves exactly as it did before, so the key can be
+ * filled in whenever the EmailJS side is ready without touching anything else.
+ */
+const RECAPTCHA_SITE_KEY = "";
+
 type FormValues = {
     name: string;
     email: string;
@@ -66,6 +88,19 @@ const INITIAL_TOUCHED: Record<keyof FormValues, boolean> = {
 };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Submit order, and the element id each field focuses. `FormField` puts the
+ *  id on its input/textarea and `FormSelect` on its trigger button, so one
+ *  `getElementById` works for both. Replaces the removed error summary as the
+ *  thing that tells a keyboard or screen-reader user the submit failed. */
+const FIELD_INPUT_IDS: ReadonlyArray<[keyof FormValues, string]> = [
+    ["name", "contact-name"],
+    ["email", "contact-email"],
+    ["projectType", "contact-project-type"],
+    ["budget", "contact-budget"],
+    ["timeline", "contact-timeline"],
+    ["message", "contact-message"],
+];
 
 /** Name, email, project type, budget and message are required. A project type
  *  is prefilled only when the visitor arrives from a service or estimator. */
@@ -161,7 +196,7 @@ function validateForm(values: FormValues): FormErrors {
  */
 export function ContactForm() {
     const formRef = useRef<HTMLFormElement>(null);
-    const errorSummaryRef = useRef<HTMLDivElement>(null);
+    const firstFocusAtRef = useRef<number | null>(null);
     const [formValues, setFormValues] = useState<FormValues>(INITIAL_FORM_VALUES);
     const [errors, setErrors] = useState<FormErrors>(INITIAL_ERRORS);
     const [touched, setTouched] =
@@ -172,7 +207,7 @@ export function ContactForm() {
     const [statusMessage, setStatusMessage] = useState("");
     const [isError, setIsError] = useState(false);
     const [showStatus, setShowStatus] = useState(false);
-    const [formErrorSummary, setFormErrorSummary] = useState("");
+    const [captchaError, setCaptchaError] = useState("");
     const [estimateSummary, setEstimateSummary] = useState<Record<string, unknown> | null>(null);
     const estimator = estimatorFields(estimateSummary);
 
@@ -201,6 +236,25 @@ export function ContactForm() {
         return () => window.removeEventListener(ESTIMATE_HANDOFF_EVENT, handleEstimateHandoff);
     }, []);
 
+    // Loaded here rather than in index.html so a visitor who never reaches the
+    // contact section never pays for Google's script, and so the widget's
+    // container already exists when api.js auto-renders `.g-recaptcha`.
+    useEffect(() => {
+        if (!RECAPTCHA_SITE_KEY || window.grecaptcha) {
+            return undefined;
+        }
+
+        const script = document.createElement("script");
+        script.src = "https://www.google.com/recaptcha/api.js";
+        script.async = true;
+        script.defer = true;
+        document.head.appendChild(script);
+
+        // Intentionally not removed on unmount: grecaptcha registers globals
+        // that a second load would re-register, and the form can remount.
+        return undefined;
+    }, []);
+
     useEffect(() => {
         if (!showStatus) {
             return undefined;
@@ -209,12 +263,6 @@ export function ContactForm() {
         const timer = setTimeout(() => setShowStatus(false), 4000);
         return () => clearTimeout(timer);
     }, [showStatus]);
-
-    useEffect(() => {
-        if (formErrorSummary) {
-            errorSummaryRef.current?.focus();
-        }
-    }, [formErrorSummary]);
 
     useEffect(() => {
         const handleProjectTypeSelect = (event: Event) => {
@@ -278,6 +326,21 @@ export function ContactForm() {
         setFormValues(INITIAL_FORM_VALUES);
         setErrors(INITIAL_ERRORS);
         setTouched(INITIAL_TOUCHED);
+        // Re-arm the fill-time trap for a second enquiry in the same session.
+        // If the caret is still inside the form, restart the clock from now
+        // rather than nulling it: refocusing an already-focused field fires
+        // no focus event, so a null here would lock a real person out of
+        // every later attempt once they had tripped a trap.
+        firstFocusAtRef.current = formRef.current?.contains(document.activeElement)
+            ? Date.now()
+            : null;
+        window.grecaptcha?.reset();
+    };
+
+    // Capture phase on the form, so every field feeds the trap without
+    // FormField and FormSelect each needing an onFocus prop.
+    const handleFormFocus = () => {
+        firstFocusAtRef.current ??= Date.now();
     };
 
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -287,8 +350,24 @@ export function ContactForm() {
         // success without sending the email, tracking a lead or navigating,
         // so the submission looks accepted and reveals nothing.
         if (honeypot) {
-            setFormErrorSummary("");
             setHoneypot("");
+            resetForm();
+            return;
+        }
+
+        // Same silent accept for a submission that could not have been typed:
+        // no email, no lead tracked, no redirect, and nothing in the UI that
+        // tells a script which check it tripped.
+        //
+        // A null `firstFocusAt` is its own signal, not a missing measurement.
+        // Reaching a valid submission means name, email and message were
+        // filled, and there is no way to type into a field without focusing
+        // it — so no focus at all means the DOM was written to by a script.
+        // Measuring from mount instead would let exactly that bot through
+        // simply by waiting before it fills the form.
+        const firstFocusAt = firstFocusAtRef.current;
+
+        if (firstFocusAt === null || Date.now() - firstFocusAt < MIN_FILL_MS) {
             resetForm();
             return;
         }
@@ -307,11 +386,28 @@ export function ContactForm() {
         setErrors(nextErrors);
 
         if (hasErrors) {
-            setFormErrorSummary("Please correct the highlighted fields before sending your enquiry.");
+            // No summary banner: each field shows its own message, and moving
+            // focus to the first bad one is what announces the failure to a
+            // keyboard or screen-reader user.
+            const firstInvalid = FIELD_INPUT_IDS.find(
+                ([field]) => nextErrors[field],
+            );
+
+            if (firstInvalid) {
+                document.getElementById(firstInvalid[1])?.focus();
+            }
+
             return;
         }
 
-        setFormErrorSummary("");
+        // Unlike the two traps above this one is visible: a person who simply
+        // has not ticked the box must be told, not silently ignored.
+        if (RECAPTCHA_SITE_KEY && !window.grecaptcha?.getResponse()) {
+            setCaptchaError("Please confirm you are not a robot.");
+            return;
+        }
+
+        setCaptchaError("");
 
         if (isSubmitting || !formRef.current) {
             return;
@@ -335,6 +431,9 @@ export function ContactForm() {
             window.history.pushState({}, "", thankYouPage.path);
             window.dispatchEvent(new PopStateEvent("popstate"));
         } catch {
+            // A spent token cannot be submitted twice, so the retry needs a
+            // fresh tick of the box.
+            window.grecaptcha?.reset();
             setStatusMessage("Something went wrong. Please try again shortly.");
             setIsError(true);
             setShowStatus(true);
@@ -344,17 +443,13 @@ export function ContactForm() {
     };
 
     return (
-        <form ref={formRef} className={styles.card} onSubmit={handleSubmit} noValidate>
-            {formErrorSummary && (
-                <div
-                    ref={errorSummaryRef}
-                    className={cn(styles.status, styles.statusError)}
-                    role="alert"
-                    tabIndex={-1}
-                >
-                    {formErrorSummary}
-                </div>
-            )}
+        <form
+            ref={formRef}
+            className={styles.card}
+            onSubmit={handleSubmit}
+            onFocusCapture={handleFormFocus}
+            noValidate
+        >
             {/* Honeypot: rendered (so bots fill it) but hidden from sight,
                 assistive technology and the tab order. */}
             <div className={styles.honeypot} aria-hidden="true">
@@ -453,6 +548,27 @@ export function ContactForm() {
                 onBlur={handleBlur}
                 error={touched.message ? errors.message : undefined}
             />
+
+            {RECAPTCHA_SITE_KEY && (
+                /* api.js finds this by class and renders the widget into it.
+                   The hidden `g-recaptcha-response` field it injects sits
+                   inside the form, so `emailjs.sendForm` serialises it along
+                   with everything else — no extra wiring needed. */
+                <div className={cn(styles.fullWidth, styles.captcha)}>
+                    <div
+                        className="g-recaptcha"
+                        data-sitekey={RECAPTCHA_SITE_KEY}
+                    />
+                    {captchaError && (
+                        <span
+                            className={cn(styles.status, styles.statusError)}
+                            role="alert"
+                        >
+                            {captchaError}
+                        </span>
+                    )}
+                </div>
+            )}
 
             <button type="submit" className={styles.submit} disabled={isSubmitting}>
                 {isSubmitting ? "Sending…" : "Send"}

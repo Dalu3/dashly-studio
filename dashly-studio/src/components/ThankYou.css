@@ -1,0 +1,215 @@
+/**
+ * Thank-you page. Laid out on the shared section tokens so it reads as a
+ * landing-page section: one centred column, generous whitespace, and a
+ * background that resolves to the accent surface the footer sits on.
+ *
+ * Typography on this page is an explicitly approved, page-scoped change: the
+ * title moves from --type-section-title to the supporting --type-h2 role, and
+ * both paragraphs sit on --type-control. Every value is an existing approved
+ * global role; no token was added, modified or hardcoded here.
+ *
+ * --type-control is documented for form labels and controls, so using it for
+ * prose is a role mismatch, reported rather than made silently: it is the
+ * only approved role that holds a flat 16px from phone to laptop, which is
+ * what this page was asked for. The alternative is --type-body, which is 16px
+ * on a phone but ramps to 20px on a laptop.
+ */
+
+.thank-you-page {
+    display: grid;
+    /* 90svh, so the top of the footer always shows under the message. `svh`
+       rather than `vh` because the mobile URL bar must not resize the page as
+       it shows and hides. The message starts 40% down on tall viewports (see
+       the media query at the end of this file); this centred fallback is what
+       short screens and phones get, where a 40% offset would push the social
+       links past the fold. */
+    min-height: 90svh;
+    box-sizing: border-box;
+    align-content: center;
+    padding: var(--space-3xl) var(--container-gutter)
+        var(--space-section-padding);
+    /* Mostly the accent surface, with a short fade out of --color-surface-page
+       at the very top so the floating white header pill still has a light
+       ground to sit on. The gradient reaches full blue by a third of the way
+       down and holds it to the footer, which starts on the same colour. */
+    background: linear-gradient(
+        to bottom,
+        var(--color-surface-page),
+        var(--color-surface-accent-subtle) 32%
+    );
+    color: var(--color-text-primary);
+}
+
+.thank-you-page__inner {
+    display: grid;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: var(--content-max-width);
+    margin-inline: auto;
+    justify-items: center;
+    gap: var(--space-xl);
+}
+
+.thank-you-page__copy {
+    display: grid;
+    max-width: var(--measure-narrow);
+    justify-items: center;
+    gap: var(--space-sm);
+    text-align: center;
+}
+
+/* Success tick in a tinted disc. Sized against the page's --type-h2 title
+   rather than the old display title, so the disc still reads as smaller than
+   the heading it introduces. */
+.thank-you-page__mark {
+    display: grid;
+    width: clamp(3rem, 8vw, 3.5rem);
+    aspect-ratio: 1;
+    place-items: center;
+    margin-block-end: var(--space-xs);
+    border-radius: var(--radius-circle);
+    background: var(--color-feedback-success-bg);
+}
+
+.thank-you-page__mark-tick {
+    width: 1.25rem;
+    height: 0.6875rem;
+    border-bottom: 0.15625rem solid var(--color-feedback-success);
+    border-left: 0.15625rem solid var(--color-feedback-success);
+    transform: translateY(-0.0625rem) rotate(-45deg);
+}
+
+.thank-you-page__title {
+    margin: 0;
+    font-size: var(--type-h2);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-tight);
+    line-height: var(--line-height-type-h2);
+}
+
+/* --type-control is the only approved role that is a flat 16px at every
+   viewport, which is what this page was asked for across laptop, tablet and
+   phone. --type-body would ramp to 20px on a laptop and --type-small sits at
+   13-14px, so neither holds 16. See the note in the file header. */
+.thank-you-page__body {
+    margin: 0;
+    max-width: var(--measure-narrow);
+    color: var(--color-text-secondary);
+    font-size: var(--type-control);
+    line-height: var(--line-height-type-body);
+}
+
+.thank-you-page__action {
+    display: inline-flex;
+    width: fit-content;
+    min-height: 2.75rem; /* comfortable touch target, same as the socials */
+    margin-block-start: var(--space-2xs);
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-0);
+    border: 0;
+    background: transparent;
+    color: var(--color-text-primary);
+    font-size: var(--type-control);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-body-compact);
+    text-decoration: none;
+    transition: var(--transition-colors);
+}
+
+.thank-you-page__action:hover {
+    color: var(--color-text-accent);
+}
+
+.thank-you-page__action:focus-visible {
+    outline: none;
+    border-radius: var(--radius-xs);
+    box-shadow: var(--shadow-focus-ring);
+}
+
+/* ---- Let's stay connected ------------------------------------------------ */
+
+.thank-you-page__connect {
+    display: grid;
+    /* Full width of the content column so the rule reads as a section break
+       rather than an underline under the paragraph above it; the copy inside
+       stays centred on the same measure as the rest of the page. */
+    width: 100%;
+    justify-items: center;
+    gap: var(--space-2xs);
+    padding-block-start: var(--space-lg);
+    border-block-start: 1px solid var(--color-border-subtle);
+    text-align: center;
+}
+
+.thank-you-page__connect > * {
+    max-width: var(--measure-narrow);
+}
+
+.thank-you-page__connect-heading {
+    /* On top of the block's own 8px gap, so the heading is separated from
+       its note more than the note is from the links below it. */
+    margin: 0 0 var(--space-xs);
+    font-size: var(--type-h3);
+    font-weight: var(--font-weight-semibold);
+    letter-spacing: var(--letter-spacing-tight);
+    line-height: var(--line-height-type-h3);
+}
+
+/* Same flat 16px as the confirmation paragraph above the rule, by request. */
+.thank-you-page__connect-note {
+    margin: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--type-control);
+    line-height: var(--line-height-type-body);
+}
+
+/* One row at every width — without the arrow pills the three labels measure
+   about 230px together, so they still fit inside the 343px content width at
+   375px. `wrap` is the safety net for a wider translation, not the plan. The
+   row is free to run past the prose measure the copy above it keeps. */
+.thank-you-page__socials {
+    display: flex;
+    max-width: none;
+    flex-wrap: wrap;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2xs) var(--space-lg);
+}
+
+.thank-you-page__social {
+    display: inline-flex;
+    min-height: 2.75rem; /* comfortable touch target on phones */
+    align-items: center;
+    color: var(--color-text-primary);
+    font-size: var(--type-control);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-body-compact);
+    text-decoration: none;
+    transition: var(--transition-colors);
+}
+
+.thank-you-page__social:hover {
+    color: var(--color-text-accent);
+}
+
+.thank-you-page__social:focus-visible {
+    outline: none;
+    border-radius: var(--radius-xs);
+    box-shadow: var(--shadow-focus-ring);
+}
+
+/* The requested 40% start, applied only where the message still fits inside
+   the 90svh block. It is ~455px tall and the bottom padding ~100px, so
+   40svh + 555px <= 90svh needs a viewport of about 1110px; 70rem is the first
+   round step past that. Below it the rules above keep the message centred, so
+   the page stays exactly 90svh instead of growing past it. */
+@media (min-width: 48rem) and (min-height: 70rem) {
+    .thank-you-page {
+        align-content: start;
+        padding-block-start: 40svh;
+    }
+}

@@ -12,9 +12,22 @@
     inset: 0;
     z-index: var(--z-raised);
 
+    /* The Hero's poster/video is already painted underneath, so the word
+       cross-fades in over a finished background once its first frame has
+       actually rendered. A scene that never gets there — no WebGL, a
+       software rasteriser, a lost context — simply stays at zero and leaves
+       the poster as the final state, with nothing to flash or reflow.
+       --duration-* collapses to 1ms under prefers-reduced-motion. */
+    opacity: 0;
+    transition: opacity var(--duration-slow) var(--ease-entrance);
+
     /* Desktop remains click-through; the child touch surface selectively
        opts only the projected HELLO bounds back into hit testing. */
     pointer-events: none;
+}
+
+.root[data-ready="true"] {
+    opacity: 1;
 }
 
 .root canvas {

@@ -2,12 +2,6 @@ import { useLayoutEffect, useRef } from "react";
 import styles from "./Stages.module.css";
 import arrowAsset from "../assets/process/arrow.svg";
 import routeAsset from "../assets/process/route.svg";
-import discoveryImage from "../assets/process/stage-1-discovery.webp";
-import strategyImage from "../assets/process/stage-2-strategy.webp";
-import wireframesImage from "../assets/process/stage-3-wireframes.webp";
-import designImage from "../assets/process/stage-4-design.webp";
-import developmentImage from "../assets/process/stage-5-development.webp";
-import launchImage from "../assets/process/stage-6-launch.webp";
 import { usePrefersReducedMotion } from "../hooks/usePrefersReducedMotion";
 import { SECTION_PREWARM_ROOT_MARGIN } from "../constants/performance";
 import { PROCESS_STAGES } from "../data/stages.js";
@@ -19,19 +13,52 @@ const ROUTE_VIEW_BOX = "0 0 1004 963";
 const ROUTE_PATH =
     "M0.183594 1.48877C152.684 20.2111 509.781 55.2137 718.164 45.4455C926.547 35.6772 957.443 79.8015 950.464 102.599C934.847 153.617 361.758 240.832 274.018 279.881C274.018 279.881 229.491 293.896 206.405 311.765C199.004 317.494 193.814 319.998 188.515 327.714C183.095 335.608 179.989 350.704 179.989 350.704C176.487 368.061 195.337 403.703 225.887 413.169C261.353 424.158 968.624 516.759 968.624 516.759C968.624 516.759 1118.65 567.157 781.615 646.188C444.579 725.218 381.671 723.207 162.605 817.13C82.8268 851.335 150.496 886.598 225.887 898.727C420.078 929.97 757.805 952.93 957.396 961.211";
 
+/**
+ * Process imagery, shipped at several widths per stage.
+ *
+ * `slot`/`wideSlot` are the image's MEASURED rendered width in CSS pixels, not
+ * an estimate: these are sized off the flow container rather than the
+ * viewport, so a `vw`-based `sizes` would be wrong at every breakpoint. The
+ * slot stays ~230-380px from 375px up to a 1440px viewport and only grows
+ * past that, which is the one case `wideSlot` covers. A single 1400px master
+ * was therefore roughly four times the pixels any phone actually needed.
+ */
+const processImageUrls = import.meta.glob("../assets/process/stage-*.webp", {
+    eager: true,
+    query: "?url",
+    import: "default",
+});
+
+const processImage = (name) => processImageUrls[`../assets/process/${name}.webp`];
+
 const stageMedia = [
-    [discoveryImage, 2731, 4096, styles.stage1],
-    [strategyImage, 4000, 2667, styles.stage2],
-    [wireframesImage, 4096, 2731, styles.stage3],
-    [designImage, 4096, 2731, styles.stage4],
-    [developmentImage, 4096, 2300, styles.stage5],
-    [launchImage, 4096, 2731, styles.stage6],
+    // stage 1 is the one portrait master, and at 933px wide it is already
+    // below the 1200 tier, so it ships only the two smaller variants.
+    { base: "stage-1-discovery", width: 933, height: 1400, variants: [400, 800], slot: 232, wideSlot: 284, className: styles.stage1 },
+    { base: "stage-2-strategy", width: 1400, height: 933, variants: [400, 800, 1200], slot: 275, wideSlot: 335, className: styles.stage2 },
+    { base: "stage-3-wireframes", width: 1400, height: 933, variants: [400, 800, 1200], slot: 261, wideSlot: 319, className: styles.stage3 },
+    { base: "stage-4-design", width: 1400, height: 933, variants: [400, 800, 1200], slot: 293, wideSlot: 357, className: styles.stage4 },
+    { base: "stage-5-development", width: 1400, height: 786, variants: [400, 800, 1200], slot: 376, wideSlot: 460, className: styles.stage5 },
+    { base: "stage-6-launch", width: 1400, height: 933, variants: [400, 800, 1200], slot: 284, wideSlot: 347, className: styles.stage6 },
 ];
 
 const stages = PROCESS_STAGES.map((stage, index) => {
-    const [image, imageWidth, imageHeight, className] = stageMedia[index];
+    const media = stageMedia[index];
 
-    return { ...stage, image, imageWidth, imageHeight, className };
+    return {
+        ...stage,
+        image: processImage(media.base),
+        imageSrcSet: [
+            ...media.variants.map(
+                (width) => `${processImage(`${media.base}-${width}`)} ${width}w`,
+            ),
+            `${processImage(media.base)} ${media.width}w`,
+        ].join(", "),
+        imageSizes: `(min-width: 90rem) ${media.wideSlot}px, ${media.slot}px`,
+        imageWidth: media.width,
+        imageHeight: media.height,
+        className: media.className,
+    };
 });
 
 function clamp(value, min = 0, max = 1) {
@@ -597,6 +624,8 @@ export default function Stages() {
                                     <span className={styles.media}>
                                         <img
                                             src={stage.image}
+                                            srcSet={stage.imageSrcSet}
+                                            sizes={stage.imageSizes}
                                             alt=""
                                             width={stage.imageWidth}
                                             height={stage.imageHeight}

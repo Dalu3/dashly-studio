@@ -30,3 +30,15 @@ declare module "*.frag?raw" {
     const source: string;
     export default source;
 }
+
+/**
+ * Google reCAPTCHA v2, loaded from its own script tag by `ContactForm`.
+ * Only the three calls that form actually makes are declared; the widget is
+ * auto-rendered from `class="g-recaptcha"`, so `render` is never called.
+ */
+interface Window {
+    grecaptcha?: {
+        getResponse: (widgetId?: number) => string;
+        reset: (widgetId?: number) => void;
+    };
+}
