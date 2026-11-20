@@ -241,3 +241,46 @@ export function trackAnalyticsPageView({
         page_title: pageTitle ?? document.title,
     });
 }
+
+// Tracking failures must never change the UI state of the action that
+// triggered them, so every send is best effort and swallows its errors.
+function trackConsentedEvent(eventName, parameters) {
+    if (typeof window === "undefined" || !analyticsConsentGranted) {
+        return;
+    }
+
+    void enableAnalytics()
+        .then(() => {
+            // Consent may have been withdrawn while the tag was loading.
+            if (
+                !analyticsConsentGranted ||
+                !analyticsConfigured ||
+                window[`ga-disable-${ANALYTICS_MEASUREMENT_ID}`]
+            ) {
+                return;
+            }
+
+            window.gtag("event", eventName, {
+                send_to: ANALYTICS_MEASUREMENT_ID,
+                ...parameters,
+            });
+        })
+        .catch(() => {
+            // The user action already succeeded; analytics is best effort.
+        });
+}
+
+// Call only after EmailJS accepts the enquiry. Never include form contents.
+export function trackSuccessfulEnquiry() {
+    trackConsentedEvent("generate_lead", { form_name: "project_enquiry" });
+}
+
+export function trackEmailClick() {
+    trackConsentedEvent("email_click", { link_location: "contact_section" });
+}
+
+// `platform` is the stable identity from constants/socialLinks.ts, never the
+// profile URL, so the GA4 dimension stays a small closed set of values.
+export function trackSocialClick(platform) {
+    trackConsentedEvent("social_click", { platform });
+}

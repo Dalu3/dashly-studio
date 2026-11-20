@@ -44,14 +44,21 @@ const serviceAreas = [
 
 export const homePage = {
     key: "home", kind: "home", path: "/",
-    title: "Web Design & Development Studio in Scotland | Dashly Studio",
-    description: "Dashly Studio is a Scotland-based web design and development studio creating custom websites for businesses worldwide.",
+    title: "Custom Web Design & Development UK | Dashly Studio",
+    description: "Scotland-based web design and development studio creating custom websites for businesses across the UK. Built without templates. Explore our work and get an estimate.",
     robots: PAGE_ROBOTS_INDEX, indexable: true,
 };
 
 export const legalPages = {
     privacy: { key: "privacy", kind: "legal", path: "/privacy/", title: "Privacy Policy | Dashly Studio", description: "Privacy policy for Dashly Studio, a web design and website development studio based in Aberdeen, Scotland and serving businesses worldwide.", robots: PAGE_ROBOTS_NOINDEX, indexable: false },
     terms: { key: "terms", kind: "legal", path: "/terms/", title: "Terms and Conditions | Dashly Studio", description: "Terms and conditions for Dashly Studio, a web design and website development studio based in Aberdeen, Scotland and serving businesses worldwide.", robots: PAGE_ROBOTS_NOINDEX, indexable: false },
+};
+
+export const thankYouPage = {
+    key: "thankYou", kind: "utility", path: "/thank-you/",
+    title: "Thank You | Dashly Studio",
+    description: "Your project enquiry has reached Dashly Studio. We reply to every enquiry within one business day.",
+    robots: PAGE_ROBOTS_NOINDEX, indexable: false,
 };
 
 export const notFoundPage = {
@@ -65,6 +72,7 @@ export const pageMetadata = {
     [homePage.key]: homePage,
     [legalPages.privacy.key]: legalPages.privacy,
     [legalPages.terms.key]: legalPages.terms,
+    [thankYouPage.key]: thankYouPage,
 };
 
 export const staticPages = Object.values(pageMetadata);

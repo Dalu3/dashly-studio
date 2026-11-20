@@ -1,0 +1,94 @@
+<div style="margin:0;padding:24px;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,Arial,sans-serif;color:#18181b;">
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="max-width:640px;margin:0 auto;background:#ffffff;border:1px solid #e4e4e7;border-radius:12px;">
+    <tr>
+      <td style="padding:24px 28px 8px 28px;">
+        <p style="margin:0 0 4px 0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#71717a;">Dashly Studio — new enquiry</p>
+        <h1 style="margin:0;font-size:22px;line-height:1.3;font-weight:600;color:#18181b;">{{name}}</h1>
+        <p style="margin:6px 0 0 0;font-size:15px;color:#52525b;">{{projectType}}</p>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding:16px 28px 0 28px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="font-size:15px;line-height:1.5;">
+          <tr>
+            <td width="150" style="padding:10px 12px 10px 0;color:#71717a;vertical-align:top;border-top:1px solid #f4f4f5;">Name</td>
+            <td style="padding:10px 0;vertical-align:top;border-top:1px solid #f4f4f5;">{{#name}}{{name}}{{/name}}{{^name}}&mdash;{{/name}}</td>
+          </tr>
+          <tr>
+            <td width="150" style="padding:10px 12px 10px 0;color:#71717a;vertical-align:top;border-top:1px solid #f4f4f5;">Email</td>
+            <td style="padding:10px 0;vertical-align:top;border-top:1px solid #f4f4f5;">{{#email}}<a href="mailto:{{email}}" style="color:#2563eb;text-decoration:underline;">{{email}}</a>{{/email}}{{^email}}&mdash;{{/email}}</td>
+          </tr>
+          <tr>
+            <td width="150" style="padding:10px 12px 10px 0;color:#71717a;vertical-align:top;border-top:1px solid #f4f4f5;">What they need</td>
+            <td style="padding:10px 0;vertical-align:top;border-top:1px solid #f4f4f5;">{{#projectType}}{{projectType}}{{/projectType}}{{^projectType}}&mdash;{{/projectType}}</td>
+          </tr>
+          <tr>
+            <td width="150" style="padding:10px 12px 10px 0;color:#71717a;vertical-align:top;border-top:1px solid #f4f4f5;">Budget</td>
+            <td style="padding:10px 0;vertical-align:top;border-top:1px solid #f4f4f5;">{{#budget}}{{budget}}{{/budget}}{{^budget}}&mdash;{{/budget}}</td>
+          </tr>
+          <tr>
+            <td width="150" style="padding:10px 12px 10px 0;color:#71717a;vertical-align:top;border-top:1px solid #f4f4f5;">Timeline</td>
+            <td style="padding:10px 0;vertical-align:top;border-top:1px solid #f4f4f5;">{{#timeline}}{{timeline}}{{/timeline}}{{^timeline}}&mdash;{{/timeline}}</td>
+          </tr>
+          <tr>
+            <td width="150" style="padding:10px 12px 10px 0;color:#71717a;vertical-align:top;border-top:1px solid #f4f4f5;">Message</td>
+            <td style="padding:10px 0;vertical-align:top;border-top:1px solid #f4f4f5;white-space:pre-wrap;">{{#message}}{{message}}{{/message}}{{^message}}&mdash;{{/message}}</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding:24px 28px 0 28px;">
+        <p style="margin:0 0 4px 0;font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#71717a;">Estimator</p>
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="font-size:15px;line-height:1.5;">
+          <tr>
+            <td width="150" style="padding:10px 12px 10px 0;color:#71717a;vertical-align:top;border-top:1px solid #f4f4f5;">Website type</td>
+            <td style="padding:10px 0;vertical-align:top;border-top:1px solid #f4f4f5;">{{#estimatorWebsiteType}}{{estimatorWebsiteType}}{{/estimatorWebsiteType}}{{^estimatorWebsiteType}}&mdash;{{/estimatorWebsiteType}}</td>
+          </tr>
+          <tr>
+            <td width="150" style="padding:10px 12px 10px 0;color:#71717a;vertical-align:top;border-top:1px solid #f4f4f5;">Pages</td>
+            <td style="padding:10px 0;vertical-align:top;border-top:1px solid #f4f4f5;">{{#estimatorPages}}{{estimatorPages}}{{/estimatorPages}}{{^estimatorPages}}&mdash;{{/estimatorPages}}</td>
+          </tr>
+          <tr>
+            <td width="150" style="padding:10px 12px 10px 0;color:#71717a;vertical-align:top;border-top:1px solid #f4f4f5;">Add-ons</td>
+            <td style="padding:10px 0;vertical-align:top;border-top:1px solid #f4f4f5;">{{#estimatorFeatures}}{{estimatorFeatures}}{{/estimatorFeatures}}{{^estimatorFeatures}}&mdash;{{/estimatorFeatures}}</td>
+          </tr>
+          <tr>
+            <td width="150" style="padding:10px 12px 10px 0;color:#71717a;vertical-align:top;border-top:1px solid #f4f4f5;">Starting point</td>
+            <td style="padding:10px 0;vertical-align:top;border-top:1px solid #f4f4f5;">{{#estimatorStartingPoint}}{{estimatorStartingPoint}}{{/estimatorStartingPoint}}{{^estimatorStartingPoint}}&mdash;{{/estimatorStartingPoint}}</td>
+          </tr>
+          <tr>
+            <td width="150" style="padding:10px 12px 10px 0;color:#71717a;vertical-align:top;border-top:1px solid #f4f4f5;">Estimate</td>
+            <td style="padding:10px 0;vertical-align:top;border-top:1px solid #f4f4f5;">{{#estimatorEstimate}}<strong>{{estimatorEstimate}}</strong>{{/estimatorEstimate}}{{^estimatorEstimate}}&mdash;{{/estimatorEstimate}}</td>
+          </tr>
+          <tr>
+            <td width="150" style="padding:10px 12px 10px 0;color:#71717a;vertical-align:top;border-top:1px solid #f4f4f5;">Estimated range</td>
+            <td style="padding:10px 0;vertical-align:top;border-top:1px solid #f4f4f5;">{{#estimatorRange}}{{estimatorRange}}{{/estimatorRange}}{{^estimatorRange}}&mdash;{{/estimatorRange}}</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+
+    <tr>
+      <td style="padding:20px 28px 28px 28px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr>
+            <td style="padding:14px 0 0 0;border-top:1px solid #e4e4e7;">
+              <a href="mailto:{{email}}?subject=Re%3A%20your%20Dashly%20Studio%20enquiry" style="display:inline-block;padding:10px 18px;background:#18181b;color:#ffffff;font-size:14px;font-weight:600;text-decoration:none;border-radius:8px;">Reply to {{name}}</a>
+            </td>
+          </tr>
+          {{#estimatorRaw}}
+          <tr>
+            <td style="padding:16px 0 0 0;">
+              <p style="margin:0 0 4px 0;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:#a1a1aa;">Raw estimator payload</p>
+              <p style="margin:0;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11px;line-height:1.5;color:#71717a;word-break:break-all;">{{estimatorRaw}}</p>
+            </td>
+          </tr>
+          {{/estimatorRaw}}
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>

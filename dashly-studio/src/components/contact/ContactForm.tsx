@@ -1,9 +1,10 @@
 import emailjs from "@emailjs/browser";
 import { useEffect, useRef, useState } from "react";
-import { createPortal } from "react-dom";
 import type { ChangeEvent, FocusEvent, FormEvent } from "react";
 
 import { cn } from "@/utils/cn";
+import { thankYouPage } from "@/seo/siteMetadata.js";
+import { trackSuccessfulEnquiry } from "@/utils/consentScripts";
 import {
     PROJECT_TYPE_OPTIONS,
     PROJECT_TYPE_SELECT_EVENT,
@@ -100,23 +101,43 @@ function validateField(field: keyof FormValues, rawValue: string): string {
     return "";
 }
 
-function estimatorMessage(summary: Record<string, unknown>): string {
+const formatPounds = (amount: number) => `£${Math.round(amount).toLocaleString("en-GB")}`;
+
+/** Flattens the estimator hand-off into one hidden field per answer so the
+ *  EmailJS template can label each line instead of printing raw JSON. Empty
+ *  strings matter: the template renders its "—" placeholder through an
+ *  inverted `{{^field}}` section exactly when a value is missing. */
+function estimatorFields(summary: Record<string, unknown> | null) {
+    if (!summary) {
+        return {
+            websiteType: "",
+            pages: "",
+            features: "",
+            startingPoint: "",
+            estimate: "",
+            range: "",
+        };
+    }
+
     const features = Array.isArray(summary.features) ? summary.features.map(String) : [];
-    const estimateRange = summary.estimateRange && typeof summary.estimateRange === "object"
+    const range = summary.estimateRange && typeof summary.estimateRange === "object"
         ? summary.estimateRange as Record<string, unknown>
         : null;
-    const rangeText = estimateRange && estimateRange.minimum !== undefined && estimateRange.maximum !== undefined
-        ? `£${estimateRange.minimum}–£${estimateRange.maximum}`
-        : "To be confirmed";
+    const minimum = range?.minimum;
+    const maximum = range?.maximum;
 
-    return [
-        "Estimator selections:",
-        `Website: ${String(summary.websiteType ?? "Not specified")}`,
-        `Pages: ${String(summary.pageCount ?? "Not specified")}`,
-        `Add-ons: ${features.length > 0 ? features.join(", ") : "None"}`,
-        `Starting point: ${String(summary.startingPoint ?? "Not specified")}`,
-        `Estimated range: ${rangeText}`,
-    ].join("\n");
+    return {
+        websiteType: String(summary.websiteType ?? ""),
+        pages: typeof summary.pageCount === "number" ? String(summary.pageCount) : "",
+        features: features.join(", "),
+        startingPoint: String(summary.startingPoint ?? ""),
+        estimate: typeof summary.estimate === "number" && Number.isFinite(summary.estimate)
+            ? formatPounds(summary.estimate)
+            : "",
+        range: typeof minimum === "number" && typeof maximum === "number"
+            ? `${formatPounds(minimum)} – ${formatPounds(maximum)}`
+            : "",
+    };
 }
 
 function validateForm(values: FormValues): FormErrors {
@@ -146,15 +167,14 @@ export function ContactForm() {
     const [touched, setTouched] =
         useState<Record<keyof FormValues, boolean>>(INITIAL_TOUCHED);
     const [isSubmitting, setIsSubmitting] = useState(false);
+    // Bots fill this; real visitors never see it. See `handleSubmit`.
+    const [honeypot, setHoneypot] = useState("");
     const [statusMessage, setStatusMessage] = useState("");
     const [isError, setIsError] = useState(false);
     const [showStatus, setShowStatus] = useState(false);
     const [formErrorSummary, setFormErrorSummary] = useState("");
     const [estimateSummary, setEstimateSummary] = useState<Record<string, unknown> | null>(null);
-    const savedEstimate = typeof estimateSummary?.estimate === "number"
-        ? estimateSummary.estimate
-        : null;
-    const hasSavedEstimate = savedEstimate !== null && Number.isFinite(savedEstimate);
+    const estimator = estimatorFields(estimateSummary);
 
     useEffect(() => {
         const handleEstimateHandoff = (event: Event) => {
@@ -175,7 +195,6 @@ export function ContactForm() {
                 ...current,
                 projectType,
                 timeline: String(summary.timeline ?? current.timeline),
-                message: projectType === "Web Application" ? "" : estimatorMessage(summary),
             }));
         };
         window.addEventListener(ESTIMATE_HANDOFF_EVENT, handleEstimateHandoff);
@@ -190,21 +209,6 @@ export function ContactForm() {
         const timer = setTimeout(() => setShowStatus(false), 4000);
         return () => clearTimeout(timer);
     }, [showStatus]);
-
-    useEffect(() => {
-        if (!showStatus || isError) {
-            return undefined;
-        }
-
-        const handleKeyDown = (event: KeyboardEvent) => {
-            if (event.key === "Escape") {
-                setShowStatus(false);
-            }
-        };
-
-        document.addEventListener("keydown", handleKeyDown);
-        return () => document.removeEventListener("keydown", handleKeyDown);
-    }, [isError, showStatus]);
 
     useEffect(() => {
         if (formErrorSummary) {
@@ -270,8 +274,24 @@ export function ContactForm() {
         setErrors((current) => ({ ...current, [field]: validateField(field, value) }));
     };
 
+    const resetForm = () => {
+        setFormValues(INITIAL_FORM_VALUES);
+        setErrors(INITIAL_ERRORS);
+        setTouched(INITIAL_TOUCHED);
+    };
+
     const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
         event.preventDefault();
+
+        // A filled honeypot means a bot. Mirror the reset a person sees on
+        // success without sending the email, tracking a lead or navigating,
+        // so the submission looks accepted and reveals nothing.
+        if (honeypot) {
+            setFormErrorSummary("");
+            setHoneypot("");
+            resetForm();
+            return;
+        }
 
         const nextErrors = validateForm(formValues);
         const hasErrors = Object.values(nextErrors).some(Boolean);
@@ -306,12 +326,14 @@ export function ContactForm() {
                 formRef.current,
                 "OTcxOIk9MP9dFnPQG",
             );
-            setStatusMessage("Thanks — we'll get back to you within one business day.");
-            setIsError(false);
-            setShowStatus(true);
-            setFormValues(INITIAL_FORM_VALUES);
-            setErrors(INITIAL_ERRORS);
-            setTouched(INITIAL_TOUCHED);
+            resetForm();
+            // Track the lead before navigating: the event is queued on the
+            // same gtag instance either way, but firing first keeps the
+            // conversion independent of the route transition.
+            trackSuccessfulEnquiry();
+            window.scrollTo(0, 0);
+            window.history.pushState({}, "", thankYouPage.path);
+            window.dispatchEvent(new PopStateEvent("popstate"));
         } catch {
             setStatusMessage("Something went wrong. Please try again shortly.");
             setIsError(true);
@@ -333,8 +355,29 @@ export function ContactForm() {
                     {formErrorSummary}
                 </div>
             )}
-            <input type="hidden" name="estimator_summary" value={estimateSummary ? JSON.stringify(estimateSummary) : ""} />
-            <input type="hidden" name="estimated_price" value={hasSavedEstimate ? String(savedEstimate) : ""} />
+            {/* Honeypot: rendered (so bots fill it) but hidden from sight,
+                assistive technology and the tab order. */}
+            <div className={styles.honeypot} aria-hidden="true">
+                <label htmlFor="contact-company-website">Company website</label>
+                <input
+                    id="contact-company-website"
+                    name="company_website"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={honeypot}
+                    onChange={(event) => setHoneypot(event.target.value)}
+                />
+            </div>
+            {/* Estimator hand-off: one named field per answer so the EmailJS
+                template can label them, plus the raw payload as a fallback. */}
+            <input type="hidden" name="estimatorWebsiteType" value={estimator.websiteType} />
+            <input type="hidden" name="estimatorPages" value={estimator.pages} />
+            <input type="hidden" name="estimatorFeatures" value={estimator.features} />
+            <input type="hidden" name="estimatorStartingPoint" value={estimator.startingPoint} />
+            <input type="hidden" name="estimatorEstimate" value={estimator.estimate} />
+            <input type="hidden" name="estimatorRange" value={estimator.range} />
+            <input type="hidden" name="estimatorRaw" value={estimateSummary ? JSON.stringify(estimateSummary) : ""} />
             <FormField
                 id="contact-name"
                 name="name"
@@ -430,31 +473,6 @@ export function ContactForm() {
                 </span>
             )}
 
-            {showStatus && !isError && typeof document !== "undefined" &&
-                createPortal(
-                    <div
-                        className={styles.successModalBackdrop}
-                        onClick={() => setShowStatus(false)}
-                    >
-                        <div
-                            className={styles.successModal}
-                            role="dialog"
-                            aria-modal="true"
-                            aria-labelledby="contact-success-title"
-                            aria-describedby="contact-success-description"
-                            onClick={(event) => event.stopPropagation()}
-                        >
-                            <div className={styles.successIcon} aria-hidden="true">
-                                <span />
-                            </div>
-                            <h2 id="contact-success-title">Thank you!</h2>
-                            <p id="contact-success-description">
-                                We&rsquo;ll get back to you within one business day.
-                            </p>
-                        </div>
-                    </div>,
-                    document.body,
-                )}
         </form>
     );
 }
