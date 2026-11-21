@@ -30,6 +30,22 @@
         "--strictPort"
       ],
       "port": 5190
+    },
+    {
+      "name": "dashly-dev-lan",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": [
+        "run",
+        "dev",
+        "--prefix",
+        "dashly-studio",
+        "--",
+        "--host",
+        "--port",
+        "5181",
+        "--strictPort"
+      ],
+      "port": 5181
     }
   ]
 }
