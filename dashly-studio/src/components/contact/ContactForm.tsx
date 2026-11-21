@@ -355,23 +355,6 @@ export function ContactForm() {
             return;
         }
 
-        // Same silent accept for a submission that could not have been typed:
-        // no email, no lead tracked, no redirect, and nothing in the UI that
-        // tells a script which check it tripped.
-        //
-        // A null `firstFocusAt` is its own signal, not a missing measurement.
-        // Reaching a valid submission means name, email and message were
-        // filled, and there is no way to type into a field without focusing
-        // it — so no focus at all means the DOM was written to by a script.
-        // Measuring from mount instead would let exactly that bot through
-        // simply by waiting before it fills the form.
-        const firstFocusAt = firstFocusAtRef.current;
-
-        if (firstFocusAt === null || Date.now() - firstFocusAt < MIN_FILL_MS) {
-            resetForm();
-            return;
-        }
-
         const nextErrors = validateForm(formValues);
         const hasErrors = Object.values(nextErrors).some(Boolean);
 
@@ -397,6 +380,27 @@ export function ContactForm() {
                 document.getElementById(firstInvalid[1])?.focus();
             }
 
+            return;
+        }
+
+        // Only now, once the submission is otherwise valid, do the silent
+        // traps run. Validation has to come first: a person who clicks Send
+        // on an empty form has not focused anything, which would trip the
+        // no-focus trap and reset the form without ever showing them why.
+        // Running the traps last means they only ever swallow submissions
+        // that would actually have been sent.
+        //
+        // A null `firstFocusAt` is its own signal, not a missing measurement:
+        // there is no way to type a name, email and message without focusing
+        // a field, so no focus at all means a script wrote the DOM. Measuring
+        // from mount instead would let exactly that bot through by waiting.
+        //
+        // Nothing here is announced — no email, no lead tracked, no redirect,
+        // and nothing in the UI that tells a script which check it tripped.
+        const firstFocusAt = firstFocusAtRef.current;
+
+        if (firstFocusAt === null || Date.now() - firstFocusAt < MIN_FILL_MS) {
+            resetForm();
             return;
         }
 
@@ -528,7 +532,7 @@ export function ContactForm() {
                 id="contact-timeline"
                 name="timeline"
                 label="When do you need the website?"
-                className={styles.fullWidth}
+                className={cn(styles.fullWidth, styles.noErrorSlot)}
                 placeholder="Within 2-3 months/flexible/need immediately"
                 value={formValues.timeline}
                 onChange={handleChange}

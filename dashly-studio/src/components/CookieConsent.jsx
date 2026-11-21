@@ -199,8 +199,10 @@ export default function CookieConsent() {
                               id={descriptionId}
                               className="cookie-consent-modal__intro"
                           >
-                              Necessary cookies keep the website working properly.
-                              You can choose whether to allow analytics.
+                              Necessary cookies keep the website working
+                              properly and are always on. Analytics and
+                              advertising cookies stay off until you turn them
+                              on here.
                           </p>
 
                           <div className="cookie-consent-modal__categories">
@@ -287,7 +289,7 @@ export default function CookieConsent() {
                                       className="cookie-consent-button cookie-consent-button--primary"
                                       onClick={acceptAll}
                                   >
-                                      Accept Analytics
+                                      Accept All
                                   </InlineTextAction>
                               </div>
                           </div>
@@ -307,9 +309,11 @@ export default function CookieConsent() {
                   >
                       <div className="cookie-consent-banner__content">
                           <p>
-                              We use necessary cookies and optional analytics to
-                              understand how our website is used. You can accept
-                              analytics or manage your preferences. See our{" "}
+                              We use necessary cookies to run the website, plus
+                              optional analytics and advertising cookies. The
+                              optional ones stay off unless you accept them. You
+                              can accept all, reject the optional ones, or choose
+                              per category. See our{" "}
                               <a
                                   href="/privacy/"
                                   className="cookie-consent-banner__link"
@@ -332,10 +336,18 @@ export default function CookieConsent() {
                           <InlineTextAction
                               as="button"
                               type="button"
+                              className="cookie-consent-banner__link cookie-consent-banner__manage"
+                              onClick={rejectAll}
+                          >
+                              Reject All
+                          </InlineTextAction>
+                          <InlineTextAction
+                              as="button"
+                              type="button"
                               className="cookie-consent-button cookie-consent-button--primary"
                               onClick={acceptAll}
                           >
-                              Accept Analytics
+                              Accept All
                           </InlineTextAction>
                       </div>
                   </section>,

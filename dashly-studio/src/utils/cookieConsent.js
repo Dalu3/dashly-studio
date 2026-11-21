@@ -1,5 +1,5 @@
 export const COOKIE_CONSENT_STORAGE_KEY = "dashly-cookie-consent";
-export const COOKIE_CONSENT_VERSION = 1;
+export const COOKIE_CONSENT_VERSION = 2;
 export const ANALYTICS_MEASUREMENT_ID = "G-PVGN8D7LNY";
 
 export const COOKIE_CATEGORY_DETAILS = {
@@ -11,14 +11,20 @@ export const COOKIE_CATEGORY_DETAILS = {
     analytics: {
         label: "Analytics",
         description:
-            "These cookies help us understand how visitors use the website so we can improve performance and content.",
+            "These cookies help us understand how visitors use the website so we can improve performance and content. They are off until you allow them.",
+    },
+    advertising: {
+        label: "Advertising",
+        description:
+            "These cookies let us measure which adverts bring people to the website and show relevant adverts elsewhere. They are off until you allow them.",
     },
 };
 
 export function getDefaultConsentPreferences() {
     return {
         necessary: true,
-        analytics: true,
+        analytics: false,
+        advertising: false,
     };
 }
 
@@ -28,23 +34,36 @@ export function getGoogleConsentModeState(preferences = {}) {
         ...preferences,
         necessary: true,
     };
+    const advertising = normalizedPreferences.advertising
+        ? "granted"
+        : "denied";
+
     return {
         analytics_storage: normalizedPreferences.analytics
             ? "granted"
             : "denied",
-        ad_storage: "denied",
-        ad_user_data: "denied",
-        ad_personalization: "denied",
+        ad_storage: advertising,
+        ad_user_data: advertising,
+        ad_personalization: advertising,
     };
 }
 
 function normalizePreferences(preferences = {}) {
+    const defaults = getDefaultConsentPreferences();
+
+    // An absent key reads as "not consented", never as the previous default.
+    // A record written before a category existed therefore leaves that
+    // category off rather than silently inheriting consent it never carried.
     return {
-        ...getDefaultConsentPreferences(),
+        ...defaults,
         analytics:
             typeof preferences.analytics === "boolean"
                 ? preferences.analytics
-                : getDefaultConsentPreferences().analytics,
+                : defaults.analytics,
+        advertising:
+            typeof preferences.advertising === "boolean"
+                ? preferences.advertising
+                : defaults.advertising,
         necessary: true,
     };
 }
@@ -81,6 +100,7 @@ export function createAcceptedConsent() {
     return createConsentRecord(
         {
             analytics: true,
+            advertising: true,
         },
         "accept_all",
     );
@@ -90,6 +110,7 @@ export function createRejectedConsent() {
     return createConsentRecord(
         {
             analytics: false,
+            advertising: false,
         },
         "reject_all",
     );

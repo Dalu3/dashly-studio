@@ -32,8 +32,6 @@ export const homeContent = {
     packagesIntro: "Choose the type of website you need, then move into a build that is designed to rank, load quickly, and turn visits into enquiries.",
     stagesIntro: "A clear process keeps your website project moving from planning to launch without guesswork, missed pages, or weak structure.",
     faqIntro: "These are the questions we hear most often from small businesses planning a new website, landing page, or redesign.",
-    contactEyebrow: "Project Enquiries",
-    contactIntro: "Tell us what you need and we will recommend the best next step for your website, landing page, or redesign project.",
 };
 
 const serviceAreas = [

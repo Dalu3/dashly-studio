@@ -1,6 +1,4 @@
 import { cn } from "@/utils/cn";
-import { SITE_EMAIL } from "@/seo/siteMetadata.js";
-import { trackEmailClick } from "@/utils/consentScripts";
 
 import { ContactForm } from "./ContactForm";
 import styles from "./Contact.module.css";
@@ -28,17 +26,6 @@ export default function Contact() {
                     <p className={styles.body}>
                         We&rsquo;d love to hear about your idea. Fill out the form and
                         we&rsquo;ll get back to you within one business day.
-                    </p>
-                    <p className={styles.body}>
-                        Prefer email? Write to us at{" "}
-                        <a
-                            className={styles.emailLink}
-                            href={`mailto:${SITE_EMAIL}`}
-                            onClick={() => trackEmailClick()}
-                        >
-                            {SITE_EMAIL}
-                        </a>
-                        .
                     </p>
                 </header>
 

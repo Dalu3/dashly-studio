@@ -7,6 +7,9 @@ import {
 const GOOGLE_ANALYTICS_SCRIPT_ID = "dashly-google-analytics";
 const GOOGLE_ANALYTICS_SCRIPT_SRC = `https://www.googletagmanager.com/gtag/js?id=${ANALYTICS_MEASUREMENT_ID}`;
 const ANALYTICS_COOKIE_PREFIXES = ["_ga", "_gid", "_gat"];
+// Google's click/conversion identifiers, cleared when advertising
+// consent is absent or withdrawn, mirroring the analytics cleanup.
+const ADVERTISING_COOKIE_PREFIXES = ["_gcl", "_gac"];
 
 let analyticsScriptPromise = null;
 let analyticsConfigured = false;
@@ -17,6 +20,7 @@ let lastConsentModeSignature = null;
 export const COOKIE_INTEGRATIONS = {
     necessary: [],
     analytics: ["Google Analytics 4"],
+    advertising: ["Google Ads"],
 };
 
 function ensureGtag() {
@@ -202,14 +206,20 @@ function disableAnalytics() {
     clearCookiesByPrefixes(ANALYTICS_COOKIE_PREFIXES);
 }
 
+function disableAdvertising() {
+    if (typeof window === "undefined") {
+        return;
+    }
+
+    clearCookiesByPrefixes(ADVERTISING_COOKIE_PREFIXES);
+}
+
 export function syncConsentScripts(consent) {
     initializeGoogleConsentMode();
 
-    const preferences = consent?.preferences ?? {
-        ...getDefaultConsentPreferences(),
-        analytics: false,
-    };
+    const preferences = consent?.preferences ?? getDefaultConsentPreferences();
     const analyticsEnabled = Boolean(preferences.analytics);
+    const advertisingEnabled = Boolean(preferences.advertising);
     const hasConsentDecision = Boolean(consent);
 
     applyGoogleConsentState(hasConsentDecision, preferences);
@@ -219,6 +229,10 @@ export function syncConsentScripts(consent) {
         void enableAnalytics();
     } else {
         disableAnalytics();
+    }
+
+    if (!advertisingEnabled) {
+        disableAdvertising();
     }
 }
 

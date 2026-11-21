@@ -85,11 +85,13 @@ export function FormField({
                     aria-describedby={hasError ? errorId : undefined}
                 />
             )}
-            {hasError && (
-                <span id={errorId} className={styles.error} aria-live="polite">
-                    {error}
-                </span>
-            )}
+            <span
+                id={errorId}
+                className={styles.error}
+                aria-live="polite"
+            >
+                {error}
+            </span>
         </div>
     );
 }

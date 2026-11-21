@@ -22,6 +22,40 @@ Run these from `dashly-studio/`:
 - `npm run build` — builds **and overwrites `/docs`**, i.e. it stages a production deploy. Only run when a deploy is explicitly requested.
 - `npm run typecheck`, `npm run lint` — must both pass before handing work back.
 
+## Future performance work
+
+### Option 3 — styled prerendered hero fallback for LCP (not implemented)
+
+Status: **deferred, future work.** Do not start it without asking.
+
+Today the first paint is handled by two separate things:
+
+- `scripts/postbuild.mjs` prerenders semantic, essentially unstyled markup
+  into `#static-page-content` (including `<h1 id="hero-title">`). It exists for
+  no-JS visitors and crawlers. `src/main.jsx` hides it the moment the module
+  runs and removes it after React commits.
+- `index.html` paints `#initial-hero-poster`, a fixed-position `<img>` of the
+  hero's own poster, over the whole viewport until React's first commit.
+
+So the element Lighthouse measures as LCP is that poster image, and the
+prerendered `<h1>` is deliberately never shown.
+
+Option 3 would instead give the prerendered hero its real styling — the hero
+typography, colours and layout inlined as critical CSS in the document head —
+so the server-sent `<h1>` is itself the LCP element, painted on the first
+frame with no overlay and no wait for the React bundle. The poster would stay
+as the background rather than as the thing being measured.
+
+Why it is worth doing: it moves LCP off a ~29 KB image decode and onto text
+that is already in the HTML, and it removes the hand-off flash entirely.
+
+Why it is not done yet: it means duplicating locked hero typography into
+critical CSS, which `dashly-studio/AGENTS.md` and
+`dashly-studio/DEVELOPMENT.md` govern, and keeping the duplicate in sync with
+the hero tokens. It also needs care so the prerendered hero and the React hero
+agree pixel-for-pixel, or the swap becomes a visible reflow — a worse outcome
+than the current poster.
+
 ## Conventions
 
 Before writing or refactoring UI, read [`dashly-studio/AGENTS.md`](dashly-studio/AGENTS.md) and

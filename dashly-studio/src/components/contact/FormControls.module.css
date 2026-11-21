@@ -1,6 +1,7 @@
 /** Shared token-driven visual language for all Contact form controls. */
 
 .field {
+    position: relative; /* the error slot below is taken out of flow */
     display: flex;
     flex-direction: column;
     text-align: left;
@@ -161,9 +162,19 @@
     }
 }
 
+/* Always in the DOM (empty when the field is valid) and taken out of flow, so
+   a message appearing costs the card no height at all and the controls keep
+   their original rhythm. It renders into the row gap underneath the field.
+   An always-present live region is also the reliable way to have a screen
+   reader announce the text when it arrives. */
 .error {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
     margin-top: var(--space-3xs);
     font-size: var(--font-size-xs);
+    line-height: var(--line-height-body-compact);
     color: var(--color-feedback-error);
 }
 

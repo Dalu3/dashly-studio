@@ -38,3 +38,12 @@ left out of the template.
 
 Empty values render as "—" through Mustache inverted sections
 (`{{^field}}—{{/field}}`), so optional fields never leave a blank row.
+
+The whole Estimator block — its "Estimator" heading and all six rows — is
+wrapped in `{{#estimatorWebsiteType}} … {{/estimatorWebsiteType}}`, so an
+enquiry sent without using the price estimator omits the section entirely
+rather than emailing a heading above six em-dashes. `estimatorWebsiteType` is
+the right sentinel because `estimatorFields()` in `ContactForm.tsx` only ever
+fills it from a real hand-off, and every other estimator field travels with
+it. The per-row `{{^field}}—{{/field}}` fallbacks are kept for the case where
+a hand-off arrives with some answers missing.

@@ -179,11 +179,13 @@ export function FormSelect({
                 )}
                 <input type="hidden" name={name} value={value} required={required} />
             </div>
-            {hasError && (
-                <span id={errorId} className={styles.error} aria-live="polite">
-                    {error}
-                </span>
-            )}
+            <span
+                id={errorId}
+                className={styles.error}
+                aria-live="polite"
+            >
+                {error}
+            </span>
         </div>
     );
 }

@@ -379,8 +379,9 @@ export default function Privacy() {
                 <h2>8. Cookies and Similar Technologies</h2>
                 <p>
                     Our website may use cookies and similar technologies to provide
-                    functionality, remember your preferences and understand website
-                    usage through optional analytics.
+                    functionality, remember your preferences, understand website
+                    usage through optional analytics, and measure optional
+                    advertising.
                 </p>
                 <p>These technologies may include:</p>
                 <ul>
@@ -424,11 +425,49 @@ export default function Privacy() {
                     not be activated until you choose to allow them.
                 </p>
                 <p>
-                    <strong>8.3 Cookie Preferences</strong>
+                    <strong>8.3 Advertising Technologies</strong>
+                </p>
+                <p>
+                    Advertising technologies may be used to measure and improve
+                    our advertising, including to:
+                </p>
+                <ul>
+                    <li>
+                        measure which adverts or campaigns led you to the
+                        website;
+                    </li>
+                    <li>
+                        measure whether an advert resulted in an enquiry;
+                    </li>
+                    <li>
+                        limit how often you are shown the same advert;
+                    </li>
+                    <li>
+                        show adverts that are more relevant to you on other
+                        websites and services.
+                    </li>
+                </ul>
+                <p>
+                    Advertising technologies are off by default and are not
+                    activated until you choose to allow them. Allowing the
+                    advertising category is what permits advertising storage,
+                    advertising user data and advertising personalisation; while
+                    it is off, all three remain denied.
+                </p>
+                <p>
+                    <strong>8.4 Cookie Preferences</strong>
                 </p>
                 <p>
                     When our website presents cookie or privacy controls, you can
-                    choose which optional categories you wish to allow.
+                    choose which optional categories you wish to allow. Analytics
+                    and advertising are both switched off until you turn them on.
+                </p>
+                <p>
+                    Choosing &ldquo;Accept All&rdquo; allows both the analytics
+                    and advertising categories. Choosing &ldquo;Reject
+                    All&rdquo; keeps both off and leaves only the necessary
+                    technologies active. You can also allow one category and not
+                    the other, and change your choice later.
                 </p>
                 <p>
                     Necessary technologies remain enabled where required for
@@ -455,7 +494,7 @@ export default function Privacy() {
                     before consent was withdrawn.
                 </p>
                 <p>
-                    <strong>8.4 Browser Controls</strong>
+                    <strong>8.5 Browser Controls</strong>
                 </p>
                 <p>Most browsers also allow you to:</p>
                 <ul>
@@ -488,7 +527,17 @@ export default function Privacy() {
                 <p>
                     <strong>Google Analytics 4</strong> is loaded only when you
                     allow analytics cookies. It helps us understand aggregate use
-                    of the website and may set analytics cookies.
+                    of the website and may set analytics cookies. It is not
+                    loaded, and sets no analytics cookies, before you allow the
+                    analytics category.
+                </p>
+                <p>
+                    <strong>Google Ads</strong> measurement is used only when you
+                    allow advertising cookies. It lets us see which adverts led
+                    to an enquiry and may set advertising cookies. While the
+                    advertising category is off, advertising storage, advertising
+                    user data and advertising personalisation are all denied and
+                    any advertising identifiers we can clear are removed.
                 </p>
                 <p>
                     <strong>EmailJS</strong> processes and delivers contact form
