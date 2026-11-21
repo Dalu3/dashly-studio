@@ -3,7 +3,6 @@ export type FurQualityName =
     | "balanced"
     | "tablet"
     | "mobile"
-    | "mobile-coarse"
     | "mobile-low";
 
 /** Widths at or below this get the mobile rasterisation budget: a half-size
@@ -137,33 +136,6 @@ export const FUR_QUALITY: Record<FurQualityName, FurQualityPreset> = {
         strandWidth: 0.00102,
         minStrandPixels: 0.92,
         shadeContrast: 0.68,
-        shellCount: 0,
-        shellLength: 0,
-        detailStrandFraction: 1,
-        silhouetteStrandFraction: 0,
-        silhouetteNormalThreshold: 0.4,
-    },
-    // A phone draws the word about a third of the width a desktop does, so
-    // the profile above puts several hairs on every pixel: past about one
-    // strand per pixel the extra ones stop being detail, because each is a
-    // different brightness and none is resolvable. This profile does what
-    // level of detail normally does — fewer strands, each wide enough to
-    // rasterise cleanly, with width and length carrying the coverage the
-    // instances gave up. Reachable as `?furQuality=mobile-coarse` so the
-    // dense-against-resolved comparison can be made on a real phone rather
-    // than in emulation, which cannot reproduce a 3x panel.
-    "mobile-coarse": {
-        name: "mobile-coarse",
-        density: 2.2e6,
-        msaa: true,
-        maxDpr: 3,
-        maxPhysicalPixels: 4.2e6,
-        idleFps: 20,
-        strokeRadius: 0.00875,
-        strandLength: 0.0088,
-        strandWidth: 0.0016,
-        minStrandPixels: 1.05,
-        shadeContrast: 0.74,
         shellCount: 0,
         shellLength: 0,
         detailStrandFraction: 1,

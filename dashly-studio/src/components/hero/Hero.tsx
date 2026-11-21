@@ -203,7 +203,11 @@ export function Hero({ children }: HeroProps) {
                         width={1232}
                         height={491}
                         decoding="async"
-                        fetchPriority="high"
+                        /* React only learned the camelCase spelling in 19.
+                           On 18 it warns and drops the attribute, so the
+                           hint never reached the browser; spread the real
+                           lowercase attribute name instead. */
+                        {...{ fetchpriority: "high" }}
                     />
                 </div>
             )}
