@@ -236,24 +236,49 @@ export function syncConsentScripts(consent) {
     }
 }
 
+// Must wait for the tag like trackConsentedEvent does. gtag.js drains the
+// dataLayer in order and discards any event queued ahead of the `config`
+// command for its measurement ID, so a page view pushed the moment consent
+// lands — while the script is still downloading — is thrown away. With
+// send_page_view disabled nothing takes its place, and the view is simply
+// lost, which on a first load is every landing page view there is.
 export function trackAnalyticsPageView({
     pagePath,
     pageLocation,
     pageTitle,
 } = {}) {
-    if (
-        typeof window === "undefined" ||
-        typeof window.gtag !== "function" ||
-        window[`ga-disable-${ANALYTICS_MEASUREMENT_ID}`]
-    ) {
+    if (typeof window === "undefined" || !analyticsConsentGranted) {
         return;
     }
 
-    window.gtag("event", "page_view", {
+    // Read the page identity now rather than after the await: a route change
+    // can land while the tag loads, and resolving the defaults later would
+    // attribute this view to whichever page won that race.
+    const pageParameters = {
         page_path: pagePath ?? window.location.pathname,
         page_location: pageLocation ?? window.location.href,
         page_title: pageTitle ?? document.title,
-    });
+    };
+
+    void enableAnalytics()
+        .then(() => {
+            // Consent may have been withdrawn while the tag was loading.
+            if (
+                !analyticsConsentGranted ||
+                !analyticsConfigured ||
+                window[`ga-disable-${ANALYTICS_MEASUREMENT_ID}`]
+            ) {
+                return;
+            }
+
+            window.gtag("event", "page_view", {
+                send_to: ANALYTICS_MEASUREMENT_ID,
+                ...pageParameters,
+            });
+        })
+        .catch(() => {
+            // Analytics is best effort; a lost page view changes no UI.
+        });
 }
 
 // Tracking failures must never change the UI state of the action that

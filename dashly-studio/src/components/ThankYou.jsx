@@ -21,7 +21,7 @@ export default function ThankYou() {
                     </span>
                     <h1 className="thank-you-page__title">Thank you!</h1>
                     <p className="thank-you-page__body">
-                        Your enquiry is on its way. I&rsquo;ll reply within 1
+                        Your enquiry is on its way. We&rsquo;ll reply within 1
                         working day with the best next step for your project.
                     </p>
                     <TextArrowAction

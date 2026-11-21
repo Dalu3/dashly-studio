@@ -9,7 +9,7 @@ import { SECTION_PREWARM_ROOT_MARGIN } from "../constants/performance";
 import { SERVICE_OFFERINGS } from "../data/services";
 
 const READING_COPY =
-    "Choose the option closest to your idea, or answer five quick questions to receive a personalised project estimate.";
+    "Choose the option closest to your idea, or answer four quick questions to receive a personalised project estimate.";
 const READING_WORDS = READING_COPY.split(" ");
 
 
@@ -362,7 +362,7 @@ export default function Packages() {
                         />
                     </button>
                     <p className="packages-estimate__mobile-caption">
-                        Answer 5 quick questions to get a tailored estimate.
+                        Answer 4 quick questions to get a tailored estimate.
                     </p>
                 </div>
             </div>
