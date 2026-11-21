@@ -263,9 +263,14 @@ export function HelloModel({
             return undefined;
         }
 
-        // Context attributes are fixed at creation, before any layout pass has
-        // measured the host, so this reads the viewport directly against the
-        // same threshold `resolveFurQuality` will use for the preset.
+        // Context attributes are fixed at creation, before any layout pass
+        // has measured the host, so this resolves the profile from the
+        // viewport — the same call, and the same `?furQuality=` override,
+        // that `applyLayout` will use once it can measure.
+        const initialQuality = resolveFurQuality(
+            window.innerWidth,
+            reducedMotionRef.current,
+        );
         const lightweightRaster =
             window.innerWidth <= MOBILE_QUALITY_MAX_WIDTH;
 
@@ -273,9 +278,12 @@ export function HelloModel({
 
         try {
             renderer = new WebGLRenderer({
-                // MSAA multiplies the cost of every one of ~1.6M strand
-                // triangles. Phones carry the pile at 1.5x DPR instead.
-                antialias: !lightweightRaster,
+                // Owned by the profile now, not by the viewport width. A
+                // phone that can afford the pile at all can afford to
+                // resolve its edges, and on a tile-based mobile GPU the
+                // resolve happens in tile memory rather than over the whole
+                // framebuffer.
+                antialias: initialQuality.msaa,
                 alpha: true,
                 powerPreference: "high-performance",
             });
@@ -290,6 +298,124 @@ export function HelloModel({
         // on layout changes only, not for every moving-fibre render.
         renderer.shadowMap.autoUpdate = false;
         host.appendChild(renderer.domElement);
+
+        // `?furDebug=1` prints what the device actually gave us on top of the
+        // hero. It exists because none of this can be reproduced off the
+        // device: a desktop pane runs at a different pixel ratio, and whether
+        // WebKit honoured the multisample request is something only the phone
+        // itself can answer. Nothing renders it unless the parameter is in
+        // the URL, so it never reaches a visitor.
+        let furDebugTimer = 0;
+        let furDebugPanel: HTMLPreElement | null = null;
+        let furDebugFrameIdRef: (() => void) | null = null;
+        if (new URLSearchParams(window.location.search).has("furDebug")) {
+            // React's development double-mount, and every hot update, build a
+            // second renderer beside the first; without this the readouts
+            // stack up and it stops being clear which one is live.
+            for (const stale of host.querySelectorAll("[data-fur-debug]")) {
+                stale.remove();
+            }
+
+            const panel = document.createElement("pre");
+            panel.dataset.furDebug = "true";
+            furDebugPanel = panel;
+            panel.style.cssText = [
+                "position:absolute",
+                "inset:auto auto 8px 8px",
+                "z-index:99",
+                "margin:0",
+                "padding:8px 10px",
+                "font:11px/1.45 ui-monospace,monospace",
+                "color:#0b2233",
+                "background:rgba(255,255,255,.82)",
+                "border-radius:8px",
+                "pointer-events:none",
+                "white-space:pre",
+            ].join(";");
+            host.appendChild(panel);
+
+            // Frames the renderer actually drew, and how badly the main
+            // thread stalled while doing it. The first number is capped by
+            // the profile's own idle rate, so what matters is whether it
+            // reaches that cap; the second is what a phone that cannot keep
+            // up shows first, as a long gap rather than a lower average.
+            let drawnAtLastReport = renderer.info.render.frame;
+            let reportedAt = performance.now();
+            let framesSinceReport = 0;
+            let worstGapMs = 0;
+            let lastFrameAt = reportedAt;
+            let furDebugFrameId = 0;
+
+            const sampleFrame = (now: number) => {
+                worstGapMs = Math.max(worstGapMs, now - lastFrameAt);
+                lastFrameAt = now;
+                framesSinceReport += 1;
+                furDebugFrameId = requestAnimationFrame(sampleFrame);
+            };
+
+            furDebugFrameId = requestAnimationFrame(sampleFrame);
+            furDebugFrameIdRef = () => cancelAnimationFrame(furDebugFrameId);
+
+            const report = () => {
+                const gl = renderer.getContext();
+                const now = performance.now();
+                const elapsed = Math.max(now - reportedAt, 1);
+                const drawnFps =
+                    ((renderer.info.render.frame - drawnAtLastReport) * 1000) /
+                    elapsed;
+                const screenFps = (framesSinceReport * 1000) / elapsed;
+                const gap = worstGapMs;
+
+                drawnAtLastReport = renderer.info.render.frame;
+                reportedAt = now;
+                framesSinceReport = 0;
+                worstGapMs = 0;
+                // Read the canvas itself rather than the renderer's cached
+                // size: applyLayout sizes the drawing buffer directly and
+                // three's cached value does not follow that call.
+                const buffer = {
+                    x: renderer.domElement.width,
+                    y: renderer.domElement.height,
+                };
+                const quality = resolveFurQuality(
+                    host.clientWidth || window.innerWidth,
+                    reducedMotionRef.current,
+                );
+                const debugInfo = gl.getExtension("WEBGL_debug_renderer_info");
+
+                panel.textContent = [
+                    `preset   ${quality.name}`,
+                    `css      ${host.clientWidth}x${host.clientHeight}`,
+                    `buffer   ${buffer.x}x${buffer.y}`,
+                    `dpr      ${window.devicePixelRatio} -> ${(
+                        buffer.x / Math.max(host.clientWidth, 1)
+                    ).toFixed(2)}`,
+                    `samples  ${gl.getParameter(gl.SAMPLES)} / max ${
+                        "MAX_SAMPLES" in gl
+                            ? String(gl.getParameter(gl.MAX_SAMPLES))
+                            : "n/a (webgl1)"
+                    }`,
+                    `asked    msaa ${String(quality.msaa)}`,
+                    `drawn    ${drawnFps.toFixed(1)}/s of ${quality.idleFps} target`,
+                    `screen   ${screenFps.toFixed(1)}/s, worst gap ${gap.toFixed(0)}ms`,
+                    `tris     ${(
+                        renderer.info.render.triangles / 1000
+                    ).toFixed(0)}k`,
+                    `gpu      ${
+                        debugInfo
+                            ? String(
+                                  gl.getParameter(
+                                      debugInfo.UNMASKED_RENDERER_WEBGL,
+                                  ),
+                              ).slice(0, 34)
+                            : "hidden"
+                    }`,
+                ].join("\n");
+            };
+
+            report();
+            furDebugTimer = window.setInterval(report, 1000);
+        }
         const touchSurface = document.createElement("div");
         touchSurface.className = styles.interactionSurface!;
         // This must be a sibling after Hero content. The content layer covers
@@ -1064,6 +1190,9 @@ export function HelloModel({
             cancelAnimationFrame(readyFrameId);
             cancelAnimationFrame(layoutFrameId);
             window.clearTimeout(rebuildTimer);
+            window.clearInterval(furDebugTimer);
+            furDebugFrameIdRef?.();
+            furDebugPanel?.remove();
             observer.disconnect();
             viewportObserver.disconnect();
             window.removeEventListener("resize", scheduleLayout);
