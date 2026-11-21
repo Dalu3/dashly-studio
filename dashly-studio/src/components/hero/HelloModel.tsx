@@ -83,6 +83,14 @@ export interface HelloModelDebugHandle {
 export interface HelloModelProps {
     className?: string;
     debug?: boolean;
+    /**
+     * Fires `true` on the frame the word is actually on screen, and `false`
+     * whenever it leaves again (a lost context, an unmount). The Hero keeps
+     * its static wordmark painted until this says the 3D word has taken
+     * over, so the two never show at once and the hero is never wordless.
+     * A scene that never gets there simply never fires it.
+     */
+    onWordVisibleChange?: (visible: boolean) => void;
 }
 
 /**
@@ -201,8 +209,19 @@ const FUR_ROOT_COLOR = "#159fdf";
  * lives in `fur/` — this component only calls `createFur()` and places the
  * result.
  */
-export function HelloModel({ className, debug = false }: HelloModelProps) {
+export function HelloModel({
+    className,
+    debug = false,
+    onWordVisibleChange,
+}: HelloModelProps) {
     const hostRef = useRef<HTMLDivElement>(null);
+
+    // Same reasoning as `reducedMotionRef` below: the scene effect runs once
+    // ([] deps), so it reads the callback through a ref rather than taking a
+    // dependency that would tear the whole scene down and rebuild it every
+    // time the Hero re-renders with a new inline function.
+    const onWordVisibleChangeRef = useRef(onWordVisibleChange);
+    onWordVisibleChangeRef.current = onWordVisibleChange;
 
     // Read once per mount via a ref — the
     // effect below builds the whole scene exactly once ([] deps); a live
@@ -334,6 +353,7 @@ export function HelloModel({ className, debug = false }: HelloModelProps) {
             // be lost after the word is already on screen, and an abrupt
             // disappearance reads as a glitch.
             delete host.dataset.ready;
+            onWordVisibleChangeRef.current?.(false);
         };
 
         renderer.domElement.addEventListener("webglcontextlost", handleContextLost);
@@ -996,6 +1016,7 @@ export function HelloModel({ className, debug = false }: HelloModelProps) {
             readyFrameId = requestAnimationFrame(() => {
                 if (!disposed) {
                     host.dataset.ready = "true";
+                    onWordVisibleChangeRef.current?.(true);
                 }
             });
         };
@@ -1035,6 +1056,9 @@ export function HelloModel({ className, debug = false }: HelloModelProps) {
 
         return () => {
             disposed = true;
+            // The canvas is about to go; hand the hero back to the static
+            // wordmark so no teardown can leave the word missing entirely.
+            onWordVisibleChangeRef.current?.(false);
             rebuildGeneration += 1;
             cancelAnimationFrame(buildFrameId);
             cancelAnimationFrame(readyFrameId);

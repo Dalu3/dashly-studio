@@ -85,3 +85,116 @@
         padding-inline: var(--space-0);
     }
 }
+
+/**
+ * Static wordmark: the hero's "hello" before (or instead of) the 3D one.
+ *
+ * The 3D word is always late — three.js, hello.glb and ~160k strands stand
+ * between first paint and the first rendered frame — and on a device that
+ * fails `canEnhanceHero` it never arrives at all. This image holds that
+ * space so the first screen is never wordless, and `data-replaced` retires
+ * it once HelloModel reports the real word is up.
+ *
+ * Placement is not eyeballed. HelloModel composes the word in 3D from the
+ * LAYOUT presets (see its `applyLayout`), and the numbers below are those
+ * same presets resolved into CSS, which is why they must move together:
+ *
+ *   width      = preset.width * preset.sizeScale * 1.056
+ *   max-height = preset.maxHeight * preset.sizeScale * preset.verticalScale
+ *                * 1.152
+ *   top        = 50% - preset.offsetY * 100%
+ *
+ * The two constants are the sprite's own overhang, measured off a capture of
+ * the rendered scene: the fur reaches ~5.6% past the base mesh's width and
+ * ~15.2% past its height. The file is cropped symmetrically about the word's
+ * centre, so centring the element centres the word itself.
+ *
+ * The sprite carries NO contact shadow, deliberately. The capture had one,
+ * but a baked shadow is wrong twice over: its offset belongs to the aspect
+ * it was captured at (HelloModel moves the shadow plane closer on mobile,
+ * see `shadowZ`), and during the hand-off it stacks with the real one, so
+ * the word sits in a visibly darker shadow that then lifts. With no shadow
+ * here, the real one simply fades in with the canvas.
+ *
+ * `width` with `max-height` and `object-fit: contain` reproduces the MIN()
+ * that `applyLayout` takes between its width- and height-derived scales: a
+ * wide, short viewport clamps on height and the image simply letterboxes
+ * inside its box instead of stretching.
+ */
+.wordmarkLayer {
+    position: absolute;
+    inset: 0;
+    z-index: var(--z-raised);
+
+    /* Branch on this box's own aspect, exactly as applyLayout does. Size
+       containment is safe here and only here: an inset-filled absolute box
+       takes its size from the Hero, never from what is inside it. */
+    container: hero-box / size;
+
+    /* Never a hit target: the canvas's own touch surface owns the word. */
+    pointer-events: none;
+}
+
+.wordmark {
+    position: absolute;
+    left: 50%;
+    top: 31%;
+    translate: -50% -50%;
+
+    /* Desktop preset: width 0.93, sizeScale 0.87, maxHeight 0.57. The
+       width/height attributes on the tag reserve the box before the file
+       lands, but they also arrive as presentation hints, so `height: auto`
+       is what lets aspect-ratio own the box instead. */
+    width: 85.44%;
+    height: auto;
+    max-height: 57.14%;
+    aspect-ratio: 2.5102;
+    object-fit: contain;
+
+    /* A true cross-fade: same duration and easing as the canvas's fade-in
+       (see HelloModel.module.css), started on the same frame, so this one's
+       opacity is the exact complement of the canvas's at every moment.
+       Holding it at full opacity until the canvas had arrived seemed safer
+       and was not: the word's body is opaque and hides what is under it,
+       but the contact shadow is not, and two shadows stacked read as one
+       much darker shadow that then lifts — a visible pulse under the word
+       for the whole hand-off. Cross-fading keeps the pair within ~1% of a
+       single shadow throughout, and the two images coincide closely enough
+       (within ~1% at every breakpoint) that the body does not dip. */
+    opacity: 0;
+    transition: opacity var(--duration-slow) var(--ease-entrance);
+}
+
+.wordmark[data-loaded="true"] {
+    opacity: 1;
+}
+
+/* Last, so it outranks the entry rule at equal specificity: a word that
+   arrives while the sprite is still decoding must still retire it. */
+.wordmark[data-replaced="true"] {
+    opacity: 0;
+}
+
+/* Tablet preset: width 0.88, sizeScale 0.8, maxHeight 0.54, offsetY 0.18.
+   The thresholds match HelloModel's own 0.85 / 1.4 aspect switch. */
+@container hero-box (min-aspect-ratio: 85 / 100) and (max-aspect-ratio: 140 / 100) {
+    .wordmark {
+        top: 32%;
+        width: 74.34%;
+        max-height: 49.78%;
+    }
+}
+
+/* Mobile preset: width 0.94, sizeScale 1, maxHeight 0.54, offsetY 0.15, and
+   a verticalScale of 1.08 — the only preset that stretches the word. The
+   stretch goes into the box's aspect ratio, and `fill` lets the image take
+   it, since at this aspect the width always binds and nothing letterboxes. */
+@container hero-box (max-aspect-ratio: 85 / 100) {
+    .wordmark {
+        top: 35%;
+        width: 99.26%;
+        max-height: 67.2%;
+        aspect-ratio: 2.3243;
+        object-fit: fill;
+    }
+}
