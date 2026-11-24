@@ -1,6 +1,7 @@
 import { cn } from "@/utils/cn";
 import type { MouseEvent } from "react";
 
+import { EmailLink } from "../ui/EmailLink";
 import { FOOTER_NAV_LINKS, FOOTER_SOCIAL_LINKS } from "./footerLinks";
 import styles from "./Footer.module.css";
 
@@ -8,7 +9,8 @@ import styles from "./Footer.module.css";
  * Site footer, matching the Figma frame exactly: tagline + wordmark, a
  * Navigation column, a "Let's stay in touch" column (plain text social
  * links, no icons), then copyright + legal links. Nothing here that isn't
- * in that frame — no Ukraine banner, no email line, no icon glyphs.
+ * in that frame — no Ukraine banner, no icon glyphs. The studio email (with
+ * copy button) is the one deliberate addition, above the social links.
  */
 export default function Footer() {
     const currentYear = new Date().getFullYear();
@@ -75,6 +77,9 @@ export default function Footer() {
                                     Follow us on social media for updates, insights &amp;
                                     inspiration.
                                 </span>
+                            </p>
+                            <p className={styles.touchEmail}>
+                                <EmailLink linkClassName={styles.link} />
                             </p>
                             <ul className={styles.linkList}>
                                 {FOOTER_SOCIAL_LINKS.map((social) => (

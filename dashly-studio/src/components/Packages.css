@@ -18,7 +18,7 @@
 
 .packages-intro {
     max-width: var(--container-default);
-    margin-block-end: var(--space-xl);
+    margin-block-end: var(--space-lg);
 }
 
 .packages-intro h2,
@@ -94,7 +94,7 @@
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: var(--space-sm);
-    padding: calc(var(--space-sm) + var(--space-3xs)) var(--space-xs);
+    padding: var(--space-sm) var(--space-xs);
     cursor: pointer;
 }
 
@@ -129,6 +129,17 @@
     font-weight: var(--font-weight-semibold);
     line-height: var(--line-height-type-h3);
     transition: var(--transition-colors);
+}
+
+/* Existing tokens only: a quiet secondary-colour tag after the title. */
+.package-row__price {
+    display: block;
+    margin-block-start: var(--space-3xs);
+    color: var(--color-text-secondary);
+    font-size: var(--type-small);
+    font-weight: var(--font-weight-regular);
+    line-height: var(--line-height-normal);
+    white-space: nowrap;
 }
 
 .package-row p {
@@ -171,7 +182,7 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-md);
-    padding: var(--space-xl) var(--space-xs) var(--space-0);
+    padding: var(--space-lg) var(--space-xs) var(--space-0);
 }
 
 .packages-estimate p,
@@ -497,7 +508,7 @@
         grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
         align-items: center;
         column-gap: var(--space-2xl);
-        padding-block: calc(var(--space-sm) + var(--space-3xs));
+        padding-block: var(--space-sm);
     }
 
     .packages-estimate {

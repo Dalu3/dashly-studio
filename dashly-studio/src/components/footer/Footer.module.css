@@ -135,6 +135,13 @@
     border-radius: var(--radius-xs);
 }
 
+.touchEmail {
+    margin: 0 0 1.25rem;
+    font-size: var(--font-size-footer-link);
+    font-weight: var(--font-weight-extralight);
+    letter-spacing: var(--letter-spacing-wide-plus);
+}
+
 .touchBlurb {
     margin: 0 0 1.75rem;
     /* Forces the exact Figma break ("...for" / "updates,...") — measured in
@@ -492,13 +499,43 @@
 @media (max-width: 63.999rem) {
     .columns {
         grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-        align-items: start;
+        align-items: stretch;
         column-gap: var(--space-lg);
         row-gap: var(--space-2xl);
     }
 
     .touchBlurb {
         max-width: 100%;
+        margin-block-end: var(--space-sm);
+    }
+
+    /* Tighter stack in the contact column, which also shortens the column
+       the Navigation links are spread to match. */
+    .touchEmail {
+        margin-block-end: var(--space-xs);
+    }
+
+    /* Equal-length columns: the shorter Navigation list spreads its links
+       down to the same bottom edge as the taller contact column. */
+    .nav,
+    .touch {
+        display: grid;
+        grid-template-rows: auto 1fr;
+        min-width: 0;
+    }
+
+    .nav .linkList {
+        justify-content: space-between;
+    }
+
+    .touchBody {
+        display: flex;
+        min-height: 0;
+        flex-direction: column;
+    }
+
+    .touchBody .linkList {
+        margin-block-start: auto;
     }
 }
 

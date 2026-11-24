@@ -1,6 +1,6 @@
 export const SITE_URL = "https://dashly.studio";
 export const SITE_NAME = "Dashly Studio";
-export const SITE_EMAIL = "dashly.studio.webdev@gmail.com";
+export const SITE_EMAIL = "hello@dashly.studio";
 export const SITE_IMAGE = "/og-image.jpg";
 export const SITE_IMAGE_ALT =
     "Dashly Studio website design preview, based in Aberdeen, Scotland and serving businesses worldwide";
@@ -27,7 +27,7 @@ export const faqItems = [
 ];
 
 export const homeContent = {
-    heroSubtitle: "Dashly Studio is a web design and development studio based in Aberdeen, Scotland, serving businesses worldwide",
+    heroSubtitle: "Dashly Studio is a web design and development studio building fast, custom websites for UK businesses",
     heroTitleLines: ["We create websites", "That perform"],
     packagesIntro: "Choose the type of website you need, then move into a build that is designed to rank, load quickly, and turn visits into enquiries.",
     stagesIntro: "A clear process keeps your website project moving from planning to launch without guesswork, missed pages, or weak structure.",
@@ -99,6 +99,7 @@ function getBusinessSchema() {
         name: SITE_NAME,
         url: `${SITE_URL}/`,
         description: homeContent.heroSubtitle + ".",
+        email: SITE_EMAIL,
         areaServed: serviceAreas,
         serviceType: ["Web design", "Website development", "Landing page design"],
         sameAs: SOCIAL_LINKS,

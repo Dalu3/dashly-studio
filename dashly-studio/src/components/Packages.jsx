@@ -7,6 +7,19 @@ import { navigateToHash } from "../utils/scrollToHash";
 import { openEstimator } from "./estimator/estimatorEvents";
 import { SECTION_PREWARM_ROOT_MARGIN } from "../constants/performance";
 import { SERVICE_OFFERINGS } from "../data/services";
+import { pricingConfig } from "./estimator/pricingConfig";
+
+// Card prices come from the estimator's base prices so the two never drift.
+// A type without a base price (Web Application) is quoted individually.
+function getPriceLabel(service) {
+    const type = pricingConfig.websiteTypes.find(
+        ({ id }) => id === service.estimatorWebsiteTypeId,
+    );
+
+    return type?.basePrice
+        ? `from £${type.basePrice.toLocaleString("en-GB")}`
+        : "custom quote";
+}
 
 const READING_COPY =
     "Choose the option closest to your idea, or answer four quick questions to receive a personalised project estimate.";
@@ -331,7 +344,13 @@ export default function Packages() {
                                 packageRowsRef.current[index] = row;
                             }}
                         >
-                            <h3 id={`package-title-${pkg.id}`}>{pkg.label}</h3>
+                            <h3 id={`package-title-${pkg.id}`}>
+                                {pkg.label}
+                                <span className="package-row__price">
+                                    {" "}
+                                    {getPriceLabel(pkg)}
+                                </span>
+                            </h3>
                             <p>{pkg.description}</p>
                             <button
                                 type="button"

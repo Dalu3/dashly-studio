@@ -1,0 +1,62 @@
+.root {
+    display: inline-flex;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.125rem;
+    max-width: 100%;
+}
+
+/* Keep the address and its icon on one line, never splitting the address. */
+.root a {
+    white-space: nowrap;
+}
+
+/* Inherits the surrounding type so it reads as a quiet companion to the link
+   in both the contact copy and the footer. */
+.copy {
+    appearance: none;
+    background: none;
+    border: 0;
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem;
+    margin: 0;
+    color: inherit;
+    opacity: 0.6;
+    cursor: pointer;
+    border-radius: var(--radius-xs);
+    transition: opacity 0.2s ease, color 0.2s ease;
+}
+
+.copy:hover {
+    opacity: 1;
+}
+
+.copy:focus-visible {
+    outline: none;
+    opacity: 1;
+    box-shadow: var(--shadow-focus-ring);
+}
+
+.icon {
+    display: block;
+    width: 1.125rem;
+    height: 1.125rem;
+}
+
+.copied {
+    opacity: 1;
+    color: var(--color-text-accent);
+}
+
+.srOnly {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}

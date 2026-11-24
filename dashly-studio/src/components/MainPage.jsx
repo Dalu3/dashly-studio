@@ -36,7 +36,7 @@ export function MainPage() {
                     />
                 </a>
                 <span>
-                    Working <br className="hero-copy__meta-break" /> Worldwide
+                    Working <br className="hero-copy__meta-break" /> UK-wide
                 </span>
             </div>
         </div>

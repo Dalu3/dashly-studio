@@ -184,7 +184,7 @@ function renderHomeFallback() {
         <h1 id="hero-title">${homeContent.heroTitleLines.map(escapeHtml).join(" ")}</h1>
         <p>${escapeHtml(homeContent.heroSubtitle)}</p>
         <p>Based in Scotland</p>
-        <p>Working Worldwide</p>
+        <p>Working UK-wide</p>
         <p>${renderLink("/#contact", "Start a project conversation")}</p>
     </section>
     <section id="work" aria-labelledby="work-title">
