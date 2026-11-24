@@ -339,6 +339,11 @@
             var(--container-gutter) + var(--space-xs)
         );
     }
+
+    /* Laptop only: more air between the divider and the copyright/legal row. */
+    .bottom {
+        padding-block-start: 2.25rem;
+    }
 }
 
 .copyright {
